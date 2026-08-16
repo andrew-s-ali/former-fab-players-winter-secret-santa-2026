@@ -20,6 +20,9 @@
 # netlify
 .netlify
 
+# local participant data — never commit; the repo is public
+/data
+
 # next.js
 /.next/
 /out/
