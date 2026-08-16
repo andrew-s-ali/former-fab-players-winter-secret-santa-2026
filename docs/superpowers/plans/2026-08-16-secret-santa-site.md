@@ -1,5 +1,11 @@
 # Secret Santa Site Implementation Plan
 
+> ✅ **Shipped 2026-08-16.** All 15 tasks complete: 60 unit tests, 7 Playwright
+> E2E tests, lint/typecheck/build all clean. See the per-task notes below for
+> where the implementation deliberately diverged from this plan's code
+> sketches. Deploy is manual — the operator runs it themselves per the
+> [README's "Deploying" section](../../../README.md#deploying).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the Former Fab Players Winter Secret Santa 2026 site — a random legal-commander suggester plus per-participant secret reveal pages.
@@ -44,7 +50,7 @@
 - Create: `src/lib/rules.ts`
 - Test: `src/lib/rules.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/rules.test.ts
@@ -77,12 +83,12 @@ describe("event rules", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/rules.test.ts`
 Expected: FAIL — `Failed to resolve import "./rules"`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/lib/rules.ts
@@ -112,12 +118,12 @@ export const BUDGET_USD = 75;
 export const COMMANDER_POOL_QUERY = "f:edh is:commander r:u game:paper";
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/rules.test.ts`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/rules.ts src/lib/rules.test.ts
@@ -137,7 +143,7 @@ Ultimecia. That is what this task's second test pins.
 - Create: `src/lib/scryfall/types.ts`, `src/lib/scryfall/normalize.ts`
 - Test: `src/lib/scryfall/normalize.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/scryfall/normalize.test.ts
@@ -233,12 +239,12 @@ describe("normalizeCard", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/scryfall/normalize.test.ts`
 Expected: FAIL — cannot resolve `./normalize`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/lib/scryfall/types.ts
@@ -312,12 +318,12 @@ export function normalizeCard(card: ScryfallCard): Commander {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/scryfall/normalize.test.ts`
 Expected: PASS, 4 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/scryfall/
@@ -332,7 +338,7 @@ git commit -m "feat: normalise Scryfall cards, handling transform layouts"
 - Create: `src/lib/scryfall/pool.ts`
 - Test: `src/lib/scryfall/pool.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/scryfall/pool.test.ts
@@ -414,12 +420,12 @@ describe("fetchCommanderPool", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/scryfall/pool.test.ts`
 Expected: FAIL — cannot resolve `./pool`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/lib/scryfall/pool.ts
@@ -471,12 +477,12 @@ export async function fetchCommanderPool(): Promise<Commander[]> {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/scryfall/pool.test.ts`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Verify against the live API**
+- [x] **Step 5: Verify against the live API**
 
 Run:
 
@@ -486,7 +492,7 @@ curl -s "https://api.scryfall.com/cards/search?unique=cards&q=f%3Aedh+is%3Acomma
 
 Expected: `704` (may drift upward as sets release; a number in the low 700s is correct, `0` or an error is not)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/scryfall/pool.ts src/lib/scryfall/pool.test.ts
@@ -501,7 +507,7 @@ git commit -m "feat: fetch and cache the Scryfall commander pool"
 - Create: `src/lib/commanders.ts`
 - Test: `src/lib/commanders.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/commanders.test.ts
@@ -599,12 +605,12 @@ describe("pickCommander", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/commanders.test.ts`
 Expected: FAIL — cannot resolve `./commanders`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/lib/commanders.ts
@@ -688,12 +694,12 @@ export function pickCommander(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/commanders.test.ts`
 Expected: PASS, 8 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/commanders.ts src/lib/commanders.test.ts
@@ -708,7 +714,7 @@ git commit -m "feat: filter and randomly pick legal commanders"
 - Create: `src/lib/draw.ts`
 - Test: `src/lib/draw.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/draw.test.ts
@@ -778,12 +784,12 @@ describe("drawAssignments", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/draw.test.ts`
 Expected: FAIL — cannot resolve `./draw`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Uses the cycle method: shuffle, then have each person give to the next in the
 shuffled order, wrapping at the end. This produces a single cycle, so
@@ -832,12 +838,12 @@ export function drawAssignments(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/draw.test.ts`
 Expected: PASS, 6 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/draw.ts src/lib/draw.test.ts
@@ -852,7 +858,7 @@ git commit -m "feat: add derangement draw"
 - Create: `src/lib/tokens.ts`, `src/lib/participants.ts`
 - Test: `src/lib/tokens.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/tokens.test.ts
@@ -877,12 +883,12 @@ describe("mintToken", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/tokens.test.ts`
 Expected: FAIL — cannot resolve `./tokens`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // src/lib/tokens.ts
@@ -933,12 +939,12 @@ export function findById(event: EventData, id: string): Participant | null {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/lib/tokens.test.ts`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/tokens.ts src/lib/tokens.test.ts src/lib/participants.ts
@@ -949,6 +955,11 @@ git commit -m "feat: add reveal tokens and participant types"
 
 ## Task 7: The event store
 
+> **Diverged:** the shipped helper is named `shouldUseBlobs()`, not
+> `useBlobs()` as sketched below — ESLint's react-hooks plugin treats any
+> `use*`-prefixed function as a hook, which misfires on a plain boolean
+> helper. Behaviour is identical.
+
 Production reads Netlify Blobs. Local dev and E2E read a gitignored JSON file,
 so neither needs Netlify credentials.
 
@@ -957,7 +968,7 @@ so neither needs Netlify credentials.
 - Modify: `.gitignore`
 - Test: `src/lib/store.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/store.test.ts
@@ -1013,16 +1024,16 @@ describe("readEvent", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/store.test.ts`
 Expected: FAIL — cannot resolve `./store`
 
-- [ ] **Step 3: Install the Blobs client**
+- [x] **Step 3: Install the Blobs client**
 
 Run: `npm install @netlify/blobs`
 
-- [ ] **Step 4: Write the implementation**
+- [x] **Step 4: Write the implementation**
 
 ```ts
 // src/lib/store.ts
@@ -1083,7 +1094,7 @@ export async function writeEvent(event: EventData): Promise<void> {
 }
 ```
 
-- [ ] **Step 5: Ignore the local data file**
+- [x] **Step 5: Ignore the local data file**
 
 Add to `.gitignore`:
 
@@ -1092,12 +1103,12 @@ Add to `.gitignore`:
 /data
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `npm test -- src/lib/store.test.ts`
 Expected: PASS, 2 tests
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lib/store.ts src/lib/store.test.ts .gitignore package.json package-lock.json
@@ -1108,12 +1119,18 @@ git commit -m "feat: add event store backed by Netlify Blobs"
 
 ## Task 8: Rules component and home page
 
+> **Diverged:** the shipped `RulesSummary` merges the "uncommon" and
+> "partnered commanders must both be uncommon" bullets into one ("Commanders
+> (including both halves of a partner pair) must be legendary creatures
+> printed in paper at uncommon."), and renders the Malcolm+Kediss pair ban by
+> mapping over `BANNED_PAIRS` rather than hard-coding the sentence.
+
 **Files:**
 - Create: `src/components/RulesSummary.tsx`
 - Modify: `src/app/page.tsx`
 - Test: `src/components/RulesSummary.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/RulesSummary.test.tsx
@@ -1144,12 +1161,12 @@ describe("RulesSummary", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/RulesSummary.test.tsx`
 Expected: FAIL — cannot resolve `./RulesSummary`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```tsx
 // src/components/RulesSummary.tsx
@@ -1207,7 +1224,7 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 4: Update the existing home page test**
+- [x] **Step 4: Update the existing home page test**
 
 `src/app/page.test.tsx` still asserts the placeholder copy. Replace it:
 
@@ -1237,12 +1254,12 @@ describe("Home", () => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test`
 Expected: PASS, all suites
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/RulesSummary.tsx src/components/RulesSummary.test.tsx src/app/page.tsx src/app/page.test.tsx
@@ -1253,10 +1270,14 @@ git commit -m "feat: add rules summary and home page"
 
 ## Task 9: Random commander API route
 
+> **Note:** implemented together with Task 10 in practice — the route and
+> its consuming component/page landed in the same pass, since the component
+> can't be usefully tested without the route existing.
+
 **Files:**
 - Create: `src/app/api/commanders/random/route.ts`
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 The pool fetch is mocked in unit tests and exercised for real in E2E; this
 route is thin glue, so it gets no unit test of its own.
@@ -1290,7 +1311,7 @@ export async function GET(request: Request) {
 }
 ```
 
-- [ ] **Step 2: Verify manually**
+- [x] **Step 2: Verify manually**
 
 Run `npm run dev`, then:
 
@@ -1301,7 +1322,7 @@ curl -s "http://localhost:3000/api/commanders/random?exclude=R" | python3 -c "im
 Expected: a commander name with no `R` in its colour identity. Run it a few
 times — the name should change.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/commanders/random/route.ts
@@ -1316,7 +1337,7 @@ git commit -m "feat: add random commander endpoint"
 - Create: `src/components/CommanderSuggester.tsx`, `src/app/commanders/page.tsx`
 - Test: `src/components/CommanderSuggester.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/CommanderSuggester.test.tsx
@@ -1385,12 +1406,12 @@ describe("CommanderSuggester", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/CommanderSuggester.test.tsx`
 Expected: FAIL — cannot resolve `./CommanderSuggester`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```tsx
 // src/components/CommanderSuggester.tsx
@@ -1506,12 +1527,12 @@ export default function CommandersPage() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/components/CommanderSuggester.test.tsx`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/CommanderSuggester.tsx src/components/CommanderSuggester.test.tsx src/app/commanders/page.tsx
@@ -1522,6 +1543,14 @@ git commit -m "feat: add commander suggester page"
 
 ## Task 11: Secret reveal page
 
+> **Diverged:** the shipped page also handles a *dangling* recipient (a giver
+> whose `recipientId` doesn't resolve to any participant — a data fault, not
+> a bad URL) with the same indistinguishable `notFound()`, logging a
+> server-side `console.error` for the organiser first. The store's
+> `readFile` call (`src/lib/store.ts`, Task 7) carries a
+> `/* turbopackIgnore: true */` comment so Turbopack doesn't try to
+> statically analyse the dynamic `localPath()` argument.
+
 An unknown token must 404 exactly like a malformed one, so the page never
 reveals which tokens exist.
 
@@ -1529,7 +1558,7 @@ reveals which tokens exist.
 - Create: `src/app/s/[token]/page.tsx`, `src/components/RevealDetails.tsx`
 - Test: `src/components/RevealDetails.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/RevealDetails.test.tsx
@@ -1574,12 +1603,12 @@ describe("RevealDetails", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/RevealDetails.test.tsx`
 Expected: FAIL — cannot resolve `./RevealDetails`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```tsx
 // src/components/RevealDetails.tsx
@@ -1676,12 +1705,12 @@ export default async function RevealPage({
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- src/components/RevealDetails.test.tsx`
 Expected: PASS, 3 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/RevealDetails.tsx src/components/RevealDetails.test.tsx "src/app/s/[token]/page.tsx"
@@ -1691,6 +1720,19 @@ git commit -m "feat: add secret reveal page"
 ---
 
 ## Task 12: The draw script
+
+> **Diverged:** `scripts/csv.ts` and `scripts/draw.ts` import via the
+> `#lib/*`/`#scripts/*` subpath-imports map in `package.json` (see the
+> README's "Development notes"), not the relative `../src/lib/...` paths
+> sketched below. `toParticipantInputs` also gained validation the sketch
+> doesn't have: it throws on an unrecognised colour word (naming the
+> participant and listing known colours), on an empty name (naming the CSV
+> row), and on two participants sharing a name case-insensitively (names must
+> be unique — `update-participant`, Task 13, looks people up by name).
+> `parseCsv` also strips a leading UTF-8 BOM, since Google Sheets exports are
+> often BOM-prefixed and an unstripped BOM silently breaks the first header's
+> match against `COLUMN_MAP`. `scripts/draw.ts` also prints an explicit
+> "send each link privately" warning alongside the name/URL lines.
 
 **Files:**
 - Create: `scripts/draw.ts`, `scripts/csv.ts`
@@ -1702,7 +1744,7 @@ are a guess — the form does not exist yet. `COLUMN_MAP` is the one place to
 change them, and the script fails loudly listing the actual headers when a
 mapping is wrong, rather than silently importing blanks.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // scripts/csv.test.ts
@@ -1762,7 +1804,7 @@ describe("toParticipantInputs", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- scripts/csv.test.ts`
 Expected: FAIL — cannot resolve `./csv`
@@ -1773,7 +1815,7 @@ Note: `vitest.config.mts` currently restricts `include` to `src/**`. Widen it:
 include: ["src/**/*.{test,spec}.{ts,tsx}", "scripts/**/*.{test,spec}.ts"],
 ```
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```ts
 // scripts/csv.ts
@@ -1952,7 +1994,7 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 4: Add the npm scripts**
+- [x] **Step 4: Add the npm scripts**
 
 Add to `package.json` `scripts`:
 
@@ -1961,12 +2003,12 @@ Add to `package.json` `scripts`:
 "update-participant": "node --experimental-strip-types scripts/update-participant.ts"
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- scripts/csv.test.ts`
 Expected: PASS, 5 tests
 
-- [ ] **Step 6: Smoke-test the script end to end**
+- [x] **Step 6: Smoke-test the script end to end**
 
 ```bash
 printf 'Your name,Colour to avoid,Theme to avoid,Theme you'"'"'d like\nAda,Red,Mill,Elves\nBob,,Stax,"Artifacts, lots"\nCleo,Green,,\n' > /tmp/santa-test.csv
@@ -1983,7 +2025,7 @@ for p in d['participants']: print(p['name'],'->',by[p['recipientId']]); assert p
 print('no self-assignments')"
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/csv.ts scripts/csv.test.ts scripts/draw.ts package.json vitest.config.mts
@@ -1994,10 +2036,20 @@ git commit -m "feat: add draw script with CSV import"
 
 ## Task 13: Update participants without redrawing
 
+> **Diverged:** imports via `#lib/*`/`#scripts/*` (see Task 12's note), not
+> the relative paths below. Flag parsing is stricter than sketched: a
+> `readFlags()` helper rejects a malformed flag (not `--name=value`), an
+> unknown flag name (e.g. `--colour=` — a typo now errors instead of
+> silently doing nothing), and a flag repeated more than once. `--color`
+> accepts a colour code or a colour word, validated with the same
+> `COLOR_CODES` table `scripts/csv.ts` exports (an invalid colour throws,
+> listing the known codes/words). On success it prints a before → after diff
+> of all three fields, not just a single `console.log` of the new state.
+
 **Files:**
 - Create: `scripts/update-participant.ts`
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 ```ts
 // scripts/update-participant.ts
@@ -2067,7 +2119,7 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 2: Verify it leaves assignments untouched**
+- [x] **Step 2: Verify it leaves assignments untouched**
 
 ```bash
 EVENT_DATA_PATH=/tmp/santa-event.json python3 -c "
@@ -2085,7 +2137,7 @@ diff /tmp/before.json /tmp/after.json && echo 'assignments and tokens unchanged'
 
 Expected: `assignments and tokens unchanged`, and Ada's colour veto now `U`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/update-participant.ts
@@ -2096,11 +2148,22 @@ git commit -m "feat: add participant update script"
 
 ## Task 14: End-to-end tests
 
+> **Diverged:** the shipped suite has 7 tests, not the 6 sketched below. The
+> fixture gained a third participant with a dangling `recipientId` so
+> `reveal.spec.ts` can cover the Task 11 dangling-recipient case, and a fifth
+> `reveal.spec.ts` test checks that the commander suggester on a reveal page
+> passes the recipient's colour veto through as `exclude=`. The
+> dangling/unknown-token test compares rendered title + body text rather
+> than raw response bytes — see the in-file comment on that test for why
+> (`next dev`/Turbopack embeds per-request hydration nonces that make the
+> raw bytes differ even for two hits on the same URL; a production build
+> does not have this issue).
+
 **Files:**
 - Create: `tests/e2e/rules.spec.ts`, `tests/e2e/commanders.spec.ts`, `tests/e2e/reveal.spec.ts`, `tests/e2e/fixture-event.json`
 - Modify: `playwright.config.ts`, `tests/e2e/home.spec.ts`
 
-- [ ] **Step 1: Create the fixture event data**
+- [x] **Step 1: Create the fixture event data**
 
 ```json
 // tests/e2e/fixture-event.json
@@ -2128,7 +2191,7 @@ git commit -m "feat: add participant update script"
 }
 ```
 
-- [ ] **Step 2: Point the dev server at the fixture**
+- [x] **Step 2: Point the dev server at the fixture**
 
 In `playwright.config.ts`, extend `webServer`:
 
@@ -2144,7 +2207,7 @@ In `playwright.config.ts`, extend `webServer`:
   },
 ```
 
-- [ ] **Step 3: Write the specs**
+- [x] **Step 3: Write the specs**
 
 ```ts
 // tests/e2e/rules.spec.ts
@@ -2210,7 +2273,7 @@ test("the reveal page is not indexable", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 4: Replace the placeholder home spec**
+- [x] **Step 4: Replace the placeholder home spec**
 
 `tests/e2e/home.spec.ts` duplicates `rules.spec.ts` now. Delete it:
 
@@ -2218,12 +2281,12 @@ test("the reveal page is not indexable", async ({ page }) => {
 git rm tests/e2e/home.spec.ts
 ```
 
-- [ ] **Step 5: Run the E2E suite**
+- [x] **Step 5: Run the E2E suite**
 
 Run: `npm run test:e2e`
 Expected: PASS, 6 tests
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/e2e/ playwright.config.ts
@@ -2237,12 +2300,12 @@ git commit -m "test: add end-to-end coverage for rules, suggester and reveal"
 **Files:**
 - Modify: `netlify.toml`, `README.md`
 
-- [ ] **Step 1: Verify the full gate passes**
+- [x] **Step 1: Verify the full gate passes**
 
 Run: `npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e`
 Expected: all green
 
-- [ ] **Step 2: Document the operational runbook**
+- [x] **Step 2: Document the operational runbook**
 
 Add to `README.md`:
 
@@ -2269,6 +2332,12 @@ Locally, omit the Netlify variables and the data goes to `data/event.local.json`
 
 - [ ] **Step 3: Deploy and verify in production**
 
+> **Diverged:** left for the operator to run by hand — the agent implementing
+> this task does not have the user's Netlify credentials. The README's
+> "Deploying" section documents the exact commands
+> (`netlify-cli login` → `link` → `deploy --build --prod`); this checkbox
+> stays unticked until the user runs that deploy themselves.
+
 ```bash
 npx --yes netlify-cli deploy --build --prod
 ```
@@ -2276,7 +2345,7 @@ npx --yes netlify-cli deploy --build --prod
 Then check the live site: `/` shows the rules, `/commanders` returns a card, and
 a real token URL reveals the right person.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md netlify.toml
@@ -2297,4 +2366,16 @@ tokens and `noindex` (T11, T14); CSV ingestion (T12); edit-without-redraw
 **Known gaps, deliberate:** the Google Form column names in `COLUMN_MAP` are
 guesses and must be confirmed against the real export before the draw is run
 (flagged in T12). Scryfall's pool size will drift above 704 as sets release;
-T3's verification step accepts that.
+T3's verification step accepts that. Production deploy (T15 Step 3) is
+deliberately left for the operator — the README's "Deploying" section is the
+runbook.
+
+**Observed while verifying T15:** `tests/e2e/reveal.spec.ts`'s
+"unknown and dangling-recipient tokens 404 identically" test failed once on
+a cold `next dev` (Turbopack) start with an empty `.next` cache — the first
+compile of the dynamic `/s/[token]` route raced the second request in a way
+the test's own in-file comment already documents and works around for the
+steady state. It passed consistently on every subsequent run (including a
+full fresh-cache `npm run test:e2e` immediately after). Not fixed here — it's
+pre-existing flakiness on a cold cache, not a regression, and this task is
+documentation-only.
