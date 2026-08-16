@@ -2,6 +2,10 @@
   "name": "former-fab-players-winter-secret-santa-2026",
   "version": "0.1.0",
   "private": true,
+  "imports": {
+    "#lib/*": "./src/lib/*.ts",
+    "#scripts/*": "./scripts/*.ts"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "netlify:dev": "npx --yes netlify-cli dev"
+    "netlify:dev": "npx --yes netlify-cli dev",
+    "draw": "node --experimental-strip-types scripts/draw.ts",
+    "update-participant": "node --experimental-strip-types scripts/update-participant.ts"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.13",
