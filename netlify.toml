@@ -5,6 +5,15 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Declared explicitly rather than relying on Netlify's framework auto-detection.
+# Auto-detection does not fire for this site — it was created from Netlify's
+# Express MCP template, and the first git-triggered build published the raw
+# .next directory as static files with no server handler, so every route 404'd.
+# The runtime is what produces the ___netlify-server-handler function that
+# serves /s/[token] and /api/commanders/random.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [dev]
   command = "npm run dev"
   targetPort = 3000
