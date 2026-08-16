@@ -18,7 +18,7 @@ const COLUMN_MAP = {
   themeWish: "Theme you'd like",
 } as const;
 
-const COLOR_CODES: Record<string, ParticipantInput["colorVeto"]> = {
+export const COLOR_CODES: Record<string, ParticipantInput["colorVeto"]> = {
   white: "W",
   blue: "U",
   black: "B",
