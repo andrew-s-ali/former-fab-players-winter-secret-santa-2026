@@ -7,7 +7,16 @@ describe("Home", () => {
     render(<Home />);
 
     expect(
-      screen.getByRole("heading", { name: /secret santa 2026/i })
+      screen.getByRole("heading", { level: 1, name: /secret santa 2026/i })
     ).toBeInTheDocument();
+  });
+
+  it("links to the commander browser", () => {
+    render(<Home />);
+
+    expect(screen.getByRole("link", { name: /commanders/i })).toHaveAttribute(
+      "href",
+      "/commanders"
+    );
   });
 });
