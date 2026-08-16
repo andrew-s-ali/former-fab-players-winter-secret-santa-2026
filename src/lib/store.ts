@@ -30,7 +30,9 @@ export async function readEvent(): Promise<EventData> {
   }
 
   try {
-    return JSON.parse(await readFile(localPath(), "utf8")) as EventData;
+    return JSON.parse(
+      await readFile(/* turbopackIgnore: true */ localPath(), "utf8")
+    ) as EventData;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return EMPTY;
