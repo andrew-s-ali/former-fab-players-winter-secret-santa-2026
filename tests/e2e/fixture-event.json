@@ -1,0 +1,31 @@
+{
+  "participants": [
+    {
+      "id": "p1",
+      "name": "Ada",
+      "recipientId": "p2",
+      "token": "e2e-test-token-ada",
+      "colorVeto": "R",
+      "themeVeto": "mill",
+      "themeWish": "elves and tokens"
+    },
+    {
+      "id": "p2",
+      "name": "Bob",
+      "recipientId": "p1",
+      "token": "e2e-test-token-bob",
+      "colorVeto": null,
+      "themeVeto": null,
+      "themeWish": null
+    },
+    {
+      "id": "p3",
+      "name": "Cleo",
+      "recipientId": "does-not-exist",
+      "token": "e2e-test-token-dangling",
+      "colorVeto": null,
+      "themeVeto": null,
+      "themeWish": null
+    }
+  ]
+}

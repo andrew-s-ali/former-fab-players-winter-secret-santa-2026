@@ -23,5 +23,8 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      EVENT_DATA_PATH: "tests/e2e/fixture-event.json",
+    },
   },
 });
