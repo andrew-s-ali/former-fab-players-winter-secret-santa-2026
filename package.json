@@ -1,17 +1,39 @@
 {
-    "name": "netlify-example-express-mcp",
-    "version": "1.0.0",
-    "description": "A site to show a MCP example using Netlify Functions and Express",
-    "author": "Netlify",
-    "type": "module",
-    "license": "ISC",
-    "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.10.2",
-        "@netlify/functions": "^2.5.1",
-        "@types/express": "^5.0.1",
-        "express": "^5.1.0",
-        "fetch-to-node": "^2.0.0",
-        "serverless-http": "^3.2.0",
-        "zod": "^3.24.3"
-    }
+  "name": "former-fab-players-winter-secret-santa-2026",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "netlify:dev": "npx --yes netlify-cli dev"
+  },
+  "dependencies": {
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.5",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
+  }
 }

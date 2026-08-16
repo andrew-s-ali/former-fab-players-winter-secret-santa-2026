@@ -1,67 +1,67 @@
-![Netlify Examples](https://github.com/netlify/examples/assets/5865/4145aa2f-b915-404f-af02-deacee24f7bf)
+# Former Fab Players Winter Secret Santa 2026
 
-# MCP example Netlify Express
+A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
-**View this demo site**: https://mcp-example-express.netlify.app/
+## Status
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/f15f03f9-55d8-4adc-97d5-f6e085141610/deploy-status)](https://app.netlify.com/sites/mcp-example-express/deploys)
+Foundation only. The page is a placeholder — there is no participant list, no
+draw logic, and no database yet. Those decisions are still open; see
+[the foundation spec](docs/superpowers/specs/2026-08-15-project-foundation-design.md).
 
+## Stack
 
+| Concern    | Choice                                       |
+| ---------- | -------------------------------------------- |
+| Framework  | Next.js 16 (App Router), React 19, TypeScript |
+| Styling    | Tailwind CSS v4                               |
+| Unit tests | Vitest + Testing Library (jsdom)              |
+| E2E tests  | Playwright (Chromium)                         |
+| Hosting    | Netlify (zero-config Next.js runtime)         |
 
-## About this example site
+## Getting started
 
-This site shows a very a basic example of developing and running serverless MCP using Netlify Functions. It includes links to a deployed serverless function and an example of accessing the function using a customized URL.
-
-- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-- [Docs: Netlify Functions](https://docs.netlify.com/functions/overview/?utm_campaign=dx-examples&utm_source=example-site&utm_medium=web&utm_content=example-mcp-express)
-- [Agent Experience (AX)](https://agentexperience.ax?utm_source=express-mcp-guide&utm_medium=web&utm_content=example-mcp-express)
-
-Importantly, because of how Express handles mapping routes, ensure you set the `netlify.toml` redirects to the correct path. In this example we have the following to ensure <domain>/mcp catches all of the requests to this server:
-
-```toml
-[[redirects]]
-  force = true
-  from = "/mcp"
-  status = 200
-  to = "/.netlify/functions/express-mcp-server"
+```bash
+npm install
+npx playwright install chromium   # once, for E2E
+npm run dev                       # http://localhost:3000
 ```
 
+## Scripts
 
+| Script                | Does                                            |
+| --------------------- | ----------------------------------------------- |
+| `npm run dev`         | Next dev server                                  |
+| `npm run build`       | Production build                                 |
+| `npm run lint`        | ESLint                                           |
+| `npm run typecheck`   | `next typegen` then `tsc --noEmit`               |
+| `npm test`            | Vitest (unit + component), single run            |
+| `npm run test:watch`  | Vitest in watch mode                             |
+| `npm run test:e2e`    | Playwright; boots the dev server itself          |
+| `npm run netlify:dev` | Netlify Dev, for functions/redirects/env parity  |
 
-## Speedily deploy your own version
+CI runs lint → typecheck → unit → E2E on every push and pull request.
 
-Deploy your own version of this example site, by clicking the Deploy to Netlify Button below. This will automatically:
-
-- Clone a copy of this example from the examples repo to your own GitHub account
-- Create a new project in your [Netlify account](https://app.netlify.com/?utm_medium=social&utm_source=github&utm_campaign=devex-ph&utm_content=devex-examples), linked to your new repo
-- Create an automated deployment pipeline to watch for changes on your repo
-- Build and deploy your new site
-- This repo can then be used to iterate on locally using `netlify dev`
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/netlify/examples/&create_from_path=examples/mcp/express-mcp&utm_campaign=dx-examples)
-
-
-## Install and run the examples locally
-
-You can clone this entire examples repo to explore this and other examples, and to run them locally.
-
-```shell
-
-# 1. Clone the examples repository to your local development environment
-git clone git@github.com:netlify/examples
-
-# 2. Move into the project directory for this example
-cd examples/mcp/express-mcp
-
-# 3. Install the Netlify CLI to let you locally serve your site using Netlify's features
-npm i -g netlify-cli
-
-# 4. Serve your site using Netlify Dev to get local serverless functions
-netlify dev
-
-# 5. While the site is running locally, open a separate terminal tab to run the MCP inspector or client you desire
-npx @modelcontextprotocol/inspector npx mcp-remote@next http://localhost:8888/mcp
+## Layout
 
 ```
+src/app/        routes and layouts (App Router)
+src/lib/        framework-free logic; unit-tested (the draw algorithm lands here)
+tests/e2e/      Playwright specs
+```
 
+Unit tests sit next to their subject (`src/lib/event.ts` → `src/lib/event.test.ts`).
 
+## Netlify
+
+`netlify.toml` pins the build command, publish directory, and Node version.
+Netlify installs its Next.js runtime automatically — no adapter package needed.
+
+The Netlify CLI is **not** a dependency: it pins `@opentelemetry/api@~1.8.0`,
+which conflicts with Vitest 4's `^1.9.0` and breaks `npm ci`. Run it through
+`npx` instead (`npm run netlify:dev`), or install it globally.
+
+To connect this clone to the Netlify project:
+
+```bash
+npx --yes netlify-cli login && npx --yes netlify-cli link
+```
