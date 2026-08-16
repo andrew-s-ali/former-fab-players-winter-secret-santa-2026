@@ -1,5 +1,5 @@
 import type { ColorCode } from "#lib/commanders";
-import { readEvent, writeEvent } from "#lib/store";
+import { readEvent, writeEvent, describeTarget } from "#lib/store";
 import { COLOR_CODES } from "#scripts/csv";
 
 /**
@@ -70,6 +70,8 @@ async function main() {
       'Usage: npm run update-participant -- "<name>" [--color=R|none] [--veto=...] [--wish=...]'
     );
   }
+
+  console.log(describeTarget());
 
   const event = await readEvent();
   const participant = event.participants.find(

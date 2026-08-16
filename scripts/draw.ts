@@ -1,10 +1,13 @@
 import { readFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { drawAssignments } from "#lib/draw";
 import type { EventData, Participant } from "#lib/participants";
-import { writeEvent, readEvent } from "#lib/store";
+import { writeEvent, readEvent, describeTarget } from "#lib/store";
 import { mintToken } from "#lib/tokens";
 import { parseCsv, toParticipantInputs } from "#scripts/csv";
+
+/** Crypto-backed float in [0, 1) — the spec requires the real draw not use Math.random. */
+const cryptoRng = () => randomInt(2 ** 30) / 2 ** 30;
 
 /**
  * Usage: npm run draw -- responses.csv [--force]
@@ -18,6 +21,8 @@ async function main() {
     throw new Error("Usage: npm run draw -- <responses.csv> [--force]");
   }
 
+  console.log(describeTarget());
+
   const existing = await readEvent();
   if (existing.participants.length > 0 && !flags.includes("--force")) {
     throw new Error(
@@ -29,7 +34,7 @@ async function main() {
 
   const inputs = toParticipantInputs(parseCsv(await readFile(path, "utf8")));
   const people = inputs.map((input) => ({ ...input, id: randomUUID() }));
-  const assignments = drawAssignments(people);
+  const assignments = drawAssignments(people, cryptoRng);
 
   const participants: Participant[] = people.map((person) => ({
     id: person.id,

@@ -6,7 +6,7 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
 Feature-complete. The site suggests random legal commanders, runs the draw
 from a CSV export, and serves each participant a secret reveal page with
-their assignment. 60 unit tests, 7 Playwright E2E tests, and lint/typecheck/
+their assignment. 68 unit tests, 7 Playwright E2E tests, and lint/typecheck/
 build are all clean. See [the design spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
 and [the implementation plan](docs/superpowers/plans/2026-08-16-secret-santa-site.md)
 for how it got here.
@@ -69,9 +69,15 @@ Unit tests sit next to their subject (`src/lib/event.ts` → `src/lib/event.test
      npm run draw -- responses.csv
    ```
 
-   The script refuses to run a second time once a draw exists — re-running
-   reshuffles everyone and invalidates every link already sent. Pass
-   `--force` if you genuinely need to redraw from scratch.
+   Both `draw` and `update-participant` print their resolved target first —
+   e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or
+   `Using local file data/event.local.json` — so a forgotten export is obvious
+   immediately instead of silently editing a stale local file. The script
+   refuses to run a second time once a draw exists — re-running reshuffles
+   everyone and invalidates every link already sent. Pass `--force` if you
+   genuinely need to redraw from scratch; either way, if a draw already
+   existed, it's snapshotted to a timestamped `event.backup-<timestamp>.json`
+   (or blob key) first.
 
    `scripts/csv.ts` fails loudly, rather than silently importing bad data,
    on:
@@ -148,8 +154,25 @@ npx --yes netlify-cli login && npx --yes netlify-cli link
 npx --yes netlify-cli deploy --build --prod
 ```
 
-`NETLIFY_SITE_ID` being present at runtime (which Netlify sets automatically
-once the site is linked and deployed) is what switches `src/lib/store.ts`
-from the local JSON file over to Netlify Blobs — this is the same variable
-you pass by hand to `npm run draw` when running it locally against the
-deployed site's data (see "Running the event" above).
+`src/lib/store.ts` picks its data target from environment variables, not a
+single flag — see the `resolveMode` doc comment there for the authoritative
+rules. In short:
+
+- Deployed on Netlify: `NETLIFY_BLOBS_CONTEXT` is auto-injected by the Netlify
+  runtime (Functions, Edge Functions, and the Next.js server runtime once
+  deployed), so Blobs is used automatically, with no manual credentials.
+  `NETLIFY_SITE_ID` alone is **not** a reliable runtime signal — Netlify
+  documents it as a build-time variable, not guaranteed to be set inside the
+  deployed function/server runtime.
+- Running a script locally against the real store (as in "Running the event"
+  above): export both `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` and Blobs is
+  used with those credentials explicitly. Setting only one of the two is
+  treated as a misconfiguration and fails loudly rather than silently falling
+  back to the local file.
+- Neither Netlify variable set, and no `NETLIFY_BLOBS_CONTEXT`: the local JSON
+  file is used (`npm run dev`, Playwright E2E).
+
+`writeEvent` also snapshots the current event to a timestamped sibling
+key/file before overwriting a non-empty one — a way back from a careless
+`--force` redraw or a crash mid-write. There's no rotation or automatic
+cleanup of these backups.

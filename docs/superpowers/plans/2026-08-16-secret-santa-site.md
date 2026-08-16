@@ -960,6 +960,24 @@ git commit -m "feat: add reveal tokens and participant types"
 > `use*`-prefixed function as a hook, which misfires on a plain boolean
 > helper. Behaviour is identical.
 
+> **Superseded (post-review hardening, pre-launch):** the sketch below —
+> `useBlobs()`/`shouldUseBlobs()` gating on bare `NETLIFY_SITE_ID`, and
+> `getStore(STORE_NAME)` called with just the store name — is **not** what's
+> in `src/lib/store.ts` anymore. It had two real bugs found in final review:
+> (1) `getStore(name)` with a bare string never reads `NETLIFY_SITE_ID`/
+> `NETLIFY_AUTH_TOKEN` — only `NETLIFY_BLOBS_CONTEXT` or an explicit
+> `{ siteID, token }` object — so the documented `NETLIFY_SITE_ID=... npm run
+> draw` command crashed; (2) `NETLIFY_SITE_ID` is documented by Netlify as a
+> build-time variable, not guaranteed present in the deployed function/server
+> runtime, so gating on it there risked silently falling back to the (empty)
+> local file in production. The shipped `resolveMode()` instead: uses
+> explicit `{ siteID, token }` when both `NETLIFY_SITE_ID` and
+> `NETLIFY_AUTH_TOKEN` are set (and fails loudly if only one is), uses Blobs
+> automatically when `NETLIFY_BLOBS_CONTEXT` is set (the deployed-on-Netlify
+> case), and otherwise falls back to the local file. `writeEvent` also now
+> snapshots the current event before overwriting a non-empty one. Don't build
+> from the code below — read `src/lib/store.ts` directly.
+
 Production reads Netlify Blobs. Local dev and E2E read a gitignored JSON file,
 so neither needs Netlify credentials.
 
