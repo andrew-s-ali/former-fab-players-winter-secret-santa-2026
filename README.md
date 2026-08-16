@@ -1,67 +1,178 @@
-![Netlify Examples](https://github.com/netlify/examples/assets/5865/4145aa2f-b915-404f-af02-deacee24f7bf)
+# Former Fab Players Winter Secret Santa 2026
 
-# MCP example Netlify Express
+A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
-**View this demo site**: https://mcp-example-express.netlify.app/
+## Status
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/f15f03f9-55d8-4adc-97d5-f6e085141610/deploy-status)](https://app.netlify.com/sites/mcp-example-express/deploys)
+Feature-complete. The site suggests random legal commanders, runs the draw
+from a CSV export, and serves each participant a secret reveal page with
+their assignment. 68 unit tests, 7 Playwright E2E tests, and lint/typecheck/
+build are all clean. See [the design spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
+and [the implementation plan](docs/superpowers/plans/2026-08-16-secret-santa-site.md)
+for how it got here.
 
+## Stack
 
+| Concern    | Choice                                       |
+| ---------- | -------------------------------------------- |
+| Framework  | Next.js 16 (App Router), React 19, TypeScript |
+| Styling    | Tailwind CSS v4                               |
+| Unit tests | Vitest + Testing Library (jsdom)              |
+| E2E tests  | Playwright (Chromium)                         |
+| Hosting    | Netlify (zero-config Next.js runtime)         |
 
-## About this example site
+## Getting started
 
-This site shows a very a basic example of developing and running serverless MCP using Netlify Functions. It includes links to a deployed serverless function and an example of accessing the function using a customized URL.
-
-- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-- [Docs: Netlify Functions](https://docs.netlify.com/functions/overview/?utm_campaign=dx-examples&utm_source=example-site&utm_medium=web&utm_content=example-mcp-express)
-- [Agent Experience (AX)](https://agentexperience.ax?utm_source=express-mcp-guide&utm_medium=web&utm_content=example-mcp-express)
-
-Importantly, because of how Express handles mapping routes, ensure you set the `netlify.toml` redirects to the correct path. In this example we have the following to ensure <domain>/mcp catches all of the requests to this server:
-
-```toml
-[[redirects]]
-  force = true
-  from = "/mcp"
-  status = 200
-  to = "/.netlify/functions/express-mcp-server"
+```bash
+npm install
+npx playwright install chromium   # once, for E2E
+npm run dev                       # http://localhost:3000
 ```
 
+## Scripts
 
+| Script                       | Does                                             |
+| ----------------------------- | ------------------------------------------------ |
+| `npm run dev`                 | Next dev server                                  |
+| `npm run build`                | Production build                                 |
+| `npm run lint`                 | ESLint                                            |
+| `npm run typecheck`            | `next typegen` then `tsc --noEmit`                |
+| `npm test`                     | Vitest (unit + component), single run             |
+| `npm run test:watch`           | Vitest in watch mode                              |
+| `npm run test:e2e`             | Playwright; boots the dev server itself           |
+| `npm run netlify:dev`          | Netlify Dev, for functions/redirects/env parity   |
+| `npm run draw`                 | CSV → derangement draw → tokens → store; prints links |
+| `npm run update-participant`   | Edit one participant's vetoes/wish without redrawing |
 
-## Speedily deploy your own version
+CI runs lint → typecheck → unit → E2E on every push and pull request.
 
-Deploy your own version of this example site, by clicking the Deploy to Netlify Button below. This will automatically:
-
-- Clone a copy of this example from the examples repo to your own GitHub account
-- Create a new project in your [Netlify account](https://app.netlify.com/?utm_medium=social&utm_source=github&utm_campaign=devex-ph&utm_content=devex-examples), linked to your new repo
-- Create an automated deployment pipeline to watch for changes on your repo
-- Build and deploy your new site
-- This repo can then be used to iterate on locally using `netlify dev`
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/netlify/examples/&create_from_path=examples/mcp/express-mcp&utm_campaign=dx-examples)
-
-
-## Install and run the examples locally
-
-You can clone this entire examples repo to explore this and other examples, and to run them locally.
-
-```shell
-
-# 1. Clone the examples repository to your local development environment
-git clone git@github.com:netlify/examples
-
-# 2. Move into the project directory for this example
-cd examples/mcp/express-mcp
-
-# 3. Install the Netlify CLI to let you locally serve your site using Netlify's features
-npm i -g netlify-cli
-
-# 4. Serve your site using Netlify Dev to get local serverless functions
-netlify dev
-
-# 5. While the site is running locally, open a separate terminal tab to run the MCP inspector or client you desire
-npx @modelcontextprotocol/inspector npx mcp-remote@next http://localhost:8888/mcp
+## Layout
 
 ```
+src/app/        routes and layouts (App Router)
+src/lib/        framework-free logic; unit-tested (the draw algorithm lands here)
+scripts/        operator CLI: CSV import, the draw, participant edits
+tests/e2e/      Playwright specs
+```
 
+Unit tests sit next to their subject (`src/lib/event.ts` → `src/lib/event.test.ts`).
 
+## Running the event
+
+1. Export the Google Form responses as CSV.
+2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts`. If they don't,
+   the draw fails immediately and lists the headers it actually found.
+3. Draw and mint links:
+
+   ```bash
+   NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
+     npm run draw -- responses.csv
+   ```
+
+   Both `draw` and `update-participant` print their resolved target first —
+   e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or
+   `Using local file data/event.local.json` — so a forgotten export is obvious
+   immediately instead of silently editing a stale local file. The script
+   refuses to run a second time once a draw exists — re-running reshuffles
+   everyone and invalidates every link already sent. Pass `--force` if you
+   genuinely need to redraw from scratch; either way, if a draw already
+   existed, it's snapshotted to a timestamped `event.backup-<timestamp>.json`
+   (or blob key) first.
+
+   `scripts/csv.ts` fails loudly, rather than silently importing bad data,
+   on:
+   - an unrecognised colour word (only white/blue/black/red/green plus "no
+     preference" are understood — the error lists the known words),
+   - an empty name (the error names the offending CSV row), and
+   - two participants sharing a name, case-insensitively (the error names
+     both). Names must be unique because `update-participant` (below) looks
+     people up by name, not by row number.
+
+   On success it prints one `name<TAB>url` line per participant, followed by
+   a warning that anyone holding a link can read that assignment. **Treat
+   that whole block as sensitive** — don't paste it into a shared channel,
+   ticket, or chat; copy individual lines out to send privately instead.
+
+4. Send each person their own link. Anyone holding a link can read that
+   assignment, so send them privately.
+5. To fix a veto afterwards, use `npm run update-participant` — never re-run
+   `draw`, which reshuffles everyone and invalidates every link already sent.
+
+   ```bash
+   npm run update-participant -- "Ada" --color=R --veto="mill" --wish="elves"
+   npm run update-participant -- "Ada" --color=none
+   ```
+
+   Looks the participant up by name (case-insensitive) and edits only the
+   fields you pass — assignments and reveal tokens are never touched, so
+   links already sent keep working. `--color` accepts either a code
+   (`W`/`U`/`B`/`R`/`G`) or a colour name; `--veto`/`--wish` take free text;
+   any of the three accepts `none` to clear that field. Unknown flags (e.g. a
+   typo like `--colour=`) and repeated flags are rejected with an error
+   rather than silently ignored, and an invalid colour is validated the same
+   way as in the CSV import. It prints a before → after diff of the three
+   fields so you can confirm the edit landed correctly.
+
+Locally, omit the Netlify variables and the data goes to `data/event.local.json`
+(gitignored). The repo is public — participant data must never be committed.
+
+## Development notes
+
+- **Path imports.** `package.json`'s `"imports"` map (`#lib/*` → `src/lib/*.ts`,
+  `#scripts/*` → `scripts/*.ts`) exists because Node's built-in TypeScript
+  stripping (`node --experimental-strip-types`, used to run the scripts) won't
+  resolve extensionless relative imports, while `tsc` rejects imports with an
+  explicit `.ts` suffix. The subpath-imports map satisfies both. Don't
+  "simplify" these back to relative imports.
+- **E2E fixture data.** `playwright.config.ts` sets
+  `EVENT_DATA_PATH=tests/e2e/fixture-event.json` for its `webServer`, so the
+  Playwright suite runs against fake, checked-in test data — Ada, Bob and a
+  deliberately-broken third entry — with no Netlify credentials required.
+  This is separate from and unrelated to real participant data; never point
+  it at `data/event.local.json` or a real Blobs store.
+- **The commander pool query** is `f:edh is:commander r:u game:paper`
+  (currently ~704 cards), cached for 24h by Next's fetch cache. `game:paper`
+  is load-bearing: without it, around 20 cards whose only uncommon printing
+  is digital-only (MTGO reprints) would wrongly enter the pool.
+
+## Deploying
+
+`netlify.toml` pins the build command (`npm run build`), publish directory
+(`.next`), and Node version (22). Netlify installs its Next.js runtime
+automatically — no adapter package needed. The site also needs a Netlify
+Blobs store available (Netlify provisions this per-site automatically; no
+separate setup is required beyond having the site linked).
+
+The Netlify CLI is **not** a project dependency: it pins
+`@opentelemetry/api@~1.8.0`, which conflicts with Vitest 4's `^1.9.0` and
+breaks `npm ci`. Run it through `npx` instead, or install it globally.
+
+To connect this clone to the Netlify project and deploy:
+
+```bash
+npx --yes netlify-cli login && npx --yes netlify-cli link
+npx --yes netlify-cli deploy --build --prod
+```
+
+`src/lib/store.ts` picks its data target from environment variables, not a
+single flag — see the `resolveMode` doc comment there for the authoritative
+rules. In short:
+
+- Deployed on Netlify: `NETLIFY_BLOBS_CONTEXT` is auto-injected by the Netlify
+  runtime (Functions, Edge Functions, and the Next.js server runtime once
+  deployed), so Blobs is used automatically, with no manual credentials.
+  `NETLIFY_SITE_ID` alone is **not** a reliable runtime signal — Netlify
+  documents it as a build-time variable, not guaranteed to be set inside the
+  deployed function/server runtime.
+- Running a script locally against the real store (as in "Running the event"
+  above): export both `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` and Blobs is
+  used with those credentials explicitly. Setting only one of the two is
+  treated as a misconfiguration and fails loudly rather than silently falling
+  back to the local file.
+- Neither Netlify variable set, and no `NETLIFY_BLOBS_CONTEXT`: the local JSON
+  file is used (`npm run dev`, Playwright E2E).
+
+`writeEvent` also snapshots the current event to a timestamped sibling
+key/file before overwriting a non-empty one — a way back from a careless
+`--force` redraw or a crash mid-write. There's no rotation or automatic
+cleanup of these backups.
