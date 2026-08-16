@@ -563,6 +563,15 @@ describe("pickCommander", () => {
     expect(result!.commander.name).toBe("Anara, Wolvid Familiar");
   });
 
+  it("stays in bounds when the rng returns its maximum", () => {
+    // Guards the Math.floor(rng() * length) index: an rng at the top of its
+    // [0, 1) range must select the last legal commander, never run off the end.
+    const result = pickCommander(pool, {}, () => 1 - Number.EPSILON);
+
+    expect(result).not.toBeNull();
+    expect(result!.commander.name).toBe("Krark, the Thumbless");
+  });
+
   it("offers a partner when the rolled commander has partner", () => {
     const result = pickCommander(pool, {}, () => 0);
 
