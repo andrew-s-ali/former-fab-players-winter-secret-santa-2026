@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { RevealRing } from "./RevealRing";
 
 const ring = {
@@ -59,4 +59,82 @@ describe("RevealRing", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Ada gave to Bob");
   });
+
+  it("renders Copy Discord Summary button and confetti when cycle completes", async () => {
+    const testRing = {
+      names: ["Alice", "Bob", "Cleo"],
+      steps: [
+        { from: "Alice", to: "Bob" },
+        { from: "Bob", to: "Cleo" },
+        { from: "Cleo", to: "Alice" },
+      ],
+    };
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
+    render(<RevealRing ring={testRing} />);
+    // Reveal all steps
+    const nextBtn = screen.getByRole("button", { name: /reveal the next one/i });
+    for (let i = 0; i < testRing.steps.length; i++) {
+      await userEvent.click(nextBtn);
+    }
+
+    expect(screen.getByTestId("confetti-burst")).toBeInTheDocument();
+    const copyBtn = screen.getByRole("button", { name: /copy discord summary/i });
+    expect(copyBtn).toBeInTheDocument();
+
+    await userEvent.click(copyBtn);
+    expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining("||Alice ➜ Bob||"));
+    expect(screen.getByText(/copied to clipboard/i)).toBeInTheDocument();
+  });
+
+  it("formats the full discord summary with title and all steps", async () => {
+    const testRing = {
+      names: ["Alice", "Bob", "Cleo"],
+      steps: [
+        { from: "Alice", to: "Bob" },
+        { from: "Bob", to: "Cleo" },
+        { from: "Cleo", to: "Alice" },
+      ],
+    };
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
+    render(<RevealRing ring={testRing} />);
+    const nextBtn = screen.getByRole("button", { name: /reveal the next one/i });
+    for (let i = 0; i < testRing.steps.length; i++) {
+      await userEvent.click(nextBtn);
+    }
+
+    const copyBtn = screen.getByRole("button", { name: /copy discord summary/i });
+    await userEvent.click(copyBtn);
+
+    const expectedSummary = [
+      "🎄 **Winter Secret Santa 2026 — Reveal Day Pairings** 🎁",
+      "||Alice ➜ Bob||",
+      "||Bob ➜ Cleo||",
+      "||Cleo ➜ Alice||",
+    ].join("\n");
+
+    expect(writeTextMock).toHaveBeenCalledWith(expectedSummary);
+  });
+
+  it("handles clipboard writeText rejection gracefully", async () => {
+    const writeTextMock = vi.fn().mockRejectedValue(new Error("Clipboard denied"));
+    Object.assign(navigator, { clipboard: { writeText: writeTextMock } });
+
+    render(<RevealRing ring={ring} />);
+    const nextBtn = screen.getByRole("button", { name: /reveal/i });
+    for (let i = 0; i < ring.steps.length; i++) {
+      await userEvent.click(nextBtn);
+    }
+
+    const copyBtn = screen.getByRole("button", { name: /copy discord summary/i });
+    await userEvent.click(copyBtn);
+
+    expect(writeTextMock).toHaveBeenCalled();
+    expect(screen.queryByText(/copied to clipboard/i)).not.toBeInTheDocument();
+  });
 });
+
+

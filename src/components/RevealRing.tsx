@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Ring } from "@/lib/ring";
+import { Confetti } from "./Confetti";
 
 const SIZE = 320;
 const CENTRE = SIZE / 2;
@@ -13,8 +14,16 @@ function position(index: number, total: number) {
   return { x: CENTRE + RADIUS * Math.cos(angle), y: CENTRE + RADIUS * Math.sin(angle) };
 }
 
+function formatDiscordSummary(steps: { from: string; to: string }[]): string {
+  return [
+    "🎄 **Winter Secret Santa 2026 — Reveal Day Pairings** 🎁",
+    ...steps.map((step) => `||${step.from} ➜ ${step.to}||`),
+  ].join("\n");
+}
+
 export function RevealRing({ ring }: { ring: Ring }) {
   const [taken, setTaken] = useState(0);
+  const [copied, setCopied] = useState(false);
   const total = ring.names.length;
   const done = taken >= ring.steps.length;
 
@@ -22,8 +31,22 @@ export function RevealRing({ ring }: { ring: Ring }) {
   const points = ring.names.map((name, i) => ({ name, ...position(i, total) }));
   const visibleNames = taken === 0 ? 0 : Math.min(taken + 1, total);
 
+  const handleCopyDiscordSummary = async () => {
+    try {
+      await navigator.clipboard.writeText(formatDiscordSummary(ring.steps));
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch {
+      // Graceful fallback if clipboard API is not available
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {done ? <Confetti /> : null}
+
       <svg
         aria-hidden="true"
         className="mx-auto block max-w-full"
@@ -98,10 +121,26 @@ export function RevealRing({ ring }: { ring: Ring }) {
 
       <div className="text-center">
         {done ? (
-          <p className="font-semibold">That&apos;s all the way round.</p>
+          <div className="space-y-3">
+            <p className="font-semibold">That&apos;s all the way round.</p>
+            <div className="flex flex-col items-center gap-2">
+              <button
+                className="cursor-pointer rounded-lg border px-4 py-2 font-medium transition hover:bg-white/10 active:scale-95"
+                onClick={handleCopyDiscordSummary}
+                type="button"
+              >
+                Copy Discord Summary
+              </button>
+              {copied ? (
+                <p className="text-sm font-medium text-emerald-400" role="status">
+                  Copied to clipboard! ✓
+                </p>
+              ) : null}
+            </div>
+          </div>
         ) : (
           <button
-            className="rounded-lg border px-4 py-2 font-medium"
+            className="cursor-pointer rounded-lg border px-4 py-2 font-medium"
             onClick={() => setTaken((n) => n + 1)}
             type="button"
           >
@@ -112,3 +151,4 @@ export function RevealRing({ ring }: { ring: Ring }) {
     </div>
   );
 }
+
