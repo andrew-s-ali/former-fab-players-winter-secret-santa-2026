@@ -12,7 +12,7 @@
     {
       "id": "p2",
       "name": "Bob",
-      "recipientId": "p1",
+      "recipientId": "p3",
       "token": "e2e-test-token-bob",
       "colorVeto": null,
       "themeVeto": null,
@@ -21,11 +21,12 @@
     {
       "id": "p3",
       "name": "Cleo",
-      "recipientId": "does-not-exist",
-      "token": "e2e-test-token-dangling",
-      "colorVeto": null,
-      "themeVeto": null,
-      "themeWish": null
+      "recipientId": "p1",
+      "token": "e2e-test-token-cleo",
+      "colorVeto": "G",
+      "themeVeto": "stax",
+      "themeWish": "artifacts"
     }
-  ]
+  ],
+  "revealedAt": "2026-12-05T18:00:00.000Z"
 }

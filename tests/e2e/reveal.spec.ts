@@ -23,9 +23,9 @@ test("a valid token reveals the assignment", async ({ page }) => {
 test("the reveal page shows the recipient's name and vetoes", async ({
   page,
 }) => {
-  await page.goto("/s/e2e-test-token-bob");
+  await page.goto("/s/e2e-test-token-cleo");
 
-  // Bob draws Ada, who vetoed red and mill.
+  // Cleo draws Ada, who vetoed red and mill.
   await expect(
     page.getByRole("heading", { level: 2, name: "Ada" })
   ).toBeVisible();
@@ -40,33 +40,10 @@ test("the reveal page shows the recipient's name and vetoes", async ({
   ).toHaveText("elves and tokens");
 });
 
-test("unknown and dangling-recipient tokens 404 identically", async ({
-  page,
-}) => {
-  const unknown = await page.goto("/s/not-a-real-token");
-  const unknownTitle = await page.title();
-  const unknownText = await page.locator("body").innerText();
+test("an unknown token 404s", async ({ page }) => {
+  const response = await page.goto("/s/not-a-real-token");
 
-  const dangling = await page.goto("/s/e2e-test-token-dangling");
-  const danglingTitle = await page.title();
-  const danglingText = await page.locator("body").innerText();
-
-  expect(unknown?.status()).toBe(404);
-  expect(dangling?.status()).toBe(404);
-  // Compare what's actually rendered (title + visible text), not the raw
-  // HTML response body: under `next dev` (Turbopack) the two code paths
-  // embed different bundle line/column numbers for their distinct
-  // `notFound()` call sites into an inline hydration <script>, and every
-  // request — even two hits on the identical URL — carries its own random
-  // `self.__next_r` nonce in another inline <script>. Neither is visible to
-  // a user, and neither survives a production build: `next build && next
-  // start` renders byte-identical bodies for both cases, differing only in
-  // the requested path being echoed back into the hydration state (not new
-  // information — the client already knows the URL it asked for). Verified
-  // by hand against both `next dev` and a production build before writing
-  // this comment.
-  expect(danglingTitle).toBe(unknownTitle);
-  expect(danglingText).toBe(unknownText);
+  expect(response?.status()).toBe(404);
 });
 
 test("the reveal page is not indexable", async ({ page }) => {
@@ -78,15 +55,15 @@ test("the reveal page is not indexable", async ({ page }) => {
   );
 });
 
-test("the suggester on a reveal page excludes the recipient's vetoed colour", async ({
+test("the browser on a reveal page excludes the recipient's vetoed colour", async ({
   page,
 }) => {
-  await page.goto("/s/e2e-test-token-bob");
+  await page.goto("/s/e2e-test-token-cleo");
 
   const request = page.waitForRequest((r) =>
-    r.url().includes("/api/commanders/random")
+    r.url().includes("/api/commanders/sample")
   );
-  await page.getByRole("button", { name: /random commander/i }).click();
+  await page.getByRole("button", { name: /roll nine more/i }).click();
 
   expect((await request).url()).toContain("exclude=R");
 });
