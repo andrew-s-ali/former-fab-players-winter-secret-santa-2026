@@ -26,7 +26,7 @@ function searchUrl(query: string): string {
  */
 async function fetchAllPages(
   query: string,
-  { emptyOn404 = false }: { emptyOn404?: boolean } = {}
+  { emptyOn404 = false, label = "search" }: { emptyOn404?: boolean; label?: string } = {}
 ): Promise<ScryfallCard[]> {
   const cards: ScryfallCard[] = [];
   let url: string | undefined = searchUrl(query);
@@ -38,12 +38,18 @@ async function fetchAllPages(
     });
 
     if (response.status === 404 && emptyOn404) {
+      // A no-match search is a 404 on Scryfall. For the pair query this most
+      // likely means the oracle tag was renamed or removed, which silently
+      // empties the "can pair" filter — so say so rather than degrade quietly.
+      console.warn(
+        `Scryfall ${label} query returned no matches (404); continuing with an empty result.`
+      );
       return [];
     }
 
     if (!response.ok) {
       throw new Error(
-        `Scryfall request failed: ${response.status} ${response.statusText}`
+        `Scryfall request failed: ${response.status} ${response.statusText} (${label} query)`
       );
     }
 
@@ -70,8 +76,8 @@ async function fetchAllPages(
  */
 export async function fetchCommanderPool(): Promise<Commander[]> {
   const [poolCards, pairCards] = await Promise.all([
-    fetchAllPages(COMMANDER_POOL_QUERY),
-    fetchAllPages(PAIR_QUERY, { emptyOn404: true }),
+    fetchAllPages(COMMANDER_POOL_QUERY, { label: "pool" }),
+    fetchAllPages(PAIR_QUERY, { emptyOn404: true, label: "pair" }),
   ]);
 
   const pairable = new Set(pairCards.map((card) => card.id));
