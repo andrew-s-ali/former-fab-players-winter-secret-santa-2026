@@ -18,11 +18,13 @@ test("choosing a card opens its detail panel with external deckbuilding links", 
 
   const first = page.locator("ul li button").first();
   await expect(first).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: /roll nine more/i })).toBeEnabled();
   await first.click();
 
   // The panel is a labelled region, not a dialog: it has no focus trap or
   // modality, so claiming role="dialog" would mislead screen readers.
-  await expect(page.getByText(/uncommon in /i)).toBeVisible();
+  await expect(page.getByRole("region")).toBeVisible();
+  await expect(page.getByRole("button", { name: /close/i })).toBeVisible();
 
   // Detail panel contains working external deckbuilding and Scryfall links
   const edhrecLink = page.getByRole("link", { name: /view on edhrec/i });
