@@ -1,0 +1,77 @@
+{
+  "participants": [
+    {
+      "id": "a5b8e973-5817-4912-b3fc-55d51a7bd5be",
+      "name": "Ada Lovelace",
+      "recipientId": "0d91a028-76ae-49ff-8e35-b2f861a899d8",
+      "token": "MsDlR7qgCjkiUUjZ7cC3_Q",
+      "colorVeto": "R",
+      "themeVeto": "mill",
+      "themeWish": "elves and tokens"
+    },
+    {
+      "id": "f5d942bc-8e8d-4e50-859d-1d63ad8161c7",
+      "name": "Bob Ross",
+      "recipientId": "d7781443-fb4e-44a1-857c-e6115fb2c316",
+      "token": "JFJcA_dW1dYS8T-4hScjog",
+      "colorVeto": null,
+      "themeVeto": null,
+      "themeWish": null
+    },
+    {
+      "id": "d7781443-fb4e-44a1-857c-e6115fb2c316",
+      "name": "Cleo Patra",
+      "recipientId": "93d5773f-477b-4af1-bf8b-9bde5305fba3",
+      "token": "R_cfrl5bdQ0UdsQ6Vykt5w",
+      "colorVeto": "G",
+      "themeVeto": "stax",
+      "themeWish": "artifacts, the more the better"
+    },
+    {
+      "id": "0fd84fbc-f157-4a66-a2ab-3ce0d8501cf4",
+      "name": "Dev Patel-Nakamura-Rodriguez",
+      "recipientId": "f5d942bc-8e8d-4e50-859d-1d63ad8161c7",
+      "token": "QGmYj-nDXOiCWswuohdYjw",
+      "colorVeto": "U",
+      "themeVeto": null,
+      "themeWish": "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it"
+    },
+    {
+      "id": "0d91a028-76ae-49ff-8e35-b2f861a899d8",
+      "name": "Eli 🎄",
+      "recipientId": "e5beb6bd-ed0a-4064-985a-c7d838400560",
+      "token": "crOGRvEUN3EZhw4pkagYPA",
+      "colorVeto": null,
+      "themeVeto": "combo",
+      "themeWish": "lifegain"
+    },
+    {
+      "id": "e5beb6bd-ed0a-4064-985a-c7d838400560",
+      "name": "Fay Wray",
+      "recipientId": "3fea8698-3e92-4a4e-b39c-97ff64953232",
+      "token": "trn5fdCfAt1EQow-AFm28Q",
+      "colorVeto": "B",
+      "themeVeto": null,
+      "themeWish": null
+    },
+    {
+      "id": "3fea8698-3e92-4a4e-b39c-97ff64953232",
+      "name": "Gus",
+      "recipientId": "0fd84fbc-f157-4a66-a2ab-3ce0d8501cf4",
+      "token": "e4S4c8TcJhiWUGRNuhg2UQ",
+      "colorVeto": null,
+      "themeVeto": null,
+      "themeWish": "go wide"
+    },
+    {
+      "id": "93d5773f-477b-4af1-bf8b-9bde5305fba3",
+      "name": "Hana",
+      "recipientId": "a5b8e973-5817-4912-b3fc-55d51a7bd5be",
+      "token": "tpHcc2QkmcirmKJJSTolfA",
+      "colorVeto": "W",
+      "themeVeto": "tribal",
+      "themeWish": "spellslinger"
+    }
+  ],
+  "revealedAt": "2026-08-17T02:17:04.366Z"
+}
