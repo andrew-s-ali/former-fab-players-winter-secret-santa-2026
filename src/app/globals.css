@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+/* Winter palette */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b1220;
+  --foreground: #e8eefc;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #f3f7ff;
+    --foreground: #16203a;
+  }
 }
 
 @theme inline {
@@ -12,15 +20,46 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Decorative snow. Never interactive. */
+.snowfall {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes snow-fall {
+  to {
+    transform: translateY(105vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snowfall {
+    display: none;
+  }
+}
+
+/* Page content sits above the snow. */
+main {
+  position: relative;
+  z-index: 1;
 }
