@@ -16,6 +16,7 @@ const card = (id: string, name: string, colorIdentity: string[] = ["G"]) => ({
   canPair: false,
   setName: "Test Set",
   rarity: "uncommon",
+  priceUsd: null,
 });
 
 function mockFetch(commanders: ReturnType<typeof card>[]) {

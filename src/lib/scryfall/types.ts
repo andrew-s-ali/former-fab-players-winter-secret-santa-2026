@@ -12,6 +12,10 @@ export type ScryfallCard = {
   set_name: string;
   rarity: string;
   image_uris?: { normal?: string };
+  prices?: {
+    usd?: string | null;
+    usd_foil?: string | null;
+  };
   card_faces?: Array<{
     name: string;
     mana_cost?: string;
@@ -44,4 +48,6 @@ export type Commander = {
   rarity: string;
   /** Can be paired with another commander. Set by the pool, not by normalizing. */
   canPair: boolean;
+  /** USD market price from Scryfall if available. */
+  priceUsd: string | null;
 };

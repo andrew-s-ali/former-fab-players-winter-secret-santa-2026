@@ -15,6 +15,7 @@ const make = (name: string, colorIdentity: string[], hasPartner = false): Comman
   setName: "Commander 2019",
   rarity: "uncommon",
   canPair: false,
+  priceUsd: null,
 });
 
 const pool: Commander[] = [

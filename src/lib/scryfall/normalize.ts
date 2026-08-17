@@ -25,5 +25,6 @@ export function normalizeCard(card: ScryfallCard): Commander {
     // Whether a card can pair comes from a separate tagged query; the pool
     // flips this to true. Normalising one card in isolation cannot know it.
     canPair: false,
+    priceUsd: card.prices?.usd ?? card.prices?.usd_foil ?? null,
   };
 }

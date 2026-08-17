@@ -2,6 +2,17 @@
 
 import type { Commander } from "@/lib/scryfall/types";
 
+export function edhrecSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ \/\/ /g, "-")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
 /** Detail view for one commander, shown when a grid tile is chosen. */
 export function CommanderDetail({
   card,
@@ -41,12 +52,44 @@ export function CommanderDetail({
           <p className="whitespace-pre-line text-sm opacity-90">{card.oracleText}</p>
           <p className="text-sm opacity-70">
             {card.rarity === "uncommon" ? "Uncommon" : card.rarity} in {card.setName}
+            {card.priceUsd ? (
+              <span className="ml-2 font-mono text-emerald-400">
+                ~${card.priceUsd}
+              </span>
+            ) : null}
           </p>
-          <a className="text-sm underline" href={card.scryfallUrl}>
-            View on Scryfall
-          </a>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <a
+              aria-label="View on Scryfall (opens in a new tab)"
+              className="text-sm underline"
+              href={card.scryfallUrl}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              View on Scryfall
+            </a>
+            <a
+              aria-label="View on EDHREC (opens in a new tab)"
+              className="text-sm underline"
+              href={`https://edhrec.com/commanders/${edhrecSlug(card.name)}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              View on EDHREC
+            </a>
+            <a
+              aria-label="Search Moxfield (opens in a new tab)"
+              className="text-sm underline"
+              href={`https://www.moxfield.com/decks/public/advanced?format=commander&commander=${encodeURIComponent(card.name)}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Search Moxfield
+            </a>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

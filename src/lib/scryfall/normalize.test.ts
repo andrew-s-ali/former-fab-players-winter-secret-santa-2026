@@ -74,7 +74,29 @@ describe("normalizeCard", () => {
       setName: "Commander 2019",
       rarity: "uncommon",
       canPair: false,
+      priceUsd: null,
     });
+  });
+
+  it("extracts USD market price when available", () => {
+    const card = normalizeCard({
+      ...normalCard,
+      prices: { usd: "0.45", usd_foil: "0.99" },
+    });
+    expect(card.priceUsd).toBe("0.45");
+  });
+
+  it("falls back to usd_foil if usd is null or missing", () => {
+    const card = normalizeCard({
+      ...normalCard,
+      prices: { usd: null, usd_foil: "0.99" },
+    });
+    expect(card.priceUsd).toBe("0.99");
+  });
+
+  it("sets priceUsd to null when prices are missing or all null", () => {
+    const card = normalizeCard(normalCard);
+    expect(card.priceUsd).toBeNull();
   });
 
   it("carries the printing's set name and rarity", () => {

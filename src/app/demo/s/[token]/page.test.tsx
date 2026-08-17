@@ -71,6 +71,7 @@ describe("DemoTokenPage", () => {
                 canPair: false,
                 setName: "Phyrexia",
                 rarity: "uncommon",
+                priceUsd: null,
               },
             ],
           }),
