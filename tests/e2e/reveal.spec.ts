@@ -67,3 +67,24 @@ test("the browser on a reveal page excludes the recipient's vetoed colour", asyn
 
   expect((await request).url()).toContain("exclude=R");
 });
+
+test("local scratchpad persists private notes across page reloads", async ({
+  page,
+}) => {
+  await page.goto("/s/e2e-test-token-ada");
+
+  const scratchpad = page.getByRole("textbox", { name: /private notes/i });
+  await expect(scratchpad).toBeVisible();
+
+  const testNotes = "Deck ideas: Tatyova landfall with Simic Growth Chamber";
+  await scratchpad.fill(testNotes);
+
+  await expect(page.getByText(/saved to this browser/i)).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByRole("textbox", { name: /private notes/i })).toHaveValue(
+    testNotes
+  );
+});
+

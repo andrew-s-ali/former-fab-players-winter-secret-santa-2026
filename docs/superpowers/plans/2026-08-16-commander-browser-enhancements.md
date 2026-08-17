@@ -29,7 +29,7 @@
 - Modify: `src/components/CommanderDetail.tsx`
 - Modify: `src/components/CommanderDetail.test.tsx`
 
-- [ ] **Step 1: Write failing tests for price normalization and detail buttons**
+- [x] **Step 1: Write failing tests for price normalization and detail buttons**
 
 In `src/lib/scryfall/normalize.test.ts`:
 ```ts
@@ -67,12 +67,12 @@ it("renders the price tag if priceUsd is present", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run: `npx vitest run src/lib/scryfall/normalize.test.ts src/components/CommanderDetail.test.tsx`
 Expected: FAIL due to missing `priceUsd` and links.
 
-- [ ] **Step 3: Implement price normalization and detail panel links**
+- [x] **Step 3: Implement price normalization and detail panel links**
 
 In `src/lib/scryfall/types.ts`, add `priceUsd: string | null;` to `Commander`.
 In `src/lib/scryfall/normalize.ts`, populate `priceUsd: raw.prices?.usd ?? raw.prices?.usd_foil ?? null`.
@@ -93,12 +93,12 @@ export function edhrecSlug(name: string): string {
 ```
 Render price tag beside the legal set name, and render the action buttons with `target="_blank"` and `rel="noopener noreferrer"`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run src/lib/scryfall/normalize.test.ts src/components/CommanderDetail.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/scryfall/types.ts src/lib/scryfall/normalize.ts src/lib/scryfall/normalize.test.ts src/components/CommanderDetail.tsx src/components/CommanderDetail.test.tsx
@@ -120,7 +120,7 @@ git commit -m "feat: add deckbuilding links and market price to commander detail
 - Modify: `src/app/s/[token]/page.tsx`
 - Modify: `src/app/demo/s/[token]/page.tsx`
 
-- [ ] **Step 1: Write failing tests for structured prompts and browser interaction**
+- [x] **Step 1: Write failing tests for structured prompts and browser interaction**
 
 In `src/lib/prompts.test.ts`:
 ```ts
@@ -153,23 +153,23 @@ it("sets search query and triggers fetch when a theme prompt is selected", async
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run: `npx vitest run src/lib/prompts.test.ts src/components/ThemePrompt.test.tsx`
 Expected: FAIL
 
-- [ ] **Step 3: Implement structured prompts and callback wiring**
+- [x] **Step 3: Implement structured prompts and callback wiring**
 
 Update `src/lib/prompts.ts` to export `ThemePromptItem` and structured prompts with search keywords.
 Update `src/components/ThemePrompt.tsx` to accept `onSelectPrompt?: (prompt: ThemePromptItem) => void`.
 Update `src/components/CommanderBrowser.tsx` to provide a slot or callback so users clicking the prompt populate the search box and trigger sampling.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- src/lib/prompts.test.ts src/components/ThemePrompt.test.tsx src/components/CommanderBrowser.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/prompts.ts src/lib/prompts.test.ts src/components/ThemePrompt.tsx src/components/ThemePrompt.test.tsx src/components/CommanderBrowser.tsx src/components/CommanderBrowser.test.tsx src/app/commanders/page.tsx src/app/s/[token]/page.tsx src/app/demo/s/[token]/page.tsx
@@ -188,7 +188,7 @@ git commit -m "feat: make theme prompts interactive with commander browser searc
 - Modify: `src/app/s/[token]/page.test.tsx`
 - Modify: `src/app/demo/s/[token]/page.test.tsx`
 
-- [ ] **Step 1: Write failing tests for SecretScratchpad**
+- [x] **Step 1: Write failing tests for SecretScratchpad**
 
 In `src/components/SecretScratchpad.test.tsx`:
 ```tsx
@@ -203,12 +203,12 @@ it("reads saved notes from localStorage on mount and saves updates", async () =>
 });
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `npx vitest run src/components/SecretScratchpad.test.tsx`
 Expected: FAIL (file missing)
 
-- [ ] **Step 3: Implement SecretScratchpad**
+- [x] **Step 3: Implement SecretScratchpad**
 
 Create `src/components/SecretScratchpad.tsx`:
 - Client component (`"use client"`).
@@ -219,12 +219,12 @@ Create `src/components/SecretScratchpad.tsx`:
 
 Integrate `<SecretScratchpad token={token} />` on `/s/[token]` and `/demo/s/[token]`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run src/components/SecretScratchpad.test.tsx src/app/s/[token]/page.test.tsx src/app/demo/s/[token]/page.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/SecretScratchpad.tsx src/components/SecretScratchpad.test.tsx src/app/s/[token]/page.tsx src/app/demo/s/[token]/page.tsx src/app/s/[token]/page.test.tsx src/app/demo/s/[token]/page.test.tsx
@@ -242,7 +242,7 @@ git commit -m "feat: add private local notes scratchpad on secret reveal pages"
 - Modify: `src/components/RevealRing.test.tsx`
 - Modify: `src/app/globals.css`
 
-- [ ] **Step 1: Write failing tests for confetti and Discord copy**
+- [x] **Step 1: Write failing tests for confetti and Discord copy**
 
 In `src/components/RevealRing.test.tsx`:
 ```tsx
@@ -267,12 +267,12 @@ it("renders Copy Discord Summary button and confetti when cycle completes", asyn
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run: `npx vitest run src/components/RevealRing.test.tsx`
 Expected: FAIL
 
-- [ ] **Step 3: Implement Confetti and Discord Summary Export**
+- [x] **Step 3: Implement Confetti and Discord Summary Export**
 
 Create `src/components/Confetti.tsx` with lightweight CSS particles and `@media (prefers-reduced-motion: reduce)` override.
 In `src/components/RevealRing.tsx`:
@@ -280,12 +280,12 @@ In `src/components/RevealRing.tsx`:
 - Format pairs into spoiler markdown (`||Giver ➜ Recipient||`).
 - Handle clipboard write and copied state timeout.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run src/components/Confetti.test.tsx src/components/RevealRing.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/Confetti.tsx src/components/Confetti.test.tsx src/components/RevealRing.tsx src/components/RevealRing.test.tsx src/app/globals.css
@@ -303,7 +303,7 @@ git commit -m "feat: add reveal day confetti celebration and discord summary exp
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-08-16-commander-browser-enhancements.md`
 
-- [ ] **Step 1: Add E2E tests for new features**
+- [x] **Step 1: Add E2E tests for new features**
 
 In `tests/e2e/commanders.spec.ts`:
 - Test clicking EDHREC and Moxfield external buttons in detail modal.
@@ -315,16 +315,16 @@ In `tests/e2e/reveal.spec.ts`:
 In `tests/e2e/reveal-day.spec.ts`:
 - Test copying Discord summary on full ring reveal.
 
-- [ ] **Step 2: Run full verification suite**
+- [x] **Step 2: Run full verification suite**
 
 Run: `npm run lint && npm run typecheck && npm test && npm run test:e2e`
 Expected: All clean, 100% passing.
 
-- [ ] **Step 3: Update documentation and mark plan completed**
+- [x] **Step 3: Update documentation and mark plan completed**
 
 Update `README.md` with notes on the new external links, theme search interaction, local scratchpad privacy, and Discord summary format.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/e2e/ README.md docs/superpowers/plans/2026-08-16-commander-browser-enhancements.md

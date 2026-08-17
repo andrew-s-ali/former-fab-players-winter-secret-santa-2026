@@ -7,14 +7,16 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 Feature-complete. The site provides a filterable commander browser, runs the draw
 from a CSV export, serves each participant a secret reveal page with their assignment,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
-palette with reduced-motion snowfall, and demo preview routes. 162 unit tests, 12 Playwright
-E2E tests, and lint/typecheck/build are all clean.
+palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
+and demo preview routes. 190 unit tests, 14 Playwright E2E tests, and lint/typecheck/build
+are all clean.
 
 See:
 - [Original Design Spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
 - [Original Implementation Plan](docs/superpowers/plans/2026-08-16-secret-santa-site.md)
 - [Commander Browser & Reveal Day Design Spec](docs/superpowers/specs/2026-08-16-commander-browser-and-reveal-day-design.md)
 - [Commander Browser & Reveal Day Implementation Plan](docs/superpowers/plans/2026-08-16-commander-browser-and-reveal-day.md)
+- [Commander Browser Enhancements Implementation Plan](docs/superpowers/plans/2026-08-16-commander-browser-enhancements.md)
 
 ## Stack
 
@@ -154,7 +156,17 @@ Locally, omit the Netlify variables and scripts operate on `data/event.local.jso
   - The browser (`src/components/CommanderBrowser.tsx`) provides 5 color filter pips (`W`, `U`, `B`, `R`, `G`) using subset semantics (a two-color card appears only when both of its colors are selected; colorless cards match all selections), a live search query input, and a "Can pair" toggle.
   - On the secret reveal page (`/s/[token]`), the recipient's color veto is pre-excluded, disabled, and rendered as a locked red pip.
   - The client requests random batches of 9 commanders from `/api/commanders/sample`, which enforces server-side veto exclusions and applies `cache-control: no-store` to guarantee fresh random samples on each roll.
-  - Clicking any card tile opens `CommanderDetail.tsx` displaying the card image, mana cost, type line, oracle text, uncommon printing legality line (`Uncommon in <Set Name>`), and pairing badge.
+  - Clicking any card tile opens `CommanderDetail.tsx` displaying the card image, mana cost, type line, oracle text, uncommon printing legality line (`Uncommon in <Set Name>`), estimated USD market price (`~$X.XX`), and pairing badge.
+  - **External Deckbuilding Links:** The detail view offers one-click outbound links to EDHREC (normalized commander slug), Moxfield advanced commander deck search, and Scryfall.
+  - **Interactive Theme Prompts:** `ThemePrompt.tsx` surfaces curated deckbuilding hooks (e.g. "Spellslinger", "Artifacts", "Voltron") with a "Search this theme" button that immediately prefills the browser search bar and fetches matching cards.
+- **Private Notes Scratchpad (`SecretScratchpad.tsx`):**
+  - Present on `/s/[token]` and `/demo/s/[token]`, providing participants a place to draft deck ideas, card links, or wishlist thoughts.
+  - Backed by browser `localStorage` keyed uniquely per token (`secret-santa-scratchpad-<token>`).
+  - SSR hydration-safe via React 19's `useSyncExternalStore` with custom window storage events for instantaneous multi-tab sync.
+  - **Privacy Guarantee:** Scratchpad notes are stored exclusively in the client's local browser and are never sent over the network, stored in Netlify Blobs, or leaked into server logs.
+- **Reveal Day Confetti & Discord Export (`RevealRing.tsx`, `Confetti.tsx`):**
+  - Once all participants are stepped through on `/reveal` and the loop closes, a festive CSS-only particle celebration (`<Confetti />`) triggers, respecting `@media (prefers-reduced-motion: reduce)` settings.
+  - A "Copy Discord Summary" button formats the complete gift exchange ring into spoiler markdown (`||Giver ➜ Recipient||`) with copy feedback for instant channel announcements.
 - **Scryfall Queries & Caching:**
   - Upstream queries:
     - Pool: `f:edh is:commander r:u game:paper` (~704 cards). `game:paper` is load-bearing: without it, digital-only MTGO uncommon reprints would wrongly enter the pool.
