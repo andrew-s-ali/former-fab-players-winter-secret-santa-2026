@@ -171,4 +171,27 @@ describe("CommanderBrowser", () => {
     await userEvent.click(screen.getByRole("button", { name: /green/i }));
     await waitFor(() => expect(fetchMock.mock.calls.at(-1)![0]).toContain("colors=U"));
   });
+
+  it("sets search query and triggers fetch when a theme prompt is selected", async () => {
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(
+      <CommanderBrowser
+        initialPrompt={{ text: "Artifact deck", keyword: "artifact" }}
+        lockedExclude={null}
+      />
+    );
+    await screen.findByText("Anara");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /search this theme/i })
+    );
+
+    expect(screen.getByRole("textbox", { name: /search by name/i })).toHaveValue(
+      "artifact"
+    );
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.at(-1)![0]).toContain("q=artifact");
+    });
+  });
 });

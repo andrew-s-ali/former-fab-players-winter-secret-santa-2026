@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CommanderBrowser } from "@/components/CommanderBrowser";
-import { ThemePrompt } from "@/components/ThemePrompt";
 import { pickPrompt } from "@/lib/prompts";
 
 // Rendered per request so the theme prompt differs between visits. Without
@@ -18,8 +17,7 @@ export default function CommandersPage() {
         paper at uncommon, with the banned list already removed.
       </p>
 
-      <ThemePrompt initialPrompt={pickPrompt()} />
-      <CommanderBrowser lockedExclude={null} />
+      <CommanderBrowser initialPrompt={pickPrompt()} lockedExclude={null} />
 
       <Link className="underline" href="/">
         ← Back to the rules

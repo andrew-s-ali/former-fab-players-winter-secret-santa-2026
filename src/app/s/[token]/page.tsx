@@ -3,6 +3,7 @@ import { CommanderBrowser } from "@/components/CommanderBrowser";
 import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
 import { findById, findByToken } from "@/lib/participants";
+import { pickPrompt } from "@/lib/prompts";
 import { readEvent } from "@/lib/store";
 
 // Assignments must never be cached or prerendered.
@@ -49,6 +50,7 @@ export default async function RevealPage({
           Filtered to exclude their vetoed colour and every banned commander.
         </p>
         <CommanderBrowser
+          initialPrompt={pickPrompt()}
           lockedExclude={recipient.colorVeto}
           lockedReason={
             recipient.colorVeto

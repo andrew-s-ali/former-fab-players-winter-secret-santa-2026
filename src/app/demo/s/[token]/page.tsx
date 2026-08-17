@@ -6,6 +6,7 @@ import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
 import { readDemoEvent } from "@/lib/demo";
 import { findById, findByToken } from "@/lib/participants";
+import { pickPrompt } from "@/lib/prompts";
 
 export const metadata = {
   title: "Demo reveal page",
@@ -39,6 +40,7 @@ export default async function DemoTokenPage({
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Commander ideas for them</h2>
         <CommanderBrowser
+          initialPrompt={pickPrompt()}
           lockedExclude={recipient.colorVeto}
           lockedReason={
             recipient.colorVeto

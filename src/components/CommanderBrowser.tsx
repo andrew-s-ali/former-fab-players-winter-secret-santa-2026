@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CommanderDetail } from "@/components/CommanderDetail";
+import { ThemePrompt } from "@/components/ThemePrompt";
 import type { ColorCode } from "@/lib/commanders";
+import type { ThemePromptItem } from "@/lib/prompts";
 import type { Commander } from "@/lib/scryfall/types";
 
 const COLORS: Array<{ code: ColorCode; name: string }> = [
@@ -26,9 +28,11 @@ const LOCKED_REASON_ID = "commander-browser-locked-reason";
 export function CommanderBrowser({
   lockedExclude,
   lockedReason,
+  initialPrompt,
 }: {
   lockedExclude: ColorCode | null;
   lockedReason?: string;
+  initialPrompt?: ThemePromptItem | string;
 }) {
   const [commanders, setCommanders] = useState<Commander[] | null>(null);
   const [selected, setSelected] = useState<Commander | null>(null);
@@ -106,6 +110,13 @@ export function CommanderBrowser({
 
   return (
     <div className="space-y-4">
+      {initialPrompt ? (
+        <ThemePrompt
+          initialPrompt={initialPrompt}
+          onSelectPrompt={(p) => setQuery(p.keyword ?? p.text)}
+        />
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         {COLORS.map(({ code, name }) => {
           const locked = lockedExclude === code;

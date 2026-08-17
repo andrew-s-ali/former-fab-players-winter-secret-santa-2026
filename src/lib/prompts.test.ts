@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { THEME_PROMPTS, pickPrompt } from "./prompts";
+import { THEME_PROMPTS, pickPrompt, randomPrompt } from "./prompts";
 
 describe("THEME_PROMPTS", () => {
   it("offers a decent spread of ideas", () => {
@@ -7,22 +7,29 @@ describe("THEME_PROMPTS", () => {
   });
 
   it("has no duplicates", () => {
-    expect(new Set(THEME_PROMPTS).size).toBe(THEME_PROMPTS.length);
+    const texts = THEME_PROMPTS.map((p) => p.text);
+    expect(new Set(texts).size).toBe(THEME_PROMPTS.length);
   });
 
   it("has no blank entries", () => {
-    expect(THEME_PROMPTS.every((p) => p.trim().length > 0)).toBe(true);
+    expect(THEME_PROMPTS.every((p) => p.text.trim().length > 0)).toBe(true);
   });
 });
 
 describe("pickPrompt", () => {
   it("picks using the injected rng", () => {
-    expect(pickPrompt(() => 0)).toBe(THEME_PROMPTS[0]);
+    expect(pickPrompt(() => 0)).toEqual(THEME_PROMPTS[0]);
   });
 
   it("stays in bounds at the top of the rng range", () => {
-    expect(pickPrompt(() => 1 - Number.EPSILON)).toBe(
+    expect(pickPrompt(() => 1 - Number.EPSILON)).toEqual(
       THEME_PROMPTS[THEME_PROMPTS.length - 1]
     );
+  });
+
+  it("returns structured theme prompt objects with text and optional keyword", () => {
+    const prompt = randomPrompt();
+    expect(prompt).toHaveProperty("text");
+    expect(typeof prompt.text).toBe("string");
   });
 });
