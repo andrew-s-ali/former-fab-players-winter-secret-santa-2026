@@ -11,6 +11,14 @@ describe("Home", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders the countdown", () => {
+    render(<Home />);
+
+    expect(
+      screen.getByText(/until sign-ups close|sign-ups are closed|until the exchange/i)
+    ).toBeInTheDocument();
+  });
+
   it("links to the commander browser", () => {
     render(<Home />);
 
