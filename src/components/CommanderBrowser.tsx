@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CommanderDetail } from "@/components/CommanderDetail";
 import type { ColorCode } from "@/lib/commanders";
 import type { Commander } from "@/lib/scryfall/types";
@@ -14,6 +14,7 @@ const COLORS: Array<{ code: ColorCode; name: string }> = [
 ];
 
 const SAMPLE_SIZE = 9;
+const LOCKED_REASON_ID = "commander-browser-locked-reason";
 
 /**
  * Grid browser for picking a commander: colour pips, a pairable toggle, a
@@ -37,7 +38,13 @@ export function CommanderBrowser({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Search refetches per keystroke, so responses can land out of order.
+  // Only the newest request is allowed to write state.
+  const latestRequest = useRef(0);
+
   const load = useCallback(() => {
+    const requestId = ++latestRequest.current;
+
     const params = new URLSearchParams({ n: String(SAMPLE_SIZE) });
     if (colors.length > 0) {
       params.set("colors", colors.join(""));
@@ -68,12 +75,21 @@ export function CommanderBrowser({
         return response.json() as Promise<{ commanders: Commander[] }>;
       })
       .then((data) => {
+        if (requestId !== latestRequest.current) {
+          return;
+        }
         setCommanders(data.commanders);
       })
       .catch(() => {
+        if (requestId !== latestRequest.current) {
+          return;
+        }
         setError("Couldn't load commanders. Try again.");
       })
       .finally(() => {
+        if (requestId !== latestRequest.current) {
+          return;
+        }
         setLoading(false);
       });
   }, [colors, query, pairsOnly, lockedExclude]);
@@ -95,6 +111,7 @@ export function CommanderBrowser({
           const locked = lockedExclude === code;
           return (
             <button
+              aria-describedby={locked && lockedReason ? LOCKED_REASON_ID : undefined}
               aria-pressed={colors.includes(code)}
               className={`rounded-full border px-3 py-1 text-sm ${
                 colors.includes(code) ? "bg-sky-600 text-white" : ""
@@ -139,7 +156,9 @@ export function CommanderBrowser({
       </div>
 
       {lockedExclude && lockedReason ? (
-        <p className="text-sm opacity-70">{lockedReason}</p>
+        <p className="text-sm opacity-70" id={LOCKED_REASON_ID}>
+          {lockedReason}
+        </p>
       ) : null}
 
       {error ? (

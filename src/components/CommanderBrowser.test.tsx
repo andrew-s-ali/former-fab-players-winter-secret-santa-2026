@@ -126,4 +126,48 @@ describe("CommanderBrowser", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/couldn't load/i);
   });
+
+  it("ignores a slow response that a newer request has superseded", async () => {
+    let resolveFirst: (value: Response) => void = () => {};
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        () => new Promise<Response>((resolve) => { resolveFirst = resolve; })
+      )
+      .mockResolvedValue(
+        new Response(JSON.stringify({ commanders: [card("b", "Newer")] }), { status: 200 })
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CommanderBrowser lockedExclude={null} />);
+    await userEvent.click(screen.getByRole("button", { name: /green/i }));
+    await screen.findByText("Newer");
+
+    // The first request finally answers, with different data.
+    resolveFirst(
+      new Response(JSON.stringify({ commanders: [card("a", "Stale")] }), { status: 200 })
+    );
+
+    await waitFor(() => expect(screen.queryByText("Stale")).not.toBeInTheDocument());
+    expect(screen.getByText("Newer")).toBeInTheDocument();
+  });
+
+  it("accumulates colours as more pips are selected, and removes them again", async () => {
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(<CommanderBrowser lockedExclude={null} />);
+    await screen.findByText("Anara");
+
+    await userEvent.click(screen.getByRole("button", { name: /green/i }));
+    await waitFor(() => expect(fetchMock.mock.calls.at(-1)![0]).toContain("colors=G"));
+
+    await userEvent.click(screen.getByRole("button", { name: /blue/i }));
+    await waitFor(() => {
+      const url = fetchMock.mock.calls.at(-1)![0] as string;
+      expect(url).toContain("colors=");
+      expect(url).toMatch(/colors=(GU|UG)/);
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: /green/i }));
+    await waitFor(() => expect(fetchMock.mock.calls.at(-1)![0]).toContain("colors=U"));
+  });
 });
