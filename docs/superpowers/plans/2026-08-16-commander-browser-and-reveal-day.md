@@ -1,5 +1,8 @@
 # Commander Browser and Reveal Day Implementation Plan
 
+> ✅ **Shipped 2026-08-16.** All 18 tasks complete: 162 unit tests, 12 Playwright
+> E2E tests, lint/typecheck/build all clean.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the one-card suggester into a filterable commander browser, add a stepped reveal-day ring, a two-phase countdown, festive styling, and demo routes that preview the whole experience with fake data.
@@ -83,7 +86,7 @@ requests.
 - Modify: `src/lib/scryfall/types.ts`, `src/lib/scryfall/normalize.ts`
 - Test: `src/lib/scryfall/normalize.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the existing `describe("normalizeCard", ...)` block:
 
@@ -98,12 +101,12 @@ Add to the existing `describe("normalizeCard", ...)` block:
 
 The existing fixtures lack the new fields, so also add `set_name: "Commander 2019"` and `rarity: "uncommon"` to `normalCard`, `transformCard` and `partnerCard`, and add `setName: "Commander 2019"` / `rarity: "uncommon"` to the expected object in the "maps a normal card's fields" test.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/scryfall/normalize.test.ts`
 Expected: FAIL — TypeScript/assertion error, `setName` is not a property
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `src/lib/scryfall/types.ts`, add to `ScryfallCard`:
 
@@ -135,12 +138,12 @@ In `src/lib/scryfall/normalize.ts`, add to the returned object:
 
 Also add `canPair: false` to the expected object in the "maps a normal card's fields" test.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/scryfall`
 Expected: PASS. `pool.test.ts` fixtures may need `set_name`/`rarity` added too — if it fails, add them there.
 
-- [ ] **Step 5: Verify against the live API**
+- [x] **Step 5: Verify against the live API**
 
 ```bash
 curl -s "https://api.scryfall.com/cards/search?q=f%3Aedh+is%3Acommander+r%3Au+game%3Apaper+%21%22Tatyova%2C+Benthic+Druid%22" -H "User-Agent: FormerFabSecretSanta/1.0" -H "Accept: application/json" | python3 -c "import json,sys; c=json.load(sys.stdin)['data'][0]; print(c['set_name'], c['rarity'])"
@@ -148,7 +151,7 @@ curl -s "https://api.scryfall.com/cards/search?q=f%3Aedh+is%3Acommander+r%3Au+ga
 
 Expected: a set name followed by `uncommon`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/scryfall/
@@ -166,7 +169,7 @@ A second cached query marks which cards can pair. Verified counts on
 - Modify: `src/lib/scryfall/pool.ts`
 - Test: `src/lib/scryfall/pool.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `src/lib/scryfall/pool.test.ts`. The existing `card` helper needs `set_name: "Test Set"` and `rarity: "uncommon"` if you have not already added them.
 
@@ -214,12 +217,12 @@ describe("fetchCommanderPool partner flag", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/scryfall/pool.test.ts`
 Expected: FAIL — `canPair` is undefined on the returned cards
 
-- [ ] **Step 3: Rewrite `src/lib/scryfall/pool.ts`**
+- [x] **Step 3: Rewrite `src/lib/scryfall/pool.ts`**
 
 ```ts
 import { COMMANDER_POOL_QUERY } from "../rules";
@@ -307,12 +310,12 @@ export async function fetchCommanderPool(): Promise<Commander[]> {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/scryfall/pool.test.ts`
 Expected: PASS. The pre-existing pagination and header tests stub a single response for every call, which still satisfies both queries.
 
-- [ ] **Step 5: Verify against the live API**
+- [x] **Step 5: Verify against the live API**
 
 ```bash
 curl -s "https://api.scryfall.com/cards/search?unique=cards&q=f%3Aedh+is%3Acommander+r%3Au+game%3Apaper+otag%3Apair-commander" -H "User-Agent: FormerFabSecretSanta/1.0" -H "Accept: application/json" | python3 -c "import json,sys; print('pairable:', json.load(sys.stdin)['total_cards'])"
@@ -320,7 +323,7 @@ curl -s "https://api.scryfall.com/cards/search?unique=cards&q=f%3Aedh+is%3Acomma
 
 Expected: `65` (may drift upward as sets release; a number in that region is right, `0` or an error is not)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/scryfall/pool.ts src/lib/scryfall/pool.test.ts
@@ -335,7 +338,7 @@ git commit -m "feat: flag commanders that can pair, via oracle tag"
 - Modify: `src/lib/commanders.ts`
 - Test: `src/lib/commanders.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `src/lib/commanders.test.ts`. Note the `make` helper needs the two new fields — update it to include `setName: "Test Set", rarity: "uncommon"`.
 
@@ -416,12 +419,12 @@ describe("sampleCommanders", () => {
 
 Import `sampleCommanders` at the top of the file.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/commanders.test.ts`
 Expected: FAIL — `sampleCommanders` is not exported
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace the `CommanderFilters` type and `legalCommanders` in `src/lib/commanders.ts`, and add `sampleCommanders`:
 
@@ -492,12 +495,12 @@ export function sampleCommanders(
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/commanders.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/commanders.ts src/lib/commanders.test.ts
@@ -512,7 +515,7 @@ git commit -m "feat: add colour-subset filtering, name search and sampling"
 - Create: `src/app/api/commanders/sample/route.ts`
 - Delete: `src/app/api/commanders/random/route.ts`
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 ```ts
 // src/app/api/commanders/sample/route.ts
@@ -564,13 +567,13 @@ export async function GET(request: Request) {
 
 Note this returns an empty array rather than a 404 when nothing matches — with user-driven filters, "no results" is a normal outcome the UI renders, not an error.
 
-- [ ] **Step 2: Delete the old endpoint**
+- [x] **Step 2: Delete the old endpoint**
 
 ```bash
 git rm src/app/api/commanders/random/route.ts
 ```
 
-- [ ] **Step 3: Verify manually**
+- [x] **Step 3: Verify manually**
 
 Run `npm run dev`, then:
 
@@ -581,7 +584,7 @@ curl -s "http://localhost:3000/api/commanders/sample?pairs=1&n=5" | python3 -c "
 
 Expected: `3` with every colour identity a subset of `["G"]`; then `all pairable: True`. Run each twice — the names should differ.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/commanders/
@@ -596,7 +599,7 @@ git commit -m "feat: add the commander sample endpoint"
 - Create: `src/components/CommanderDetail.tsx`
 - Test: `src/components/CommanderDetail.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/CommanderDetail.test.tsx
@@ -657,12 +660,12 @@ describe("CommanderDetail", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/CommanderDetail.test.tsx`
 Expected: FAIL — cannot resolve `./CommanderDetail`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // src/components/CommanderDetail.tsx
@@ -720,12 +723,12 @@ export function CommanderDetail({
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/components/CommanderDetail.test.tsx`
 Expected: PASS, 5 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/CommanderDetail.tsx src/components/CommanderDetail.test.tsx
@@ -740,7 +743,7 @@ git commit -m "feat: add the commander detail panel"
 - Create: `src/components/CommanderBrowser.tsx`
 - Test: `src/components/CommanderBrowser.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/CommanderBrowser.test.tsx
@@ -875,12 +878,12 @@ describe("CommanderBrowser", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/CommanderBrowser.test.tsx`
 Expected: FAIL — cannot resolve `./CommanderBrowser`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // src/components/CommanderBrowser.tsx
@@ -1049,12 +1052,12 @@ export function CommanderBrowser({
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/components/CommanderBrowser.test.tsx`
 Expected: PASS, 10 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/CommanderBrowser.tsx src/components/CommanderBrowser.test.tsx
@@ -1070,7 +1073,7 @@ git commit -m "feat: add the commander browser grid"
 - Delete: `src/components/CommanderSuggester.tsx`, `src/components/CommanderSuggester.test.tsx`
 - Modify: `src/lib/commanders.ts`, `src/lib/commanders.test.ts` (drop `pickCommander`)
 
-- [ ] **Step 1: Update the commanders page**
+- [x] **Step 1: Update the commanders page**
 
 ```tsx
 // src/app/commanders/page.tsx
@@ -1107,7 +1110,7 @@ export default function CommandersPage() {
 
 `ThemePrompt` is built in Task 7. Implement that task before running the app, or temporarily omit the two `ThemePrompt` lines and add them back in Task 7.
 
-- [ ] **Step 2: Update the reveal page**
+- [x] **Step 2: Update the reveal page**
 
 In `src/app/s/[token]/page.tsx`, replace the `CommanderSuggester` import with `CommanderBrowser`, and swap the usage:
 
@@ -1122,7 +1125,7 @@ In `src/app/s/[token]/page.tsx`, replace the `CommanderSuggester` import with `C
         />
 ```
 
-- [ ] **Step 2b: Correct the rules copy**
+- [x] **Step 2b: Correct the rules copy**
 
 `src/components/RulesSummary.tsx` claims the commander must be a legendary
 *creature*. The event's rule is *legendaries*, and the pool already includes 18
@@ -1141,7 +1144,7 @@ first bullet to:
 via a text matcher. Update that assertion to `/legendary cards.*uncommon/i`,
 keeping the same matcher technique already in the file.
 
-- [ ] **Step 3: Delete the suggester and pickCommander**
+- [x] **Step 3: Delete the suggester and pickCommander**
 
 ```bash
 git rm src/components/CommanderSuggester.tsx src/components/CommanderSuggester.test.tsx
@@ -1149,7 +1152,7 @@ git rm src/components/CommanderSuggester.tsx src/components/CommanderSuggester.t
 
 In `src/lib/commanders.ts`, delete `pickCommander`, `CommanderSuggestion` and `isBannedPair` — nothing references them once the suggester is gone. **Keep `BANNED_PAIRS` imported only if still used; if not, remove that import too.** In `src/lib/commanders.test.ts`, delete the whole `describe("pickCommander", ...)` block.
 
-- [ ] **Step 4: Verify nothing still references the deleted code**
+- [x] **Step 4: Verify nothing still references the deleted code**
 
 ```bash
 grep -rn "CommanderSuggester\|pickCommander\|CommanderSuggestion" src/ tests/ || echo "CLEAN"
@@ -1157,12 +1160,12 @@ grep -rn "CommanderSuggester\|pickCommander\|CommanderSuggestion" src/ tests/ ||
 
 Expected: `CLEAN`
 
-- [ ] **Step 5: Run the gate**
+- [x] **Step 5: Run the gate**
 
 Run: `npm run lint && npm run typecheck && npm test`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A src/
@@ -1177,7 +1180,7 @@ git commit -m "feat: use the browser on both pages, retire the suggester"
 - Create: `src/lib/prompts.ts`, `src/components/ThemePrompt.tsx`
 - Test: `src/lib/prompts.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/prompts.test.ts
@@ -1211,12 +1214,12 @@ describe("pickPrompt", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/prompts.test.ts`
 Expected: FAIL — cannot resolve `./prompts`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/lib/prompts.ts
@@ -1294,12 +1297,12 @@ export function ThemePrompt({ initialPrompt }: { initialPrompt: string }) {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/prompts.test.ts`
 Expected: PASS, 5 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/prompts.ts src/lib/prompts.test.ts src/components/ThemePrompt.tsx src/app/commanders/page.tsx
@@ -1314,7 +1317,7 @@ git commit -m "feat: add theme prompts"
 - Modify: `src/lib/participants.ts`, `src/lib/store.ts`
 - Test: `src/lib/participants.test.ts` (new file)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/participants.test.ts
@@ -1338,12 +1341,12 @@ describe("isRevealed", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/participants.test.ts`
 Expected: FAIL — `isRevealed` is not exported
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `src/lib/participants.ts`, extend `EventData` and add the helper:
 
@@ -1376,12 +1379,12 @@ function withDefaults(data: EventData | null): EventData {
 
 Then wrap both return paths in `readEvent` with `withDefaults(...)`: the Blobs branch becomes `return withDefaults(data as EventData | null);` and the local branch `return withDefaults(JSON.parse(...) as EventData);`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib`
 Expected: PASS. `store.test.ts` asserts `{ participants: [] }` in places — update those expectations to `{ participants: [], revealedAt: null }`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/participants.ts src/lib/participants.test.ts src/lib/store.ts src/lib/store.test.ts
@@ -1396,7 +1399,7 @@ git commit -m "feat: add revealedAt to the event data"
 - Create: `src/lib/ring.ts`
 - Test: `src/lib/ring.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/ring.test.ts
@@ -1457,12 +1460,12 @@ describe("buildRing", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/ring.test.ts`
 Expected: FAIL — cannot resolve `./ring`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/lib/ring.ts
@@ -1519,12 +1522,12 @@ export function buildRing(participants: Participant[]): Ring {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/ring.test.ts`
 Expected: PASS, 5 tests
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/ring.ts src/lib/ring.test.ts
@@ -1539,7 +1542,7 @@ git commit -m "feat: build the gift ring from assignments"
 - Create: `src/components/RevealRing.tsx`
 - Test: `src/components/RevealRing.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 // src/components/RevealRing.test.tsx
@@ -1607,12 +1610,12 @@ describe("RevealRing", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/components/RevealRing.test.tsx`
 Expected: FAIL — cannot resolve `./RevealRing`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```tsx
 // src/components/RevealRing.tsx
@@ -1734,12 +1737,12 @@ export function RevealRing({ ring }: { ring: Ring }) {
 
 The names appear inside the SVG, so the tests query them as text nodes — `aria-hidden` on the `<svg>` keeps duplicate announcements away from screen readers, which get the `role="status"` line instead.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/components/RevealRing.test.tsx`
 Expected: PASS, 5 tests. If `aria-hidden` prevents Testing Library from finding the names, remove it from the `<svg>` and rerun — the `role="status"` line remains the accessible narration either way.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/RevealRing.tsx src/components/RevealRing.test.tsx
@@ -1753,7 +1756,7 @@ git commit -m "feat: add the stepped reveal ring"
 **Files:**
 - Create: `src/app/reveal/page.tsx`
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 ```tsx
 // src/app/reveal/page.tsx
@@ -1800,7 +1803,7 @@ export default async function RevealDayPage() {
 
 Only names and arrows reach the page — no vetoes, wishes, or tokens — even though it is public.
 
-- [ ] **Step 2: Verify the locked state**
+- [x] **Step 2: Verify the locked state**
 
 ```bash
 printf '{"participants":[],"revealedAt":null}' > /tmp/locked-event.json
@@ -1810,7 +1813,7 @@ EVENT_DATA_PATH=/tmp/locked-event.json npm run dev
 In another terminal: `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/reveal`
 Expected: `404`. Stop the dev server and delete `/tmp/locked-event.json`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/reveal/
@@ -1825,7 +1828,7 @@ git commit -m "feat: add the public reveal day page"
 - Create: `scripts/reveal.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 ```ts
 // scripts/reveal.ts
@@ -1865,7 +1868,7 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 2: Add the npm script**
+- [x] **Step 2: Add the npm script**
 
 Add to `package.json` `scripts`:
 
@@ -1873,7 +1876,7 @@ Add to `package.json` `scripts`:
 "reveal": "node --experimental-strip-types scripts/reveal.ts"
 ```
 
-- [ ] **Step 3: Verify end to end**
+- [x] **Step 3: Verify end to end**
 
 ```bash
 printf 'Your name,Colour to avoid,Theme to avoid,Theme you'"'"'d like\nAda,Red,Mill,Elves\nBob,,Stax,Artifacts\nCleo,Green,,\n' > /tmp/r.csv
@@ -1887,7 +1890,7 @@ rm -f /tmp/r.csv /tmp/r-event.json
 
 Expected: a timestamp, then `None`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/reveal.ts package.json
@@ -1903,7 +1906,7 @@ git commit -m "feat: add the reveal unlock script"
 - Modify: `src/lib/event.ts`, `src/app/page.tsx`
 - Test: `src/lib/countdown.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // src/lib/countdown.test.ts
@@ -1957,12 +1960,12 @@ describe("formatCandidates", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- src/lib/countdown.test.ts`
 Expected: FAIL — cannot resolve `./countdown`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```ts
 // src/lib/countdown.ts
@@ -2077,12 +2080,12 @@ export function Countdown({ now = new Date() }: { now?: Date }) {
 
 Add `<Countdown />` to `src/app/page.tsx`, directly beneath the `<h1>`, importing it from `@/components/Countdown`.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test -- src/lib/countdown.test.ts && npm test`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/countdown.ts src/lib/countdown.test.ts src/lib/event.ts src/components/Countdown.tsx src/app/page.tsx
@@ -2097,7 +2100,7 @@ git commit -m "feat: add the two-phase countdown"
 - Create: `src/components/Snowfall.tsx`
 - Modify: `src/app/globals.css`, `src/app/layout.tsx`
 
-- [ ] **Step 1: Add the snow component**
+- [x] **Step 1: Add the snow component**
 
 ```tsx
 // src/components/Snowfall.tsx
@@ -2134,7 +2137,7 @@ export function Snowfall() {
 }
 ```
 
-- [ ] **Step 2: Add the styles**
+- [x] **Step 2: Add the styles**
 
 Append to `src/app/globals.css`:
 
@@ -2191,18 +2194,18 @@ main {
 }
 ```
 
-- [ ] **Step 3: Mount it**
+- [x] **Step 3: Mount it**
 
 In `src/app/layout.tsx`, import `Snowfall` and render `<Snowfall />` as the first child inside `<body>`.
 
-- [ ] **Step 4: Verify it doesn't block clicks**
+- [x] **Step 4: Verify it doesn't block clicks**
 
 Run `npm run dev`, open `/commanders`, and confirm the grid tiles still open the detail panel. Then run the E2E suite, which clicks through the UI:
 
 Run: `npm run test:e2e`
 Expected: PASS — a snow overlay intercepting pointer events would fail these.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/Snowfall.tsx src/app/globals.css src/app/layout.tsx
@@ -2217,7 +2220,7 @@ git commit -m "feat: add winter palette and decorative snow"
 - Create: `scripts/seed-demo.ts`, `src/lib/demo.ts`, `src/demo/demo-event.json` (generated)
 - Modify: `package.json`
 
-- [ ] **Step 1: Write the seeder**
+- [x] **Step 1: Write the seeder**
 
 ```ts
 // scripts/seed-demo.ts
@@ -2278,7 +2281,7 @@ main().catch((error) => {
 });
 ```
 
-- [ ] **Step 2: Write the reader**
+- [x] **Step 2: Write the reader**
 
 ```ts
 // src/lib/demo.ts
@@ -2297,7 +2300,7 @@ export function readDemoEvent(): EventData {
 }
 ```
 
-- [ ] **Step 3: Add the npm script and generate the data**
+- [x] **Step 3: Add the npm script and generate the data**
 
 Add to `package.json` `scripts`:
 
@@ -2318,7 +2321,7 @@ print('revealedAt:', d['revealedAt'])"
 
 Expected: eight name → name lines, no self-assignments, and a timestamp.
 
-- [ ] **Step 4: Confirm the isolation property**
+- [x] **Step 4: Confirm the isolation property**
 
 ```bash
 grep -n "store" src/lib/demo.ts scripts/seed-demo.ts || echo "NO STORE IMPORT — correct"
@@ -2326,7 +2329,7 @@ grep -n "store" src/lib/demo.ts scripts/seed-demo.ts || echo "NO STORE IMPORT �
 
 Expected: `NO STORE IMPORT — correct`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/seed-demo.ts src/lib/demo.ts src/demo/demo-event.json package.json
@@ -2340,7 +2343,7 @@ git commit -m "feat: add demo participants and an isolated reader"
 **Files:**
 - Create: `src/components/DemoBadge.tsx`, `src/app/demo/page.tsx`, `src/app/demo/reveal/page.tsx`, `src/app/demo/s/[token]/page.tsx`
 
-- [ ] **Step 1: The badge**
+- [x] **Step 1: The badge**
 
 ```tsx
 // src/components/DemoBadge.tsx
@@ -2355,7 +2358,7 @@ export function DemoBadge() {
 }
 ```
 
-- [ ] **Step 2: The demo index**
+- [x] **Step 2: The demo index**
 
 ```tsx
 // src/app/demo/page.tsx
@@ -2398,7 +2401,7 @@ export default function DemoIndexPage() {
 }
 ```
 
-- [ ] **Step 3: The demo reveal page**
+- [x] **Step 3: The demo reveal page**
 
 ```tsx
 // src/app/demo/reveal/page.tsx
@@ -2445,7 +2448,7 @@ export default function DemoRevealPage() {
 }
 ```
 
-- [ ] **Step 4: The demo reveal-token page**
+- [x] **Step 4: The demo reveal-token page**
 
 ```tsx
 // src/app/demo/s/[token]/page.tsx
@@ -2509,11 +2512,11 @@ export default async function DemoTokenPage({
 }
 ```
 
-- [ ] **Step 5: Verify by hand**
+- [x] **Step 5: Verify by hand**
 
 Run `npm run dev`, then visit `/demo`, follow a participant link, and open `/demo/reveal` and step through the ring. Confirm the DEMO badge is on every page.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/DemoBadge.tsx src/app/demo/
@@ -2528,7 +2531,7 @@ git commit -m "feat: add demo routes previewing the real pages"
 - Modify: `tests/e2e/fixture-event.json`, `tests/e2e/commanders.spec.ts`
 - Create: `tests/e2e/reveal-day.spec.ts`, `tests/e2e/demo.spec.ts`
 
-- [ ] **Step 1: Rebuild the fixture as a valid ring**
+- [x] **Step 1: Rebuild the fixture as a valid ring**
 
 The current fixture has three people where Cleo's `recipientId` is `"does-not-exist"`. That deliberately-broken row is incompatible with `/reveal`, which requires a single cycle — `buildRing` would throw. Replace the whole file with a valid three-person cycle plus the reveal timestamp:
 
@@ -2569,7 +2572,7 @@ The current fixture has three people where Cleo's `recipientId` is `"does-not-ex
 
 The chain is now Ada → Bob → Cleo → Ada.
 
-- [ ] **Step 1b: Update the existing reveal spec to match**
+- [x] **Step 1b: Update the existing reveal spec to match**
 
 `tests/e2e/reveal.spec.ts` assumes the old pairings and the dangling token. Apply exactly these changes:
 
@@ -2590,7 +2593,7 @@ test("an unknown token 404s", async ({ page }) => {
 
 The dangling-recipient branch in `src/app/s/[token]/page.tsx` keeps its `console.error` and its 404, but is no longer covered end to end. That is an accepted loss: covering it required a fixture that cannot also produce a valid ring.
 
-- [ ] **Step 2: Update the commanders spec**
+- [x] **Step 2: Update the commanders spec**
 
 ```ts
 // tests/e2e/commanders.spec.ts
@@ -2620,7 +2623,7 @@ test("choosing a card opens its detail panel", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 3: Write the reveal-day spec**
+- [x] **Step 3: Write the reveal-day spec**
 
 ```ts
 // tests/e2e/reveal-day.spec.ts
@@ -2647,7 +2650,7 @@ test("stepping to the end closes the loop", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 4: Write the demo spec**
+- [x] **Step 4: Write the demo spec**
 
 ```ts
 // tests/e2e/demo.spec.ts
@@ -2669,12 +2672,12 @@ test("a demo link reveals that participant's recipient", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 5: Run the whole suite**
+- [x] **Step 5: Run the whole suite**
 
 Run: `npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e`
 Expected: all green
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/e2e/
@@ -2688,7 +2691,7 @@ git commit -m "test: cover the browser, reveal day and demo routes"
 **Files:**
 - Modify: `README.md`, `docs/superpowers/plans/2026-08-16-secret-santa-site.md`
 
-- [ ] **Step 1: Update the README**
+- [x] **Step 1: Update the README**
 
 Add to the scripts table: `npm run reveal` (unlock/lock the public reveal page) and `npm run seed:demo` (regenerate demo data, `-- --revealed` to unlock the demo ring).
 
@@ -2698,11 +2701,11 @@ Add to **Running the event**: on the day, unlock the public ring with `npm run r
 
 Update the schedule: sign-ups close 17 September 2026; the exchange is 5, 12 or 19 December 2026, and setting `EXCHANGE_AT` in `src/lib/event.ts` switches the countdown to it.
 
-- [ ] **Step 2: Note the superseded design in the old plan**
+- [x] **Step 2: Note the superseded design in the old plan**
 
 At the top of `docs/superpowers/plans/2026-08-16-secret-santa-site.md`, add a line noting that Tasks 9 and 10's `CommanderSuggester` and `/api/commanders/random` were superseded by the commander browser and `/api/commanders/sample`, with a link to this plan.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add README.md docs/
