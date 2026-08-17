@@ -9,6 +9,8 @@ export type ScryfallCard = {
   keywords: string[];
   layout: string;
   scryfall_uri: string;
+  set_name: string;
+  rarity: string;
   image_uris?: { normal?: string };
   card_faces?: Array<{
     name: string;
@@ -36,4 +38,10 @@ export type Commander = {
   imageUrl: string | null;
   scryfallUrl: string;
   hasPartner: boolean;
+  /** Set of the printing that makes this card uncommon. */
+  setName: string;
+  /** Rarity of that printing; expected to be "uncommon". */
+  rarity: string;
+  /** Can be paired with another commander. Set by the pool, not by normalizing. */
+  canPair: boolean;
 };

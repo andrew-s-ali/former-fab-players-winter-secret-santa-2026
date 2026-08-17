@@ -14,6 +14,9 @@ const suggestion = {
     imageUrl: "https://cards.scryfall.io/normal/anara.jpg",
     scryfallUrl: "https://scryfall.com/anara",
     hasPartner: true,
+    setName: "Commander 2019",
+    rarity: "uncommon",
+    canPair: true,
   },
   partner: null,
 };
@@ -49,6 +52,9 @@ describe("CommanderSuggester", () => {
         imageUrl: null,
         scryfallUrl: "https://scryfall.com/kediss",
         hasPartner: true,
+        setName: "Commander 2019",
+        rarity: "uncommon",
+        canPair: true,
       },
     };
     vi.stubGlobal(

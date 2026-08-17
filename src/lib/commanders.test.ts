@@ -12,6 +12,9 @@ const make = (name: string, colorIdentity: string[], hasPartner = false): Comman
   imageUrl: null,
   scryfallUrl: `https://scryfall.com/${name}`,
   hasPartner,
+  setName: "Commander 2019",
+  rarity: "uncommon",
+  canPair: false,
 });
 
 const pool: Commander[] = [

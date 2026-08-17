@@ -20,5 +20,10 @@ export function normalizeCard(card: ScryfallCard): Commander {
     imageUrl: card.image_uris?.normal ?? front?.image_uris?.normal ?? null,
     scryfallUrl: card.scryfall_uri,
     hasPartner: card.keywords.includes("Partner"),
+    setName: card.set_name,
+    rarity: card.rarity,
+    // Whether a card can pair comes from a separate tagged query; the pool
+    // flips this to true. Normalising one card in isolation cannot know it.
+    canPair: false,
   };
 }
