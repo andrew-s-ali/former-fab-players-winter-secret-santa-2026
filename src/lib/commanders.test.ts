@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { legalCommanders, pickCommander } from "./commanders";
+import { legalCommanders, pickCommander, sampleCommanders } from "./commanders";
 import type { Commander } from "./scryfall/types";
 
 const make = (name: string, colorIdentity: string[], hasPartner = false): Commander => ({
@@ -91,5 +91,78 @@ describe("pickCommander", () => {
 
   it("returns null when the filters leave nothing", () => {
     expect(pickCommander([make("Zada, Hedron Grinder", ["R"])], {}, () => 0)).toBeNull();
+  });
+});
+
+describe("legalCommanders colour and text filters", () => {
+  it("keeps only commanders whose identity fits inside the selected colours", () => {
+    const names = legalCommanders(pool, { colors: ["G", "W"] }).map((c) => c.name);
+
+    expect(names).toContain("Anara, Wolvid Familiar");
+    expect(names).toContain("Selvala, Explorer Returned");
+    expect(names).not.toContain("Malcolm, Keen-Eyed Navigator");
+  });
+
+  it("treats an empty colour selection as no filter", () => {
+    expect(legalCommanders(pool, { colors: [] })).toHaveLength(
+      legalCommanders(pool, {}).length
+    );
+  });
+
+  it("matches names case-insensitively on a substring", () => {
+    const names = legalCommanders(pool, { query: "sel" }).map((c) => c.name);
+
+    expect(names).toEqual(["Selvala, Explorer Returned"]);
+  });
+
+  it("still applies the veto alongside the new filters", () => {
+    const names = legalCommanders(pool, { colors: ["G", "U"], colorVeto: "G" }).map(
+      (c) => c.name
+    );
+
+    expect(names).not.toContain("Anara, Wolvid Familiar");
+  });
+
+  it("keeps only pairable commanders when asked", () => {
+    const mixed = [
+      { ...make("Pairs, the Willing", ["G"]), canPair: true },
+      { ...make("Solo, the Lonely", ["G"]), canPair: false },
+    ];
+
+    const names = legalCommanders(mixed, { pairsOnly: true }).map((c) => c.name);
+
+    expect(names).toEqual(["Pairs, the Willing"]);
+  });
+
+  it("ignores the pairable filter when it is off", () => {
+    const mixed = [
+      { ...make("Pairs, the Willing", ["G"]), canPair: true },
+      { ...make("Solo, the Lonely", ["G"]), canPair: false },
+    ];
+
+    expect(legalCommanders(mixed, { pairsOnly: false })).toHaveLength(2);
+  });
+});
+
+describe("sampleCommanders", () => {
+  it("returns at most n cards", () => {
+    expect(sampleCommanders(pool, {}, 2, () => 0)).toHaveLength(2);
+  });
+
+  it("returns every match when fewer than n exist", () => {
+    const result = sampleCommanders(pool, { query: "selvala" }, 9, () => 0);
+
+    expect(result).toHaveLength(1);
+  });
+
+  it("does not repeat a card within one sample", () => {
+    const result = sampleCommanders(pool, {}, 5, () => 0.5);
+    const ids = result.map((c) => c.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("returns an empty array when nothing matches", () => {
+    expect(sampleCommanders(pool, { query: "zzzz" }, 9, () => 0)).toEqual([]);
   });
 });
