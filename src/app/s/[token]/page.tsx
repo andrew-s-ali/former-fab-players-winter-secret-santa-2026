@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CommanderBrowser } from "@/components/CommanderBrowser";
 import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
+import { SecretScratchpad } from "@/components/SecretScratchpad";
 import { findById, findByToken } from "@/lib/participants";
 import { pickPrompt } from "@/lib/prompts";
 import { readEvent } from "@/lib/store";
@@ -43,6 +44,8 @@ export default async function RevealPage({
       <h1 className="text-3xl font-semibold">Hi {giver.name}</h1>
 
       <RevealDetails recipient={recipient} />
+
+      <SecretScratchpad token={token} />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Commander ideas for them</h2>
