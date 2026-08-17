@@ -1,11 +1,16 @@
 import { expect, test } from "@playwright/test";
+import fs from "fs";
 import path from "path";
 
-const SCREENSHOT_DIR = "/Users/andrewali/.gemini/antigravity/brain/d2abde56-5752-4a8c-9a1a-e5ddba9bd8d5/screenshots";
+const SCREENSHOT_DIR =
+  process.env.SCREENSHOT_DIR ??
+  path.join(process.cwd(), "test-results", "screenshots");
 
 test.setTimeout(90_000);
 
 test("browser visual walkthrough of all pages and features", async ({ page }) => {
+  fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+
   // 1. Home Page
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: /Winter Secret Santa 2026/ })).toBeVisible();
