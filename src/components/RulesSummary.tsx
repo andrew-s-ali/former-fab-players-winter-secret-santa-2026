@@ -10,8 +10,9 @@ export function RulesSummary() {
 
       <ul className="list-disc space-y-1 pl-5">
         <li>
-          Commanders (including both halves of a partner pair) must be
-          legendary creatures printed in paper at <strong>uncommon</strong>.
+          Commanders must be legendary cards that can be a commander —
+          creatures, Backgrounds and the like — printed in paper at{" "}
+          <strong>uncommon</strong>, including both halves of a partner pair.
         </li>
         <li>Deck cards may be any rarity.</li>
         <li>

@@ -17,7 +17,7 @@ describe("RulesSummary", () => {
     // elements — match on an element's full text content (matcher recipe
     // from Testing Library's "text broken up by multiple elements" docs)
     // instead of relying on a single text node.
-    const pattern = /legendary creatures.*uncommon/i;
+    const pattern = /legendary cards.*uncommon/i;
     expect(
       screen.getByText((_content, element) => {
         if (!element) {

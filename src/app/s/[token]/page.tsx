@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CommanderSuggester } from "@/components/CommanderSuggester";
+import { CommanderBrowser } from "@/components/CommanderBrowser";
 import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
 import { findById, findByToken } from "@/lib/participants";
@@ -48,7 +48,14 @@ export default async function RevealPage({
         <p className="opacity-70">
           Filtered to exclude their vetoed colour and every banned commander.
         </p>
-        <CommanderSuggester colorVeto={recipient.colorVeto} />
+        <CommanderBrowser
+          lockedExclude={recipient.colorVeto}
+          lockedReason={
+            recipient.colorVeto
+              ? `${recipient.name} vetoed a colour, so it stays filtered out.`
+              : undefined
+          }
+        />
       </section>
 
       <RulesSummary />
