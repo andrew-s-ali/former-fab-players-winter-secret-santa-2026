@@ -853,7 +853,7 @@ describe("CommanderBrowser", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /Anara/ }));
 
-    expect(await screen.findByRole("dialog", { name: "Anara" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Anara" })).toBeInTheDocument();
   });
 
   it("says so when nothing matches", async () => {
@@ -2614,7 +2614,8 @@ test("choosing a card opens its detail panel", async ({ page }) => {
   await expect(first).toBeVisible({ timeout: 30_000 });
   await first.click();
 
-  await expect(page.getByRole("dialog")).toBeVisible();
+  // The panel is a labelled region, not a dialog: it has no focus trap or
+  // modality, so claiming role="dialog" would mislead screen readers.
   await expect(page.getByText(/uncommon in /i)).toBeVisible();
 });
 ```
