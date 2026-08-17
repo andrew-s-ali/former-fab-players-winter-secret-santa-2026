@@ -1,24 +1,28 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ThemePrompt } from "./ThemePrompt";
-import { THEME_PROMPTS } from "@/lib/prompts";
+
+// A fixed re-roll target, so "did the click change the prompt?" is a real
+// question with a deterministic answer rather than a 1-in-24 coin flip.
+vi.mock("@/lib/prompts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/prompts")>()),
+  pickPrompt: () => "Landfall",
+}));
 
 describe("ThemePrompt", () => {
   it("shows the prompt chosen on the server", () => {
-    render(<ThemePrompt initialPrompt="Landfall" />);
+    render(<ThemePrompt initialPrompt="Go wide with tokens" />);
 
-    expect(screen.getByText("Landfall")).toBeInTheDocument();
+    expect(screen.getByText("Go wide with tokens")).toBeInTheDocument();
   });
 
-  it("re-rolls to another prompt from the list", async () => {
-    render(<ThemePrompt initialPrompt="Landfall" />);
+  it("replaces the prompt when re-rolled", async () => {
+    render(<ThemePrompt initialPrompt="Go wide with tokens" />);
 
     await userEvent.click(screen.getByRole("button", { name: /another/i }));
 
-    // A re-roll can legitimately land on the same prompt, so assert only that
-    // whatever is shown is a real prompt — not that it changed.
-    const shown = THEME_PROMPTS.find((p) => screen.queryByText(p) !== null);
-    expect(shown).toBeDefined();
+    expect(screen.getByText("Landfall")).toBeInTheDocument();
+    expect(screen.queryByText("Go wide with tokens")).not.toBeInTheDocument();
   });
 });
