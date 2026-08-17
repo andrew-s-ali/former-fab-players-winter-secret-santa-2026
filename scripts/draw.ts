@@ -46,7 +46,7 @@ async function main() {
     themeWish: person.themeWish,
   }));
 
-  const event: EventData = { participants };
+  const event: EventData = { participants, revealedAt: null };
   await writeEvent(event);
 
   const base = process.env.SITE_URL ?? "http://localhost:3000";
