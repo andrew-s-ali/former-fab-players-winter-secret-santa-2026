@@ -14,7 +14,7 @@ export function CommanderDetail({
     <div
       aria-label={card.name}
       className="rounded-xl border border-slate-300/40 bg-slate-900/40 p-4"
-      role="dialog"
+      role="region"
     >
       <div className="flex justify-end">
         <button className="text-sm underline" onClick={onClose} type="button">

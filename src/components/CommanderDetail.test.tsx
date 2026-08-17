@@ -52,4 +52,16 @@ describe("CommanderDetail", () => {
 
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("omits the image when the card has none", () => {
+    render(<CommanderDetail card={{ ...card, imageUrl: null }} onClose={() => {}} />);
+
+    expect(screen.queryByAltText(card.name)).not.toBeInTheDocument();
+  });
+
+  it("names a non-uncommon rarity as-is", () => {
+    render(<CommanderDetail card={{ ...card, rarity: "rare" }} onClose={() => {}} />);
+
+    expect(screen.getByText(/rare in Commander Legends/i)).toBeInTheDocument();
+  });
 });

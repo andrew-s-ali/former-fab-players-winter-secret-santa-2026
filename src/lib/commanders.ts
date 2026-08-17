@@ -3,6 +3,8 @@ import type { Commander } from "./scryfall/types";
 
 export type ColorCode = "W" | "U" | "B" | "R" | "G";
 
+export const COLORS = new Set<string>(["W", "U", "B", "R", "G"]);
+
 export type CommanderFilters = {
   /** Hard exclusion: drop commanders whose identity contains this colour. */
   colorVeto?: ColorCode | null;

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { sampleCommanders, type ColorCode } from "@/lib/commanders";
+import { COLORS, sampleCommanders, type ColorCode } from "@/lib/commanders";
 import { fetchCommanderPool } from "@/lib/scryfall/pool";
 
-const COLORS = new Set(["W", "U", "B", "R", "G"]);
 const DEFAULT_SIZE = 9;
 const MAX_SIZE = 24;
 
