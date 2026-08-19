@@ -1,30 +1,35 @@
+import {
+  SIGNUP_FIELDS,
+  dedupeSignups,
+  normalizeSignup,
+  type ParticipantInput,
+} from "#lib/signup";
+
 export type Row = Record<string, string>;
 
-export type ParticipantInput = {
-  name: string;
-  colorVeto: "W" | "U" | "B" | "R" | "G" | null;
-  themeVeto: string | null;
-  themeWish: string | null;
-};
+/**
+ * CSV import, kept as the fallback path now that Netlify Forms is the primary
+ * source. Still the way in for a Google Form export, a hand-written sheet, or
+ * a rescue after something goes wrong with the live form.
+ *
+ * Validation, colour parsing and duplicate handling all live in
+ * `src/lib/signup.ts` so both sources behave identically — this file is only
+ * responsible for turning a CSV's column headings into canonical field names.
+ */
 
 /**
  * Google Form column headers. Confirm these against the real CSV export —
  * they are the only thing to change if the form's wording differs.
  */
 const COLUMN_MAP = {
-  name: "Your name",
-  colorVeto: "Colour to avoid",
-  themeVeto: "Theme to avoid",
-  themeWish: "Theme you'd like",
+  [SIGNUP_FIELDS.name]: "Your name",
+  [SIGNUP_FIELDS.colorVeto]: "Colour to avoid",
+  [SIGNUP_FIELDS.themeVeto]: "Theme to avoid",
+  [SIGNUP_FIELDS.themeWish]: "Theme you'd like",
 } as const;
 
-export const COLOR_CODES: Record<string, ParticipantInput["colorVeto"]> = {
-  white: "W",
-  blue: "U",
-  black: "B",
-  red: "R",
-  green: "G",
-};
+export { COLOR_CODES } from "#lib/signup";
+export type { ParticipantInput } from "#lib/signup";
 
 /** Minimal RFC 4180 parser: handles quotes, embedded commas and newlines. */
 export function parseCsv(input: string): Row[] {
@@ -86,65 +91,28 @@ export function parseCsv(input: string): Row[] {
     );
 }
 
-function blankToNull(value: string | undefined): string | null {
-  const trimmed = (value ?? "").trim();
-  if (trimmed === "" || /^no preference$/i.test(trimmed)) {
-    return null;
-  }
-  return trimmed;
-}
-
 /** Maps raw CSV rows onto participant inputs. */
 export function toParticipantInputs(rows: Row[]): ParticipantInput[] {
-  const inputs = rows.map((row, index) => {
-    if (!(COLUMN_MAP.name in row)) {
+  const entries = rows.map((row, index) => {
+    if (!(COLUMN_MAP[SIGNUP_FIELDS.name] in row)) {
       throw new Error(
-        `CSV has no "${COLUMN_MAP.name}" column. Found: ${Object.keys(row).join(", ")}. ` +
+        `CSV has no "${COLUMN_MAP[SIGNUP_FIELDS.name]}" column. Found: ${Object.keys(row).join(", ")}. ` +
           "Update COLUMN_MAP in scripts/csv.ts to match the form."
       );
     }
 
-    const name = (row[COLUMN_MAP.name] ?? "").trim();
-    if (name === "") {
-      // +2: one for the header row, one to convert to 1-based numbering.
-      throw new Error(`Row ${index + 2} of the CSV has an empty name.`);
-    }
-
-    const rawColor = blankToNull(row[COLUMN_MAP.colorVeto]);
-    let colorVeto: ParticipantInput["colorVeto"] = null;
-
-    if (rawColor) {
-      colorVeto = COLOR_CODES[rawColor.toLowerCase()] ?? null;
-
-      if (colorVeto === null) {
-        throw new Error(
-          `Unrecognised colour "${rawColor}" for "${name}". ` +
-            `Known colours: ${Object.keys(COLOR_CODES).join(", ")}. ` +
-            "Update COLOR_CODES in scripts/csv.ts to match the form's wording."
-        );
-      }
-    }
+    const fields = Object.fromEntries(
+      Object.entries(COLUMN_MAP).map(([field, header]) => [field, row[header]])
+    );
 
     return {
-      name,
-      colorVeto,
-      themeVeto: blankToNull(row[COLUMN_MAP.themeVeto]),
-      themeWish: blankToNull(row[COLUMN_MAP.themeWish]),
+      // +2: one for the header row, one to convert to 1-based numbering.
+      input: normalizeSignup(fields, `Row ${index + 2} of the CSV`),
+      // A CSV carries no submission time. Row order stands in for it, which is
+      // only ever used to break ties, and a CSV should not contain any.
+      submittedAt: String(index).padStart(6, "0"),
     };
   });
 
-  const seen = new Set<string>();
-  for (const input of inputs) {
-    const key = input.name.toLowerCase();
-    if (seen.has(key)) {
-      throw new Error(
-        `Two participants are both named "${input.name}". ` +
-          "Names identify people when correcting entries later, so make them " +
-          "distinct in the CSV (for example \"Dave K.\") and draw again."
-      );
-    }
-    seen.add(key);
-  }
-
-  return inputs;
+  return dedupeSignups(entries).inputs;
 }

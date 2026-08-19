@@ -12,9 +12,14 @@ export default function Home() {
 
       <RulesSummary />
 
-      <Link className="underline" href="/commanders">
-        Browse random legal commanders →
-      </Link>
+      <div className="flex flex-col gap-2">
+        <Link className="underline" href="/signup">
+          Sign up →
+        </Link>
+        <Link className="underline" href="/commanders">
+          Browse random legal commanders →
+        </Link>
+      </div>
     </main>
   );
 }

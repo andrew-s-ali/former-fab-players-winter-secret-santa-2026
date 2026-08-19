@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Form registration</title>
+  </head>
+  <body>
+    <!--
+      Netlify detects forms by parsing built HTML at deploy time. Every form on
+      this site is server-rendered, so none of them appear in the build output
+      and none would ever be registered. This static file is the registration:
+      it is not linked from anywhere and is never shown to a participant.
+
+      Two rules, both of which fail silently when broken:
+
+      1. Field names must match the rendered form exactly. Netlify validates a
+         submission's fields against the registered form and drops mismatches
+         without an error. They come from SIGNUP_FIELDS in src/lib/signup.ts —
+         change them there and here together.
+      2. The browser POSTs here, to /__forms.html, not to "/". On this site "/"
+         is handled by Netlify's Next.js server function, which swallows the
+         POST before form processing sees it.
+    -->
+    <form name="santa-signup" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="santa-signup" />
+      <input name="bot-field" />
+      <input name="name" type="text" />
+      <input name="colorVeto" type="text" />
+      <textarea name="themeWish"></textarea>
+      <input name="themeVeto" type="text" />
+    </form>
+  </body>
+</html>

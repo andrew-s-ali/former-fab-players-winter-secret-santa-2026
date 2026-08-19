@@ -34,6 +34,10 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       EVENT_DATA_PATH: "tests/e2e/fixture-event.json",
+      // Pins the sign-up window open. Without it the /signup specs would start
+      // failing on their own the day sign-ups close; the closed state is
+      // covered by unit tests in src/lib/signup.test.ts.
+      SIGNUPS_NOW: "2026-08-19T00:00:00.000Z",
     },
   },
 });
