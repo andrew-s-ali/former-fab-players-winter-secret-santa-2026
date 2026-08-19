@@ -72,6 +72,7 @@ describe("DemoTokenPage", () => {
                 setName: "Phyrexia",
                 rarity: "uncommon",
                 priceUsd: null,
+                priceIsFoil: false,
               },
             ],
           }),

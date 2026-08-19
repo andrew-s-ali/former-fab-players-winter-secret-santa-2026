@@ -30,6 +30,8 @@ export async function GET(request: Request) {
       colorVeto,
       colors: parseColors(params.get("colors")),
       query: params.get("q") ?? "",
+      // Theme prompts search rules text, not card names — see CommanderFilters.
+      theme: params.get("theme") ?? "",
       pairsOnly: params.get("pairs") === "1",
     },
     n

@@ -6,6 +6,12 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // Serial on purpose. With four workers against a cold cache, parallel
+  // first-hits to each route contend on on-demand compilation and the initial
+  // Scryfall pool fetch, and 3–4 tests time out; CI always starts cold, where
+  // `retries` was quietly masking it. Serial costs about seven seconds on a
+  // ~20s suite and makes cold runs deterministic.
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   expect: {

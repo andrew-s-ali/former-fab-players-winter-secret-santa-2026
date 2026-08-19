@@ -10,6 +10,12 @@ import type { Commander, ScryfallCard } from "./types";
 export function normalizeCard(card: ScryfallCard): Commander {
   const front = card.card_faces?.[0];
 
+  // Some printings are foil-only, so a foil price is better than none — but a
+  // foil is often several times the non-foil, and showing one unlabelled next
+  // to a $75 budget would mislead. Carry a flag so the UI can say which it is.
+  const usd = card.prices?.usd ?? null;
+  const usdFoil = card.prices?.usd_foil ?? null;
+
   return {
     id: card.id,
     name: card.name,
@@ -25,6 +31,7 @@ export function normalizeCard(card: ScryfallCard): Commander {
     // Whether a card can pair comes from a separate tagged query; the pool
     // flips this to true. Normalising one card in isolation cannot know it.
     canPair: false,
-    priceUsd: card.prices?.usd ?? card.prices?.usd_foil ?? null,
+    priceUsd: usd ?? usdFoil,
+    priceIsFoil: usd === null && usdFoil !== null,
   };
 }

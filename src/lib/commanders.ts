@@ -12,19 +12,34 @@ export type CommanderFilters = {
   colors?: ColorCode[];
   /** Case-insensitive substring match on the card name. */
   query?: string;
+  /**
+   * Case-insensitive substring match on the card's **rules text**.
+   *
+   * Deliberately separate from `query`. Theme prompts search for mechanics —
+   * "token", "sacrifice", "graveyard" — which almost never appear in a card's
+   * name: 16 of the 22 prompt keywords match zero names in the live pool, but
+   * each matches between 9 and 462 cards by rules text. Folding this into
+   * `query` instead would make a name search for "sel" also match every card
+   * whose rules text happens to say "select".
+   */
+  theme?: string;
   /** Keep only commanders that can pair with another commander. */
   pairsOnly?: boolean;
 };
 
 const BANNED = new Set<string>(BANNED_COMMANDERS);
 
-/** Applies the ban list, the colour veto, the colour selection and the search. */
+/**
+ * Applies the ban list, the colour veto, the colour selection, the name search
+ * and the theme (rules-text) search.
+ */
 export function legalCommanders(
   pool: Commander[],
   filters: CommanderFilters
 ): Commander[] {
   const colors = filters.colors ?? [];
   const query = (filters.query ?? "").trim().toLowerCase();
+  const theme = (filters.theme ?? "").trim().toLowerCase();
 
   return pool.filter((card) => {
     if (BANNED.has(card.name)) {
@@ -40,6 +55,9 @@ export function legalCommanders(
       return false;
     }
     if (query && !card.name.toLowerCase().includes(query)) {
+      return false;
+    }
+    if (theme && !card.oracleText.toLowerCase().includes(theme)) {
       return false;
     }
     if (filters.pairsOnly && !card.canPair) {

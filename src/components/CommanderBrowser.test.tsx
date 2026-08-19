@@ -17,6 +17,7 @@ const card = (id: string, name: string, colorIdentity: string[] = ["G"]) => ({
   setName: "Test Set",
   rarity: "uncommon",
   priceUsd: null,
+  priceIsFoil: false,
 });
 
 function mockFetch(commanders: ReturnType<typeof card>[]) {
@@ -172,7 +173,7 @@ describe("CommanderBrowser", () => {
     await waitFor(() => expect(fetchMock.mock.calls.at(-1)![0]).toContain("colors=U"));
   });
 
-  it("sets search query and triggers fetch when a theme prompt is selected", async () => {
+  it("searches rules text, not the name box, when a theme prompt is selected", async () => {
     const fetchMock = mockFetch([card("a", "Anara")]);
     render(
       <CommanderBrowser
@@ -186,12 +187,37 @@ describe("CommanderBrowser", () => {
       screen.getByRole("button", { name: /search this theme/i })
     );
 
-    expect(screen.getByRole("textbox", { name: /search by name/i })).toHaveValue(
-      "artifact"
+    // The keyword is a mechanic, so it must go to the rules-text filter. Put
+    // it in the name box instead and 16 of the 22 prompts match nothing.
+    await waitFor(() => {
+      const url = fetchMock.mock.calls.at(-1)![0] as string;
+      expect(url).toContain("theme=artifact");
+      expect(url).not.toContain("q=artifact");
+    });
+
+    expect(screen.getByRole("textbox", { name: /search by name/i })).toHaveValue("");
+  });
+
+  it("shows the active theme and clears it on request", async () => {
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(
+      <CommanderBrowser
+        initialPrompt={{ text: "Artifact deck", keyword: "artifact" }}
+        lockedExclude={null}
+      />
     );
+    await screen.findByText("Anara");
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /search this theme/i })
+    );
+    await screen.findByText(/rules text mentions/i);
+
+    await userEvent.click(screen.getByRole("button", { name: /clear theme/i }));
 
     await waitFor(() => {
-      expect(fetchMock.mock.calls.at(-1)![0]).toContain("q=artifact");
+      expect(fetchMock.mock.calls.at(-1)![0]).not.toContain("theme=");
     });
+    expect(screen.queryByText(/rules text mentions/i)).not.toBeInTheDocument();
   });
 });

@@ -8,8 +8,8 @@ Feature-complete. The site provides a filterable commander browser, runs the dra
 from a CSV export, serves each participant a secret reveal page with their assignment,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
 palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
-and demo preview routes. 190 unit tests, 14 Playwright E2E tests, and lint/typecheck/build
-are all clean.
+and demo preview routes. 195 unit tests, 15 Playwright E2E tests, and lint/typecheck/build
+are all clean, verified on a cold cache.
 
 See:
 - [Original Design Spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
@@ -157,8 +157,11 @@ Locally, omit the Netlify variables and scripts operate on `data/event.local.jso
   - On the secret reveal page (`/s/[token]`), the recipient's color veto is pre-excluded, disabled, and rendered as a locked red pip.
   - The client requests random batches of 9 commanders from `/api/commanders/sample`, which enforces server-side veto exclusions and applies `cache-control: no-store` to guarantee fresh random samples on each roll.
   - Clicking any card tile opens `CommanderDetail.tsx` displaying the card image, mana cost, type line, oracle text, uncommon printing legality line (`Uncommon in <Set Name>`), estimated USD market price (`~$X.XX`), and pairing badge.
+    - Price falls back to the foil price only when no non-foil price exists, and is then labelled `(foil)`. A foil is often several times the non-foil, so an unlabelled fallback would misrepresent a card's cost against the $75 budget.
   - **External Deckbuilding Links:** The detail view offers one-click outbound links to EDHREC (normalized commander slug), Moxfield advanced commander deck search, and Scryfall.
-  - **Interactive Theme Prompts:** `ThemePrompt.tsx` surfaces curated deckbuilding hooks (e.g. "Spellslinger", "Artifacts", "Voltron") with a "Search this theme" button that immediately prefills the browser search bar and fetches matching cards.
+  - **Interactive Theme Prompts:** `ThemePrompt.tsx` surfaces curated deckbuilding hooks (e.g. "Spellslinger", "Artifacts", "Voltron") with a "Search this theme" button.
+    - The button sets a **separate `theme=` filter matched against the card's rules text** — never the `q=` name filter. Prompt keywords are mechanics, and 16 of the 22 match **zero** commander names in the live pool while each matches 9–462 cards by rules text; routing them through the name box makes the feature return nothing for most prompts.
+    - The active theme renders as a chip ("showing commanders whose rules text mentions…") with a Clear theme button, so it is visible and reversible rather than a mysterious empty grid.
 - **Private Notes Scratchpad (`SecretScratchpad.tsx`):**
   - Present on `/s/[token]` and `/demo/s/[token]`, providing participants a place to draft deck ideas, card links, or wishlist thoughts.
   - Backed by browser `localStorage` keyed uniquely per token (`secret-santa-scratchpad-<token>`).
@@ -180,6 +183,7 @@ Locally, omit the Netlify variables and scripts operate on `data/event.local.jso
   - `package.json`'s `"imports"` map (`#lib/*` → `src/lib/*.ts`, `#scripts/*` → `scripts/*.ts`) exists because Node's built-in TypeScript stripping (`node --experimental-strip-types`, used to run the scripts) won't resolve extensionless relative imports, while `tsc` rejects imports with an explicit `.ts` suffix.
 - **E2E Test Fixtures:**
   - `playwright.config.ts` sets `EVENT_DATA_PATH=tests/e2e/fixture-event.json` for its `webServer`, running tests against fake, committed test data (Ada, Bob, Cleo) without requiring Netlify credentials.
+  - **The suite runs serially (`workers: 1`), deliberately.** With four workers on a cold cache, parallel first-hits to each route contend on on-demand compilation and the initial Scryfall pool fetch, and 3–4 tests time out. CI always starts cold, where `retries: 2` was quietly masking it. Serial costs about seven seconds on a ~23s suite and makes cold runs deterministic.
 
 ## Deploying
 

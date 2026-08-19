@@ -46,17 +46,24 @@ test("choosing a card opens its detail panel with external deckbuilding links", 
   await expect(scryfallLink).toHaveAttribute("target", "_blank");
 });
 
-test("clicking theme prompt prefills commander search", async ({ page }) => {
+test("searching a theme returns real commanders matching it", async ({ page }) => {
   await page.goto("/commanders");
 
-  const searchThemeBtn = page.getByRole("button", { name: /search this theme/i });
-  await expect(searchThemeBtn).toBeVisible();
+  // Wait for the first sample so the click lands on a settled grid.
+  await expect(page.locator("ul li button").first()).toBeVisible({ timeout: 30_000 });
 
-  const searchInput = page.getByPlaceholder("Search by name…");
-  await expect(searchInput).toHaveValue("");
+  await page.getByRole("button", { name: /search this theme/i }).click();
 
-  await searchThemeBtn.click();
+  await expect(page.getByText(/rules text mentions/i)).toBeVisible();
 
-  await expect(searchInput).not.toHaveValue("");
+  // The assertion that matters. Theme keywords are mechanics ("token",
+  // "sacrifice"), which match almost no commander *names* — routing them to
+  // the name box instead left the grid empty for 16 of the 22 prompts, and
+  // the old test passed anyway because it only checked the box was non-empty.
+  await expect(page.getByText(/no commanders match/i)).toHaveCount(0);
+  await expect(page.locator("ul li button").first()).toBeVisible({ timeout: 30_000 });
+
+  // The name box stays empty: the theme is a separate filter.
+  await expect(page.getByPlaceholder("Search by name…")).toHaveValue("");
 });
 

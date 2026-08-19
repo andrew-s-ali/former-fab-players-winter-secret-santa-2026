@@ -55,6 +55,7 @@ export function CommanderDetail({
             {card.priceUsd ? (
               <span className="ml-2 font-mono text-emerald-400">
                 ~${card.priceUsd}
+                {card.priceIsFoil ? " (foil)" : ""}
               </span>
             ) : null}
           </p>

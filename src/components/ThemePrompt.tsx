@@ -16,12 +16,10 @@ export function ThemePrompt({
   initialPrompt,
   onSelectPrompt,
 }: {
-  initialPrompt: ThemePromptItem | string;
+  initialPrompt: ThemePromptItem;
   onSelectPrompt?: (prompt: ThemePromptItem) => void;
 }) {
-  const [prompt, setPrompt] = useState<ThemePromptItem>(() =>
-    typeof initialPrompt === "string" ? { text: initialPrompt } : initialPrompt
-  );
+  const [prompt, setPrompt] = useState<ThemePromptItem>(initialPrompt);
 
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-300/30 px-4 py-2">

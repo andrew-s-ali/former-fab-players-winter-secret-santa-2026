@@ -35,6 +35,7 @@ const card = {
   setName: "Commander Legends",
   rarity: "uncommon",
   priceUsd: null,
+  priceIsFoil: false,
 };
 
 describe("CommanderDetail", () => {
