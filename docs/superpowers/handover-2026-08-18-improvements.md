@@ -3,7 +3,7 @@
 **Written:** 2026-08-18
 **For:** the next agent continuing this build
 **Repo:** `/Users/andrewali/Projects/former-fab-players-winter-secret-santa-2026`
-**Branch:** `commander-browser` — **fully pushed and already merged into `main`** via PR #2 (`7d03beb`). The only new work is **17 uncommitted files** in the working tree.
+**Branch:** `commander-browser` (`01422a6`) — pushed, **1 commit ahead of `main`, needs a new PR**. Working tree is clean.
 **Supersedes:** [handover-2026-08-16-commander-browser.md](handover-2026-08-16-commander-browser.md) (all 19 of its tasks are now done)
 
 ---
@@ -50,46 +50,49 @@ the commander is rarity-restricted.
 ## 3. Git state — read before you touch anything
 
 ```
-commander-browser   5a57fec  == origin/commander-browser   (pushed, merged via PR #2)
-origin/main         7d03beb  = the merge commit, 1 ahead of this branch
-main (local)        13a3d8d  59 behind origin/main — STALE, do not build on it
+origin/main                7d03beb  merge of PR #2 (now CLOSED)
+origin/commander-browser   01422a6  1 ahead of main — the theme fix, NOT yet merged
+origin/handover/2026-08-18 <this doc>  1 ahead of main
+main (local)               13a3d8d  59 behind origin/main — STALE, do not build on it
 fix/netlify-nextjs-runtime, foundation — old, already merged
 ```
 
-Everything committed on `commander-browser` is **already on `origin/main`**.
 Before starting anything new:
 
 ```bash
 git fetch origin && git checkout main && git pull
 ```
 
-The 17 uncommitted files are currently sitting on `commander-browser`. If they
-are to be committed, decide with the user whether they go on a fresh branch off
-the updated `main` or as a follow-up commit here.
+**The working tree is clean.** Everything described in §4 is committed and
+pushed.
 
 ---
 
-## 4. FIRST ACTION: the working tree is dirty
+## 4. FIRST ACTION: `commander-browser` needs a new PR
 
-17 files are modified and **uncommitted**. They are complete and verified — they
-were finished but not committed, because this project's standing rule is that
-nothing is committed without the user asking.
+The theme fix is committed and pushed as `01422a6`, but it is **not on `main`**.
+It sits on top of an already-merged branch, and **PR #2 is closed, so it will
+not pick this commit up**. Landing it needs a *new* PR from
+`commander-browser`, which will show exactly this one commit.
 
-**Ask the user before committing.** Do not commit on your own initiative.
+Until that merges, `main` still ships the bug: most theme prompts return an
+empty grid.
 
-Verified state of these changes, run cold on 2026-08-18:
+Verified on the exact pushed tree, 2026-08-18:
 
 ```
 npm run lint        ✅ clean
 npm run typecheck   ✅ clean
 npm test            ✅ 195 passed (32 files)
-npm run test:e2e    ✅ 15 passed in ~21s
+npm run test:e2e    ✅ 15 passed in 22.2s
 npm run build       ✅ compiles
 ```
 
-### What the 17 files contain
+### What `01422a6` contains
 
-Six improvements the user approved with "I would like all of these changes please":
+Six improvements the user approved with "I would like all of these changes
+please", committed together because the tests and README changes interleave
+across them:
 
 1. **The theme-search bug fix (the headline).** `ThemePrompt`'s "Search this
    theme" button used to write its keyword into the **name** search box. Prompt
@@ -204,7 +207,7 @@ npm run dev                  # Next dev server
 npm run lint                 # eslint
 npm run typecheck            # next typegen && tsc --noEmit
 npm test                     # vitest run — 195 tests
-npm run test:e2e             # playwright — 15 tests, serial, ~21s
+npm run test:e2e             # playwright — 15 tests, serial, ~22s
 npm run build                # production build
 npm run seed:demo            # populate the /demo routes
 npm run draw                 # run the assignment draw from a CSV export
