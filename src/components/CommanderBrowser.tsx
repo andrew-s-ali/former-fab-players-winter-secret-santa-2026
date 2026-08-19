@@ -31,13 +31,19 @@ export function CommanderBrowser({
 }: {
   lockedExclude: ColorCode | null;
   lockedReason?: string;
-  initialPrompt?: ThemePromptItem | string;
+  initialPrompt?: ThemePromptItem;
 }) {
   const lockedReasonId = useId();
   const [commanders, setCommanders] = useState<Commander[] | null>(null);
   const [selected, setSelected] = useState<Commander | null>(null);
   const [colors, setColors] = useState<ColorCode[]>([]);
   const [query, setQuery] = useState("");
+  /**
+   * Active theme, searched against rules text rather than names.
+   * Held as the whole prompt so the chip can show human wording ("Go wide with
+   * tokens") while the request sends the keyword ("token").
+   */
+  const [theme, setTheme] = useState<ThemePromptItem | null>(null);
   const [pairsOnly, setPairsOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,6 +61,9 @@ export function CommanderBrowser({
     }
     if (query.trim()) {
       params.set("q", query.trim());
+    }
+    if (theme) {
+      params.set("theme", theme.keyword ?? theme.text);
     }
     if (lockedExclude) {
       params.set("exclude", lockedExclude);
@@ -96,7 +105,7 @@ export function CommanderBrowser({
         }
         setLoading(false);
       });
-  }, [colors, query, pairsOnly, lockedExclude]);
+  }, [colors, query, theme, pairsOnly, lockedExclude]);
 
   useEffect(() => {
     void load();
@@ -111,10 +120,23 @@ export function CommanderBrowser({
   return (
     <div className="space-y-4">
       {initialPrompt ? (
-        <ThemePrompt
-          initialPrompt={initialPrompt}
-          onSelectPrompt={(p) => setQuery(p.keyword ?? p.text)}
-        />
+        <ThemePrompt initialPrompt={initialPrompt} onSelectPrompt={setTheme} />
+      ) : null}
+
+      {theme ? (
+        <p className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="opacity-70">Showing commanders whose rules text mentions</span>
+          <span className="rounded-full bg-sky-600 px-3 py-1 text-white">
+            {theme.keyword ?? theme.text}
+          </span>
+          <button
+            className="underline"
+            onClick={() => setTheme(null)}
+            type="button"
+          >
+            Clear theme
+          </button>
+        </p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">

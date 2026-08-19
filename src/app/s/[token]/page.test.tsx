@@ -71,6 +71,7 @@ describe("RevealPage (/s/[token])", () => {
                 setName: "Phyrexia",
                 rarity: "uncommon",
                 priceUsd: null,
+                priceIsFoil: false,
               },
             ],
           }),

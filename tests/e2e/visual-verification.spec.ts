@@ -25,17 +25,23 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "02_commander_browser_grid.png"), fullPage: true });
 
   // 2b. Theme Prompt Interaction
+  // Asserted unconditionally: wrapping this in `if (await themeBtn.isVisible())`
+  // meant the walkthrough silently skipped the step — and still passed — if the
+  // button ever disappeared.
   const themeBtn = page.getByRole("button", { name: /search this theme/i });
-  if (await themeBtn.isVisible()) {
-    await themeBtn.click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({ path: path.join(SCREENSHOT_DIR, "02b_theme_prompt_applied.png"), fullPage: true });
-  }
+  await expect(themeBtn).toBeVisible();
+  await themeBtn.click();
+  await expect(page.getByText(/rules text mentions/i)).toBeVisible();
+  await expect(page.locator("ul li button").first()).toBeVisible({ timeout: 30_000 });
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, "02b_theme_prompt_applied.png"), fullPage: true });
 
   // 2c. Commander Detail Modal with External Deckbuilding Links
-  await page.getByPlaceholder("Search by name…").fill("");
+  await page.getByRole("button", { name: /clear theme/i }).click();
   await page.getByRole("button", { name: /roll nine more/i }).click();
-  await page.waitForTimeout(1000);
+  // Wait for the roll to settle rather than sleeping a fixed second: the
+  // button re-enables only once the request has resolved.
+  await expect(page.getByRole("button", { name: /roll nine more/i })).toBeEnabled();
+  await expect(page.locator("ul li button").first()).toBeVisible({ timeout: 30_000 });
   await page.locator("ul li button").first().click();
   await expect(page.getByRole("region")).toBeVisible();
   await expect(page.getByRole("link", { name: /view on edhrec/i })).toBeVisible();

@@ -16,6 +16,7 @@ const make = (name: string, colorIdentity: string[], hasPartner = false): Comman
   rarity: "uncommon",
   canPair: false,
   priceUsd: null,
+  priceIsFoil: false,
 });
 
 const pool: Commander[] = [
@@ -79,6 +80,45 @@ describe("legalCommanders colour and text filters", () => {
     );
 
     expect(names).not.toContain("Anara, Wolvid Familiar");
+  });
+
+  it("matches the theme against rules text, not the name", () => {
+    // The whole point of a separate theme filter: prompt keywords are
+    // mechanics, which essentially never appear in commander names.
+    const themed = [
+      { ...make("Nothing In The Name", ["G"]), oracleText: "Create a 1/1 token." },
+      { ...make("Token Collector", ["G"]), oracleText: "Draw a card." },
+    ];
+
+    const names = legalCommanders(themed, { theme: "token" }).map((c) => c.name);
+
+    expect(names).toEqual(["Nothing In The Name"]);
+  });
+
+  it("matches the theme case-insensitively", () => {
+    const themed = [{ ...make("Sac Outlet", ["B"]), oracleText: "Sacrifice a creature." }];
+
+    expect(legalCommanders(themed, { theme: "SACRIFICE" })).toHaveLength(1);
+  });
+
+  it("treats a blank theme as no filter", () => {
+    expect(legalCommanders(pool, { theme: "   " })).toHaveLength(
+      legalCommanders(pool, {}).length
+    );
+  });
+
+  it("applies the theme alongside the name search", () => {
+    const themed = [
+      { ...make("Grave Titan", ["B"]), oracleText: "Create a 1/1 token." },
+      { ...make("Grave Digger", ["B"]), oracleText: "Draw a card." },
+      { ...make("Token Maker", ["B"]), oracleText: "Create a 1/1 token." },
+    ];
+
+    const names = legalCommanders(themed, { query: "grave", theme: "token" }).map(
+      (c) => c.name
+    );
+
+    expect(names).toEqual(["Grave Titan"]);
   });
 
   it("keeps only pairable commanders when asked", () => {

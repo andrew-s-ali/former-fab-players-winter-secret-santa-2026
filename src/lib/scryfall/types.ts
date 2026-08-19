@@ -50,4 +50,6 @@ export type Commander = {
   canPair: boolean;
   /** USD market price from Scryfall if available. */
   priceUsd: string | null;
+  /** True when `priceUsd` is a foil price because no non-foil price exists. */
+  priceIsFoil: boolean;
 };
