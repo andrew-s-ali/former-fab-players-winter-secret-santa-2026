@@ -16,8 +16,15 @@ function withDefaults(data: EventData | null): EventData {
 
 type BlobsMode =
   | { kind: "explicit"; siteID: string; token: string }
-  | { kind: "automatic" }
+  | { kind: "automatic"; production: boolean; context: string }
   | { kind: "local" };
+
+/**
+ * Netlify's name for the deploy context: "production", "deploy-preview",
+ * "branch-deploy", "dev". Anything that is not exactly "production" — including
+ * a missing value — gets a deploy-scoped store. See `openStore`.
+ */
+const PRODUCTION_CONTEXT = "production";
 
 /**
  * Decides where event data lives.
@@ -37,6 +44,7 @@ type BlobsMode =
  *   silently falling back to the local file (which would look like success).
  * - `NETLIFY_BLOBS_CONTEXT` set → Blobs, automatic credentials (this is the
  *   deployed-on-Netlify case; no manual credentials needed or wanted there).
+ *   `CONTEXT` then decides *which* store — see `openStore`.
  * - Neither → local JSON file (`npm run dev`, Playwright E2E).
  */
 function resolveMode(): BlobsMode {
@@ -53,7 +61,12 @@ function resolveMode(): BlobsMode {
     );
   }
   if (process.env.NETLIFY_BLOBS_CONTEXT) {
-    return { kind: "automatic" };
+    const context = process.env.CONTEXT ?? "";
+    return {
+      kind: "automatic",
+      production: context === PRODUCTION_CONTEXT,
+      context: context || "(unset)",
+    };
   }
   return { kind: "local" };
 }
@@ -69,20 +82,49 @@ export function describeTarget(): string {
     case "explicit":
       return `Using Netlify Blobs (site ${mode.siteID}, explicit credentials)`;
     case "automatic":
-      return "Using Netlify Blobs (automatic Netlify runtime context)";
+      return mode.production
+        ? "Using Netlify Blobs (automatic Netlify runtime context, production store)"
+        : `Using Netlify Blobs (deploy-scoped store; CONTEXT=${mode.context}) — ` +
+          "this deploy cannot see or change production event data";
     case "local":
       return `Using local file ${localPath()}`;
   }
 }
 
+/**
+ * Opens the right store for where this code is running.
+ *
+ * `getStore` is scoped to the *site*, so it is shared by every deploy —
+ * production, every Deploy Preview, every branch deploy. That is wrong for
+ * this project in one specific and expensive way: the organiser console at
+ * `/admin` would offer a working "unlock /reveal" button on a public preview
+ * URL that writes to the real event, publishing the whole ring early. Reads
+ * are less exposed (a reveal link still needs its unguessable token) but a
+ * preview would serve the full ring once reveal day had passed.
+ *
+ * So only production gets the shared store. Anything else gets a deploy-scoped
+ * one, which starts empty: previews render "no draw yet", `/s/<token>` 404s,
+ * and the console has nothing to unlock. Same structural isolation the `/demo`
+ * routes already have, arrived at a different way.
+ *
+ * **Missing `CONTEXT` fails closed**, to the deploy-scoped store. If Netlify
+ * ever stops providing it, production shows an empty event — loud, obvious,
+ * fixed in minutes — rather than previews quietly writing to live data.
+ * `describeTarget()` prints which store was chosen, so a wrong answer is
+ * visible rather than inferred.
+ *
+ * The operator's CLI is unaffected: it authenticates with explicit
+ * credentials, which always mean the real store.
+ */
 async function openStore(
   mode: Extract<BlobsMode, { kind: "explicit" } | { kind: "automatic" }>
 ) {
-  const { getStore } = await import("@netlify/blobs");
+  const { getDeployStore, getStore } = await import("@netlify/blobs");
+
   if (mode.kind === "explicit") {
     return getStore({ name: STORE_NAME, siteID: mode.siteID, token: mode.token });
   }
-  return getStore(STORE_NAME);
+  return mode.production ? getStore(STORE_NAME) : getDeployStore(STORE_NAME);
 }
 
 /** Timestamped backup key/filename — no rotation, no cleanup, just a way back. */

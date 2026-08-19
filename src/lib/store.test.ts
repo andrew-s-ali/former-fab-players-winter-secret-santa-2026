@@ -11,6 +11,7 @@ function clearNetlifyEnv() {
   delete process.env.NETLIFY_SITE_ID;
   delete process.env.NETLIFY_AUTH_TOKEN;
   delete process.env.NETLIFY_BLOBS_CONTEXT;
+  delete process.env.CONTEXT;
 }
 
 afterEach(() => {
@@ -151,10 +152,15 @@ const blobs = vi.hoisted(() => ({
   get: vi.fn(),
   setJSON: vi.fn(),
   getStore: vi.fn(),
+  getDeployStore: vi.fn(),
 }));
 
 vi.mock("@netlify/blobs", () => ({
   getStore: blobs.getStore.mockReturnValue({
+    get: blobs.get,
+    setJSON: blobs.setJSON,
+  }),
+  getDeployStore: blobs.getDeployStore.mockReturnValue({
     get: blobs.get,
     setJSON: blobs.setJSON,
   }),
@@ -168,6 +174,7 @@ describe("readEvent on Netlify (explicit credentials)", () => {
     blobs.get.mockReset();
     blobs.setJSON.mockReset();
     blobs.getStore.mockClear();
+    blobs.getDeployStore.mockClear();
   });
 
   it("calls getStore with an explicit siteID/token object, not a bare string", async () => {
@@ -239,13 +246,15 @@ describe("readEvent on Netlify (explicit credentials)", () => {
   });
 });
 
-describe("readEvent on Netlify (automatic context)", () => {
+describe("readEvent on Netlify (automatic context, production)", () => {
   beforeEach(() => {
     clearNetlifyEnv();
     process.env.NETLIFY_BLOBS_CONTEXT = "base64-context-blob";
+    process.env.CONTEXT = "production";
     blobs.get.mockReset();
     blobs.setJSON.mockReset();
     blobs.getStore.mockClear();
+    blobs.getDeployStore.mockClear();
   });
 
   it("calls getStore with a bare store name, relying on NETLIFY_BLOBS_CONTEXT", async () => {
@@ -256,11 +265,87 @@ describe("readEvent on Netlify (automatic context)", () => {
       revealedAt: null,
     });
     expect(blobs.getStore).toHaveBeenCalledWith("secret-santa");
+    expect(blobs.getDeployStore).not.toHaveBeenCalled();
   });
 
-  it("describeTarget reports automatic context", () => {
+  it("describeTarget reports the production store", () => {
     expect(describeTarget()).toBe(
-      "Using Netlify Blobs (automatic Netlify runtime context)"
+      "Using Netlify Blobs (automatic Netlify runtime context, production store)"
+    );
+  });
+});
+
+describe("deploy-context isolation", () => {
+  // getStore is scoped to the site, so it is shared by every deploy. Only
+  // production may touch it: otherwise a public Deploy Preview would serve the
+  // real event, and the organiser console on that preview would write to it.
+  beforeEach(() => {
+    clearNetlifyEnv();
+    process.env.NETLIFY_BLOBS_CONTEXT = "base64-context-blob";
+    blobs.get.mockReset();
+    blobs.setJSON.mockReset();
+    blobs.getStore.mockClear();
+    blobs.getDeployStore.mockClear();
+  });
+
+  for (const context of ["deploy-preview", "branch-deploy", "dev"]) {
+    it(`uses a deploy-scoped store when CONTEXT is "${context}"`, async () => {
+      process.env.CONTEXT = context;
+      blobs.get.mockResolvedValue(null);
+
+      await readEvent();
+
+      expect(blobs.getDeployStore).toHaveBeenCalledWith("secret-santa");
+      expect(blobs.getStore).not.toHaveBeenCalled();
+    });
+  }
+
+  it("writes from a preview go to the deploy-scoped store, never the shared one", async () => {
+    process.env.CONTEXT = "deploy-preview";
+    blobs.get.mockResolvedValue(null);
+
+    await writeEvent({ participants: [], revealedAt: null });
+
+    expect(blobs.getDeployStore).toHaveBeenCalledWith("secret-santa");
+    expect(blobs.getStore).not.toHaveBeenCalled();
+    expect(blobs.setJSON).toHaveBeenCalledWith("event.json", {
+      participants: [],
+      revealedAt: null,
+    });
+  });
+
+  it("fails closed when CONTEXT is missing entirely", async () => {
+    // An empty production site is loud and fixed in minutes; a preview quietly
+    // writing to live event data is not. So an unknown context is not
+    // production.
+    blobs.get.mockResolvedValue(null);
+
+    await readEvent();
+
+    expect(blobs.getDeployStore).toHaveBeenCalledWith("secret-santa");
+    expect(blobs.getStore).not.toHaveBeenCalled();
+  });
+
+  it("describeTarget names the context so a wrong resolution is visible", () => {
+    process.env.CONTEXT = "deploy-preview";
+
+    expect(describeTarget()).toContain("deploy-scoped store");
+    expect(describeTarget()).toContain("CONTEXT=deploy-preview");
+  });
+
+  it("describeTarget says so when CONTEXT is unset", () => {
+    expect(describeTarget()).toContain("CONTEXT=(unset)");
+  });
+
+  it("explicit credentials still reach the real store regardless of context", () => {
+    // The operator's CLI runs with no CONTEXT at all; it must not be
+    // downgraded to a deploy store.
+    process.env.CONTEXT = "deploy-preview";
+    process.env.NETLIFY_SITE_ID = "site-123";
+    process.env.NETLIFY_AUTH_TOKEN = "token-abc";
+
+    expect(describeTarget()).toBe(
+      "Using Netlify Blobs (site site-123, explicit credentials)"
     );
   });
 });
