@@ -1,9 +1,9 @@
 # Handover — Post-Improvements State
 
-**Written:** 2026-08-18
+**Written:** 2026-08-18 · **Updated:** 2026-08-19
 **For:** the next agent continuing this build
 **Repo:** `/Users/andrewali/Projects/former-fab-players-winter-secret-santa-2026`
-**Branch:** `commander-browser` (`01422a6`) — pushed, **1 commit ahead of `main`, needs a new PR**. Working tree is clean.
+**Branch:** all work is now on `main`. Working tree is clean.
 **Supersedes:** [handover-2026-08-16-commander-browser.md](handover-2026-08-16-commander-browser.md) (all 19 of its tasks are now done)
 
 ---
@@ -50,12 +50,14 @@ the commander is rarity-restricted.
 ## 3. Git state — read before you touch anything
 
 ```
-origin/main                7d03beb  merge of PR #2 (now CLOSED)
-origin/commander-browser   01422a6  1 ahead of main — the theme fix, NOT yet merged
-origin/handover/2026-08-18 <this doc>  1 ahead of main
-main (local)               13a3d8d  59 behind origin/main — STALE, do not build on it
+origin/main                696aaa3  merge of PR #3 — has the theme fix, plus this doc
+origin/commander-browser   01422a6  fully merged into main via PR #3 — nothing outstanding
+origin/handover/2026-08-18 7e82a78  this doc — merged into main 2026-08-19
 fix/netlify-nextjs-runtime, foundation — old, already merged
 ```
+
+All branches above are merged. `main` is the only one worth building on; the
+rest can be deleted whenever convenient.
 
 Before starting anything new:
 
@@ -68,15 +70,15 @@ pushed.
 
 ---
 
-## 4. FIRST ACTION: `commander-browser` needs a new PR
+## 4. The theme fix — landed, no action needed
 
-The theme fix is committed and pushed as `01422a6`, but it is **not on `main`**.
-It sits on top of an already-merged branch, and **PR #2 is closed, so it will
-not pick this commit up**. Landing it needs a *new* PR from
-`commander-browser`, which will show exactly this one commit.
+**Resolved 2026-08-19.** When this doc was first written, `01422a6` was stranded:
+PR #2 had already closed, so the commit needed a *new* PR to reach `main`. That
+PR (**#3**, `696aaa3`) has since merged. `main` now ships the fix, and the
+empty-grid bug is gone from production.
 
-Until that merges, `main` still ships the bug: most theme prompts return an
-empty grid.
+Nothing here is outstanding. The section is kept for the record of what the
+commit contains.
 
 Verified on the exact pushed tree, 2026-08-18:
 
