@@ -1,6 +1,9 @@
-import type { ColorCode } from "#lib/commanders";
+import {
+  EDITABLE_FIELDS,
+  applyParticipantEdits,
+  findParticipantByName,
+} from "#lib/admin";
 import { readEvent, writeEvent, describeTarget } from "#lib/store";
-import { COLOR_CODES } from "#scripts/csv";
 
 /**
  * Usage:
@@ -13,6 +16,9 @@ import { COLOR_CODES } from "#scripts/csv";
  * "none" is a sentinel that clears a field; a participant whose veto is
  * literally the word "none" cannot be set to it (only cleared) — anything
  * else, like "none of the tribal stuff", is unaffected.
+ *
+ * Flag parsing lives here; the edit itself lives in `src/lib/admin.ts`, shared
+ * with the organiser console.
  */
 
 const KNOWN_FLAGS = ["color", "veto", "wish"] as const;
@@ -43,26 +49,6 @@ function readFlags(flags: string[]): Map<string, string> {
   return values;
 }
 
-const COLOR_CODE_SET = new Set<ColorCode>(["W", "U", "B", "R", "G"]);
-
-/** Accepts a colour code (W/U/B/R/G) or a colour word (white/blue/...). */
-function parseColor(raw: string): ColorCode {
-  const upper = raw.toUpperCase();
-  if (COLOR_CODE_SET.has(upper as ColorCode)) {
-    return upper as ColorCode;
-  }
-
-  const fromWord = COLOR_CODES[raw.toLowerCase()];
-  if (fromWord) {
-    return fromWord;
-  }
-
-  throw new Error(
-    `Unrecognised colour "${raw}". Use a code (${Array.from(COLOR_CODE_SET).join(", ")}) ` +
-      `or a name (${Object.keys(COLOR_CODES).join(", ")}), or "none" to clear the veto.`
-  );
-}
-
 async function main() {
   const [name, ...flags] = process.argv.slice(2);
   if (!name) {
@@ -74,45 +60,19 @@ async function main() {
   console.log(describeTarget());
 
   const event = await readEvent();
-  const participant = event.participants.find(
-    (p) => p.name.toLowerCase() === name.toLowerCase()
-  );
-
-  if (!participant) {
-    throw new Error(
-      `No participant named "${name}". Known: ${event.participants
-        .map((p) => p.name)
-        .join(", ")}`
-    );
-  }
-
+  const participant = findParticipantByName(event, name);
   const values = readFlags(flags);
 
-  const before = {
-    colorVeto: participant.colorVeto,
-    themeVeto: participant.themeVeto,
-    themeWish: participant.themeWish,
-  };
-
-  const color = values.get("color");
-  if (color !== undefined) {
-    participant.colorVeto = color === "none" ? null : parseColor(color);
-  }
-
-  const veto = values.get("veto");
-  if (veto !== undefined) {
-    participant.themeVeto = veto === "none" ? null : veto;
-  }
-
-  const wish = values.get("wish");
-  if (wish !== undefined) {
-    participant.themeWish = wish === "none" ? null : wish;
-  }
+  const { before } = applyParticipantEdits(participant, {
+    color: values.get("color"),
+    veto: values.get("veto"),
+    wish: values.get("wish"),
+  });
 
   await writeEvent(event);
 
   console.log(`Updated ${participant.name}`);
-  for (const key of ["colorVeto", "themeVeto", "themeWish"] as const) {
+  for (const key of EDITABLE_FIELDS) {
     const arrow = before[key] === participant[key] ? "unchanged" : "→";
     console.log(
       `  ${key}: ${before[key] ?? "(none)"} ${arrow} ${participant[key] ?? "(none)"}`

@@ -1,37 +1,16 @@
 import { fileURLToPath } from "node:url";
-import { describeTarget, readEvent, writeEvent } from "#lib/store";
+import { setReveal } from "#lib/admin";
+import { describeTarget } from "#lib/store";
 
 /**
  * Usage:
  *   npm run reveal            # unlock /reveal
  *   npm run reveal -- --undo  # lock it again
  *
- * Unlocking publishes every assignment at a public URL, so it is deliberately
- * a separate, explicit action rather than a date the site guesses at.
+ * The work itself lives in `src/lib/admin.ts` so the CLI and the organiser
+ * console cannot drift apart; this file is the command-line face of it.
  */
-export async function reveal(options: { undo?: boolean } = {}): Promise<{
-  revealedAt: string | null;
-  message: string;
-}> {
-  const undo = options.undo ?? false;
-
-  const event = await readEvent();
-  if (event.participants.length === 0) {
-    throw new Error("No draw exists yet — nothing to reveal.");
-  }
-
-  event.revealedAt = undo ? null : new Date().toISOString();
-  await writeEvent(event);
-
-  const message = undo
-    ? "Locked. /reveal now 404s."
-    : `Unlocked at ${event.revealedAt}. /reveal is now public.`;
-
-  return {
-    revealedAt: event.revealedAt,
-    message,
-  };
-}
+export const reveal = setReveal;
 
 export async function main(
   args: string[] = process.argv.slice(2)
