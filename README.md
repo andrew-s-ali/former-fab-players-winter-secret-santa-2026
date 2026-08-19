@@ -4,12 +4,13 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
 ## Status
 
-Feature-complete. The site provides a filterable commander browser, runs the draw
-from a CSV export, serves each participant a secret reveal page with their assignment,
+Feature-complete. The site takes sign-ups through Netlify Forms, provides a
+filterable commander browser, runs the draw from those sign-ups (or a CSV export),
+serves each participant a secret reveal page with their assignment,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
 palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
-and demo preview routes. 195 unit tests, 15 Playwright E2E tests, and lint/typecheck/build
-are all clean, verified on a cold cache.
+demo preview routes, and an Identity-gated organiser console. 248 unit tests,
+19 Playwright E2E tests, and lint/typecheck/build are all clean.
 
 See:
 - [Original Design Spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
@@ -48,7 +49,7 @@ npm run dev                       # http://localhost:3000
 | `npm run test:watch`          | Vitest in watch mode                                                        |
 | `npm run test:e2e`            | Playwright; boots the dev server itself                                     |
 | `npm run netlify:dev`         | Netlify Dev, for functions/redirects/env parity                              |
-| `npm run draw`                | CSV → derangement draw → tokens → store; prints links                        |
+| `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
 | `npm run update-participant`  | Edit one participant's vetoes/wish without redrawing                        |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock) |
@@ -58,11 +59,12 @@ CI runs lint → typecheck → unit → E2E on every push and pull request.
 ## Layout
 
 ```
-src/app/        routes and layouts (App Router: /, /commanders, /s/[token], /reveal, /demo/**)
+src/app/        routes and layouts (App Router: /, /signup, /commanders, /s/[token], /reveal, /admin/**, /demo/**)
 src/components/ React components (CommanderBrowser, CommanderDetail, RevealRing, Countdown, Snowfall, etc.)
 src/lib/        framework-free logic; unit-tested (draw, ring, filtering, countdown, Scryfall, store)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
-scripts/        operator CLI: CSV import, the draw, participant edits, reveal day toggle, demo seeder
+scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, demo seeder
+public/         static assets; __forms.html registers the sign-up form with Netlify
 tests/e2e/      Playwright specs
 ```
 
@@ -91,21 +93,65 @@ The site includes dedicated demo routes at `/demo`, `/demo/s/<token>`, and `/dem
 - **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
 
-### 2. Export & Validate CSV
+### 2. Collect Sign-ups
 
-1. Export the Google Form responses as CSV.
-2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts`. If they don't, the draw fails immediately and lists the headers it actually found.
+Sign-ups come in through **Netlify Forms** at `/signup`. Nothing is exported or
+copied by hand — `npm run draw` reads the submissions directly.
+
+**One-time setup**, before sharing the link:
+
+1. Netlify UI > **Forms** > **Enable form detection**.
+2. Deploy. Detection is a scan of the *built* HTML, so the form only registers
+   on a deploy that includes `public/__forms.html`.
+3. Confirm it registered: the Forms tab should list `santa-signup`, and
+   `https://<site>.netlify.app/__forms.html` should return 200.
+
+If either check fails, submissions are dropped silently — the browser gets a
+success response and Netlify never records anything.
+
+**Before drawing, check the spam list.** Every submission goes through Akismet,
+and short free-text answers arriving in a burst from one group look a lot like
+spam. A false positive is invisible: the person is simply absent, the draw still
+succeeds, and the ring is quietly one participant short. `npm run draw` prints
+the held-back count and names on every run — if anything is listed, review it at
+Forms > santa-signup > Spam and mark real sign-ups as verified before drawing.
+
+#### CSV fallback
+
+The CSV importer is still there for a Google Form export, a hand-written sheet,
+or a rescue if something goes wrong with the live form:
+
+1. Export the responses as CSV.
+2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts`. If they don't, the
+   draw fails immediately and lists the headers it actually found.
+
+Both sources funnel through `src/lib/signup.ts`, so validation, colour parsing
+and duplicate handling behave identically either way.
 
 ### 3. Draw and Mint Links
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
+  npm run draw -- --from=netlify-forms
+```
+
+From a CSV instead:
 
 ```bash
 NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
   npm run draw -- responses.csv
 ```
 
+**Resubmissions.** With a live form, someone fixing a typo just signs up again,
+so duplicate names are now normal rather than a mistake. The draw refuses to
+guess: by default it fails and names the person. Pass `--latest-wins` to keep the
+most recent submission per name (it prints what it superseded). Two genuinely
+different people who share a name still have to be told apart by hand — names
+identify people to `update-participant`.
+
 Both `draw` and `update-participant` print their resolved target first — e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or `Using local file data/event.local.json` — so a forgotten export is obvious immediately instead of silently editing a stale local file. The script refuses to run a second time once a draw exists — re-running reshuffles everyone and invalidates every link already sent. Pass `--force` if you genuinely need to redraw from scratch; either way, if a draw already existed, it is snapshotted to a timestamped `event.backup-<timestamp>.json` (or blob key) first.
 
-`scripts/csv.ts` fails loudly on:
+Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - an unrecognised colour word (only white/blue/black/red/green plus "no preference" are understood),
 - an empty name (names the offending CSV row), and
 - two participants sharing a name, case-insensitively (names both). Names must be unique because `update-participant` looks people up by name, not row number.
@@ -138,7 +184,8 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.net
   npm run reveal
 ```
 
-This sets `revealedAt` in the store and prints the live `/reveal` URL.
+This sets `revealedAt` in the store and prints the live `/reveal` URL. The
+organiser console at `/admin` does the same thing behind a login (see below).
 To re-lock if run prematurely:
 
 ```bash
@@ -149,6 +196,49 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
 When locked (`revealedAt` is null), `/reveal` renders a 404.
 
 Locally, omit the Netlify variables and scripts operate on `data/event.local.json` (gitignored). The repo is public — participant data must never be committed.
+
+### 7. Organiser Console (optional)
+
+`/admin` does the reversible parts of the job from a browser — unlock or re-lock
+reveal day, and edit a participant's preferences — behind Netlify Identity, so
+running the event no longer means pasting a full-scope `NETLIFY_AUTH_TOKEN` onto
+a command line.
+
+**It deliberately does not offer the draw.** Re-running it reshuffles everyone
+and invalidates every link already sent, and unlike the other actions there is
+no undo, so it stays on the CLI where running it takes intent.
+
+**Setup** (dashboard only — Identity has no configuration API):
+
+1. Project configuration > **Identity** > Enable Identity.
+2. Registration preferences > **Invite only**. With open registration the
+   signup handler would hand the organiser role to anyone who signed up.
+3. Invite yourself under Identity > Users. The invite link lands on
+   `/admin/login`, which processes the token and asks for a password.
+4. Grant the `organizer` role (Identity > Users > Edit settings >
+   `app_metadata.roles`). Role changes take effect on the next login or token
+   refresh, not immediately.
+
+**It cannot be tested locally.** Identity does not work under `netlify dev`, and
+`getUser()` returns `null` off-platform — so `/admin` always renders its
+signed-out state on `npm run dev`. That is why all the actual work lives in
+`src/lib/admin.ts` under unit test, and the routes are a role check plus a call.
+Test the auth flow itself on a Deploy Preview.
+
+**Enforcement is server-side, in two places:** `src/app/admin/page.tsx` decides
+what renders, and every Server Action in `src/app/admin/actions.ts` re-checks the
+role independently — an action is a callable endpoint regardless of what the page
+showed. Role-based redirect rules in `netlify.toml` were considered and left out:
+on this site every route resolves through the Next.js server handler, and a
+forced edge rule shadowing that catch-all risks 404ing the console outright for
+no security gain over the checks already in place.
+
+**Previews are isolated from production data** — `src/lib/store.ts` gives any
+non-production deploy context its own empty store, so a console on a Deploy
+Preview has nothing to unlock and cannot reach the real event. See *Store
+Resolution* below. Password-protecting previews in the Netlify UI is still worth
+doing, but it guards a different thing: it stops strangers reading a preview, not
+an organiser acting on the wrong browser tab.
 
 ## Development & Architecture notes
 
@@ -198,7 +288,15 @@ npx --yes netlify-cli deploy --build --prod
 
 ### Store Resolution (`src/lib/store.ts`)
 
-- **Deployed on Netlify:** `NETLIFY_BLOBS_CONTEXT` is auto-injected by the Netlify server runtime; Blobs is used automatically with no manual credentials.
+- **Deployed on Netlify:** `NETLIFY_BLOBS_CONTEXT` is auto-injected by the Netlify server runtime; Blobs is used automatically with no manual credentials. Which store depends on `CONTEXT` — see below.
 - **Local operator scripts:** Provide `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` to read/write the live Blobs store. If only one variable is set, the script exits immediately with a misconfiguration error.
 - **Local development / E2E:** When neither Netlify variable is set, the store falls back to `data/event.local.json` (or `EVENT_DATA_PATH`).
+- **Deploy-context isolation:** `getStore` is scoped to the *site*, so it is shared by production and every Deploy Preview and branch deploy. Only `CONTEXT=production` gets it; every other context gets a deploy-scoped store via `getDeployStore`, which starts empty.
+
+  This is not hypothetical tidiness. Without it, the organiser console at `/admin` would offer a working "unlock /reveal" button on a public preview URL that writes to the real event, publishing the whole ring early — and after reveal day a preview would serve the full ring to anyone with the URL. With it, a preview renders "no draw yet", `/s/<token>` 404s, and the console has nothing to unlock: the same structural isolation the `/demo` routes have.
+
+  **A missing `CONTEXT` fails closed**, to the deploy-scoped store. If Netlify ever stops providing it, production shows an empty event — loud, obvious, fixed in minutes — rather than previews quietly writing to live data. `describeTarget()` prints which store was chosen, so a wrong answer is visible rather than inferred.
+
+  Explicit credentials are unaffected: the operator's CLI always reaches the real store.
+
 - **Atomic Writes & Backups:** `writeEvent` snapshots the current state to a timestamped backup before writing changes (via atomic temp-file rename on local disk or timestamped key in Blobs).
