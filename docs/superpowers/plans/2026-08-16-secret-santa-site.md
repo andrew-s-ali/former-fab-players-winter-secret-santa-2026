@@ -5,6 +5,11 @@
 > where the implementation deliberately diverged from this plan's code
 > sketches. Deploy is manual — the operator runs it themselves per the
 > [README's "Deploying" section](../../../README.md#deploying).
+>
+> ⚠️ **Superseded components:** Tasks 9 and 10's `CommanderSuggester` and
+> `/api/commanders/random` were superseded by the interactive commander browser
+> and `/api/commanders/sample`. See
+> [2026-08-16-commander-browser-and-reveal-day.md](2026-08-16-commander-browser-and-reveal-day.md).
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

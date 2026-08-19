@@ -14,7 +14,14 @@ export type Participant = {
 
 export type EventData = {
   participants: Participant[];
+  /** ISO timestamp set by the organiser on reveal day; null while locked. */
+  revealedAt: string | null;
 };
+
+/** True once the organiser has unlocked the public reveal page. */
+export function isRevealed(event: EventData): boolean {
+  return Boolean(event.revealedAt);
+}
 
 /** Finds the participant holding a reveal token, or null. */
 export function findByToken(

@@ -13,6 +13,8 @@ const normalCard: ScryfallCard = {
   layout: "normal",
   scryfall_uri: "https://scryfall.com/card/tle/146/aang-a-lot-to-learn",
   image_uris: { normal: "https://cards.scryfall.io/normal/aang.jpg" },
+  set_name: "Commander 2019",
+  rarity: "uncommon",
 };
 
 const transformCard: ScryfallCard = {
@@ -23,6 +25,8 @@ const transformCard: ScryfallCard = {
   keywords: [],
   layout: "transform",
   scryfall_uri: "https://scryfall.com/card/fin/95/exdeath-void-warlock",
+  set_name: "Commander 2019",
+  rarity: "uncommon",
   card_faces: [
     {
       name: "Exdeath, Void Warlock",
@@ -50,6 +54,8 @@ const partnerCard: ScryfallCard = {
   layout: "normal",
   scryfall_uri: "https://scryfall.com/card/cma/104/alena-kessig-trapper",
   image_uris: { normal: "https://cards.scryfall.io/normal/alena.jpg" },
+  set_name: "Commander 2019",
+  rarity: "uncommon",
 };
 
 describe("normalizeCard", () => {
@@ -65,7 +71,39 @@ describe("normalizeCard", () => {
       imageUrl: "https://cards.scryfall.io/normal/aang.jpg",
       scryfallUrl: "https://scryfall.com/card/tle/146/aang-a-lot-to-learn",
       hasPartner: false,
+      setName: "Commander 2019",
+      rarity: "uncommon",
+      canPair: false,
+      priceUsd: null,
     });
+  });
+
+  it("extracts USD market price when available", () => {
+    const card = normalizeCard({
+      ...normalCard,
+      prices: { usd: "0.45", usd_foil: "0.99" },
+    });
+    expect(card.priceUsd).toBe("0.45");
+  });
+
+  it("falls back to usd_foil if usd is null or missing", () => {
+    const card = normalizeCard({
+      ...normalCard,
+      prices: { usd: null, usd_foil: "0.99" },
+    });
+    expect(card.priceUsd).toBe("0.99");
+  });
+
+  it("sets priceUsd to null when prices are missing or all null", () => {
+    const card = normalizeCard(normalCard);
+    expect(card.priceUsd).toBeNull();
+  });
+
+  it("carries the printing's set name and rarity", () => {
+    const card = normalizeCard({ ...normalCard, set_name: "Foundations", rarity: "uncommon" });
+
+    expect(card.setName).toBe("Foundations");
+    expect(card.rarity).toBe("uncommon");
   });
 
   it("falls back to the first face's image for transform cards", () => {

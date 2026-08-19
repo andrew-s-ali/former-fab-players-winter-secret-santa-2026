@@ -22,6 +22,7 @@
 
 # local participant data — never commit; the repo is public
 /data
+event.backup-*.json
 
 # next.js
 /.next/
@@ -49,3 +50,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# brainstorming mockups
+/.superpowers

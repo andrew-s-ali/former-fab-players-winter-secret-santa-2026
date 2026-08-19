@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { CommanderSuggester } from "@/components/CommanderSuggester";
+import { CommanderBrowser } from "@/components/CommanderBrowser";
 import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
+import { SecretScratchpad } from "@/components/SecretScratchpad";
 import { findById, findByToken } from "@/lib/participants";
+import { pickPrompt } from "@/lib/prompts";
 import { readEvent } from "@/lib/store";
 
 // Assignments must never be cached or prerendered.
@@ -43,12 +45,22 @@ export default async function RevealPage({
 
       <RevealDetails recipient={recipient} />
 
+      <SecretScratchpad token={token} />
+
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Commander ideas for them</h2>
         <p className="opacity-70">
           Filtered to exclude their vetoed colour and every banned commander.
         </p>
-        <CommanderSuggester colorVeto={recipient.colorVeto} />
+        <CommanderBrowser
+          initialPrompt={pickPrompt()}
+          lockedExclude={recipient.colorVeto}
+          lockedReason={
+            recipient.colorVeto
+              ? `${recipient.name} vetoed a colour, so it stays filtered out.`
+              : undefined
+          }
+        />
       </section>
 
       <RulesSummary />

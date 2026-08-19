@@ -4,7 +4,15 @@ import type { EventData } from "./participants";
 const STORE_NAME = "secret-santa";
 const BLOB_KEY = "event.json";
 
-const EMPTY: EventData = { participants: [] };
+const EMPTY: EventData = { participants: [], revealedAt: null };
+
+/** Stored data predating revealedAt must not break; default it to null. */
+function withDefaults(data: EventData | null): EventData {
+  if (!data) {
+    return EMPTY;
+  }
+  return { participants: data.participants ?? [], revealedAt: data.revealedAt ?? null };
+}
 
 type BlobsMode =
   | { kind: "explicit"; siteID: string; token: string }
@@ -94,13 +102,15 @@ export async function readEvent(): Promise<EventData> {
   if (mode.kind !== "local") {
     const store = await openStore(mode);
     const data = await store.get(BLOB_KEY, { type: "json" });
-    return (data as EventData) ?? EMPTY;
+    return withDefaults(data as EventData | null);
   }
 
   try {
-    return JSON.parse(
-      await readFile(/* turbopackIgnore: true */ localPath(), "utf8")
-    ) as EventData;
+    return withDefaults(
+      JSON.parse(
+        await readFile(/* turbopackIgnore: true */ localPath(), "utf8")
+      ) as EventData
+    );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return EMPTY;

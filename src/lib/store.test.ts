@@ -52,7 +52,7 @@ describe("readEvent (local file)", () => {
   it("returns an empty event when the local file is missing", async () => {
     process.env.EVENT_DATA_PATH = join(tmpdir(), "does-not-exist-santa.json");
 
-    expect(await readEvent()).toEqual({ participants: [] });
+    expect(await readEvent()).toEqual({ participants: [], revealedAt: null });
   });
 });
 
@@ -100,6 +100,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           themeWish: null,
         },
       ],
+      revealedAt: null,
     };
     await writeFile(path, JSON.stringify(original));
     process.env.EVENT_DATA_PATH = path;
@@ -116,6 +117,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           themeWish: null,
         },
       ],
+      revealedAt: null,
     };
     await writeEvent(replacement);
 
@@ -137,7 +139,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
     const path = join(dir, "event.json");
     process.env.EVENT_DATA_PATH = path;
 
-    await writeEvent({ participants: [] });
+    await writeEvent({ participants: [], revealedAt: null });
 
     const entries = await readdir(dir);
     const backupFile = entries.find((name) => name.startsWith("event.backup-"));
@@ -169,10 +171,12 @@ describe("readEvent on Netlify (explicit credentials)", () => {
   });
 
   it("calls getStore with an explicit siteID/token object, not a bare string", async () => {
+    // Simulates older stored data that predates revealedAt; withDefaults()
+    // must fill it in on the way out.
     const event = { participants: [{ id: "p1", name: "Ada" }] };
     blobs.get.mockResolvedValue(event);
 
-    await expect(readEvent()).resolves.toEqual(event);
+    await expect(readEvent()).resolves.toEqual({ ...event, revealedAt: null });
     expect(blobs.getStore).toHaveBeenCalledWith({
       name: "secret-santa",
       siteID: "site-123",
@@ -184,12 +188,15 @@ describe("readEvent on Netlify (explicit credentials)", () => {
   it("returns an empty event when the blob does not exist yet", async () => {
     blobs.get.mockResolvedValue(null);
 
-    await expect(readEvent()).resolves.toEqual({ participants: [] });
+    await expect(readEvent()).resolves.toEqual({
+      participants: [],
+      revealedAt: null,
+    });
   });
 
   it("writes the event back as JSON under the same key", async () => {
     blobs.get.mockResolvedValue(null);
-    const event: EventData = { participants: [] };
+    const event: EventData = { participants: [], revealedAt: null };
 
     await writeEvent(event);
 
@@ -209,10 +216,11 @@ describe("readEvent on Netlify (explicit credentials)", () => {
           themeWish: null,
         },
       ],
+      revealedAt: null,
     };
     blobs.get.mockResolvedValue(existing);
 
-    await writeEvent({ participants: [] });
+    await writeEvent({ participants: [], revealedAt: null });
 
     expect(blobs.setJSON).toHaveBeenCalledWith(
       expect.stringMatching(/^event\.backup-.*\.json$/),
@@ -220,6 +228,7 @@ describe("readEvent on Netlify (explicit credentials)", () => {
     );
     expect(blobs.setJSON).toHaveBeenCalledWith("event.json", {
       participants: [],
+      revealedAt: null,
     });
   });
 
@@ -242,7 +251,10 @@ describe("readEvent on Netlify (automatic context)", () => {
   it("calls getStore with a bare store name, relying on NETLIFY_BLOBS_CONTEXT", async () => {
     blobs.get.mockResolvedValue(null);
 
-    await expect(readEvent()).resolves.toEqual({ participants: [] });
+    await expect(readEvent()).resolves.toEqual({
+      participants: [],
+      revealedAt: null,
+    });
     expect(blobs.getStore).toHaveBeenCalledWith("secret-santa");
   });
 
