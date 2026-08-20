@@ -213,8 +213,9 @@ no undo, so it stays on the CLI where running it takes intent.
 1. Project configuration > **Identity** > Enable Identity.
 2. Registration preferences > **Invite only**. With open registration the
    signup handler would hand the organiser role to anyone who signed up.
-3. Invite yourself under Identity > Users. The invite link lands on
-   `/admin/login`, which processes the token and asks for a password.
+3. Invite yourself under Identity > Users. Identity email links may return to
+   the site homepage; the app forwards their callback token to `/admin/login`,
+   which processes it and asks for a password.
 4. Grant the `organizer` role (Identity > Users > Edit settings >
    `app_metadata.roles`). Role changes take effect on the next login or token
    refresh, not immediately.
