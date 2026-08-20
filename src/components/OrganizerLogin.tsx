@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   acceptInvite,
   getSettings,
@@ -43,7 +42,6 @@ type Mode =
  * button appear.
  */
 export function OrganizerLogin() {
-  const router = useRouter();
   const [mode, setMode] = useState<Mode>({ kind: "loading" });
   const [providers, setProviders] = useState<AuthProvider[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +63,7 @@ export function OrganizerLogin() {
         } else if (result?.type === "recovery") {
           setMode({ kind: "recovery" });
         } else if (result?.user) {
-          router.replace("/admin");
+          window.location.replace("/admin");
           return;
         } else {
           setMode({ kind: "login" });
@@ -98,14 +96,14 @@ export function OrganizerLogin() {
     return () => {
       active = false;
     };
-  }, [router]);
+  }, []);
 
   async function attempt(work: () => Promise<unknown>) {
     setBusy(true);
     setError(null);
     try {
       await work();
-      router.replace("/admin");
+      window.location.replace("/admin");
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
