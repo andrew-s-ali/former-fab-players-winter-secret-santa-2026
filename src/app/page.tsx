@@ -1,25 +1,25 @@
-import Link from "next/link";
-import { Countdown } from "@/components/Countdown";
-import { RulesSummary } from "@/components/RulesSummary";
-import { eventTitle } from "@/lib/event";
+import { EventHome } from "@/components/EventHome";
+import { SplashPage } from "@/components/SplashPage";
+import { siteNow } from "@/lib/clock";
+import { SIGNUPS_OPEN_AT } from "@/lib/event";
+import { registrationOpen } from "@/lib/launch";
+
+/**
+ * Rendered per request rather than at build time.
+ *
+ * Both things this page decides — splash or real home page, and which
+ * milestone the countdown names — turn over on a date. A statically rendered
+ * page would keep serving the splash after opening day until something else
+ * happened to trigger a rebuild.
+ */
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-  return (
-    <main className="mx-auto max-w-2xl space-y-8 p-8">
-      <h1 className="text-3xl font-semibold tracking-tight">{eventTitle()}</h1>
+  const now = siteNow();
 
-      <Countdown />
-
-      <RulesSummary />
-
-      <div className="flex flex-col gap-2">
-        <Link className="underline" href="/signup">
-          Sign up →
-        </Link>
-        <Link className="underline" href="/commanders">
-          Browse random legal commanders →
-        </Link>
-      </div>
-    </main>
+  return registrationOpen(now, SIGNUPS_OPEN_AT) ? (
+    <EventHome />
+  ) : (
+    <SplashPage now={now} />
   );
 }

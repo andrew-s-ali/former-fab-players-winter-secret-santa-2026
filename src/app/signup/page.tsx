@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignupForm } from "@/components/SignupForm";
+import { siteNow } from "@/lib/clock";
 import { eventTitle, SIGNUPS_CLOSE_AT } from "@/lib/event";
+import { formatEventDate } from "@/lib/launch";
 import { signupsOpen } from "@/lib/signup";
 
 export const metadata: Metadata = {
@@ -18,34 +20,11 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function closingDate(): string {
-  return new Date(`${SIGNUPS_CLOSE_AT}T00:00:00Z`).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-/**
- * "Now", overridable for tests only.
- *
- * The open/closed state turns over on a fixed date, so without this the E2E
- * suite would start failing of its own accord the day sign-ups close. Read
- * from a server-only env var that is set by playwright.config.ts and never in
- * production; an unparseable value falls back to the real clock rather than
- * silently reopening a closed form.
- */
-function now(): Date {
-  const override = process.env.SIGNUPS_NOW;
-  if (!override) {
-    return new Date();
-  }
-  const parsed = new Date(override);
-  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  return formatEventDate(SIGNUPS_CLOSE_AT);
 }
 
 export default function SignupPage() {
-  const open = signupsOpen(now());
+  const open = signupsOpen(siteNow());
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 p-8">

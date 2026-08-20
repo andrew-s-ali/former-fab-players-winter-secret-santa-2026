@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_NOW } from "./tests/e2e/clock";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
@@ -34,10 +35,11 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       EVENT_DATA_PATH: "tests/e2e/fixture-event.json",
-      // Pins the sign-up window open. Without it the /signup specs would start
-      // failing on their own the day sign-ups close; the closed state is
-      // covered by unit tests in src/lib/signup.test.ts.
-      SIGNUPS_NOW: "2026-08-19T00:00:00.000Z",
+      // Pins the site's clock. Without it the /signup specs would start failing
+      // on their own the day sign-ups close; the closed state is covered by
+      // unit tests in src/lib/signup.test.ts. tests/e2e/home.spec.ts reads the
+      // same constant to work out which home page it should be looking at.
+      SIGNUPS_NOW: E2E_NOW,
     },
   },
 });

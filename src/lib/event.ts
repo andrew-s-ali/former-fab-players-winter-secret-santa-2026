@@ -15,6 +15,19 @@ export function eventTitle(): string {
   return `${EVENT.name} ${EVENT.year}`;
 }
 
+/**
+ * Registration opens at the start of this day (UTC).
+ *
+ * Until then the home page is a splash page: the event is teased, but nothing
+ * is on offer yet. Set this to the day you want to open sign-ups — e.g.
+ * `export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";` — and the home
+ * page switches itself over on the day, with no redeploy needed.
+ *
+ * `null` means "not announced yet": the splash page stays up and says
+ * "soon" instead of counting down.
+ */
+export const SIGNUPS_OPEN_AT: string | null = null;
+
 /** Sign-ups close at the end of this day. */
 export const SIGNUPS_CLOSE_AT = "2026-09-17";
 
