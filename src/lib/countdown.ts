@@ -12,9 +12,26 @@ export type CountdownPhase =
 
 const DAY_MS = 86_400_000;
 
-/** Whole days from `now` to `target`, rounded up. */
+/** Midnight UTC at the start of the given day. */
+function startOf(day: string): number {
+  return new Date(`${day}T00:00:00Z`).getTime();
+}
+
+/** Whole days from `now` to the start of `target`, rounded up. */
 function daysUntil(now: Date, target: string): number {
-  return Math.ceil((new Date(`${target}T00:00:00Z`).getTime() - now.getTime()) / DAY_MS);
+  return Math.ceil((startOf(target) - now.getTime()) / DAY_MS);
+}
+
+/**
+ * Whole days from `now` to the *end* of `target`, rounded up.
+ *
+ * Sign-ups close at the end of their closing day rather than at the start of
+ * it, so the deadline the site advertises is a day people can still act on.
+ * Counting to the start would shut the form on the very date every page tells
+ * them to sign up by.
+ */
+function daysUntilEndOf(now: Date, target: string): number {
+  return Math.ceil((startOf(target) + DAY_MS - now.getTime()) / DAY_MS);
 }
 
 /**
@@ -23,7 +40,7 @@ function daysUntil(now: Date, target: string): number {
  * `now` is a parameter so every phase is testable without mocking the clock.
  */
 export function countdownPhase(now: Date, config: CountdownConfig): CountdownPhase {
-  const toSignups = daysUntil(now, config.signupsCloseAt);
+  const toSignups = daysUntilEndOf(now, config.signupsCloseAt);
   if (toSignups > 0) {
     return { kind: "before-signups", days: toSignups };
   }

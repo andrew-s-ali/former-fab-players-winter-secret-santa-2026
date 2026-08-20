@@ -19,17 +19,20 @@ export function eventTitle(): string {
  * Registration opens at the start of this day (UTC).
  *
  * Until then the home page is a splash page: the event is teased, but nothing
- * is on offer yet. Set this to the day you want to open sign-ups — e.g.
- * `export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";` — and the home
- * page switches itself over on the day, with no redeploy needed.
+ * is on offer yet. The home page switches itself over at the start of this
+ * day, with no redeploy needed.
  *
- * `null` means "not announced yet": the splash page stays up and says
- * "soon" instead of counting down.
+ * `null` would mean "not announced yet": the splash page stays up and says
+ * "soon" instead of counting down. That is also the fail-safe — an absent
+ * date never opens the event by accident.
  */
-export const SIGNUPS_OPEN_AT: string | null = null;
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-04";
 
-/** Sign-ups close at the end of this day. */
-export const SIGNUPS_CLOSE_AT = "2026-09-17";
+/**
+ * Sign-ups close at the end of this day — it is the last day someone can
+ * sign up, not the first day they cannot. See `countdownPhase`.
+ */
+export const SIGNUPS_CLOSE_AT = "2026-09-18";
 
 /** The exchange will be one of these; the group has not chosen yet. */
 export const EXCHANGE_CANDIDATES = ["2026-12-05", "2026-12-12", "2026-12-19"] as const;

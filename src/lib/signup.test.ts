@@ -128,15 +128,17 @@ describe("signupsOpen", () => {
     expect(signupsOpen(new Date("2026-08-19T12:00:00Z"))).toBe(true);
   });
 
-  it("is closed once the closing date has arrived", () => {
-    expect(signupsOpen(new Date("2026-09-18T00:00:00Z"))).toBe(false);
+  it("is closed once the closing date has passed", () => {
+    expect(signupsOpen(new Date("2026-09-19T00:00:00Z"))).toBe(false);
   });
 
   it("agrees with the home page countdown rather than using its own date rule", () => {
     // The form and the countdown must never disagree about the same instant;
-    // both derive from countdownPhase, so this pins the boundary they share.
-    expect(signupsOpen(new Date("2026-09-16T23:59:00Z"))).toBe(true);
-    expect(signupsOpen(new Date("2026-09-17T00:00:01Z"))).toBe(false);
+    // both derive from countdownPhase, so this pins the boundary they share:
+    // the closing date is the last day someone can sign up, all day.
+    expect(signupsOpen(new Date("2026-09-18T00:00:01Z"))).toBe(true);
+    expect(signupsOpen(new Date("2026-09-18T23:59:00Z"))).toBe(true);
+    expect(signupsOpen(new Date("2026-09-19T00:00:01Z"))).toBe(false);
   });
 });
 

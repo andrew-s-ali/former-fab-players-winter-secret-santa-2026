@@ -6,7 +6,7 @@ describe("Countdown", () => {
   it("renders countdown to sign-ups closing when before signups close date", () => {
     render(<Countdown now={new Date("2026-09-10T00:00:00Z")} />);
 
-    expect(screen.getByText(/7 days/i)).toBeInTheDocument();
+    expect(screen.getByText(/9 days/i)).toBeInTheDocument();
     expect(screen.getByText(/until sign-ups close/i)).toBeInTheDocument();
     expect(screen.getByText(/exchange: 5, 12 or 19 december — date tbc/i)).toBeInTheDocument();
   });

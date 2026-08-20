@@ -40,7 +40,7 @@ export default function SignupPage() {
         </>
       ) : (
         <p className="rounded-xl border border-slate-300/30 px-4 py-3 text-sm">
-          Sign-ups closed on {closingDate()}. If you meant to be in and
+          Sign-ups closed at the end of {closingDate()}. If you meant to be in and
           aren&rsquo;t, talk to the organiser — they can still add you by hand
           before the draw runs.
         </p>

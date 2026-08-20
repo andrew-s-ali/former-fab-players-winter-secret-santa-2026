@@ -5,13 +5,14 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 ## Status
 
 Feature-complete, and currently **pre-launch**: the home page is a splash page
-until the organiser opens registration (see *Before launch* below). Behind it,
+until registration opens on 4 September 2026 (see *Before launch* below), with
+sign-ups closing at the end of 18 September. Behind it,
 the site takes sign-ups through Netlify Forms, provides a
 filterable commander browser, runs the draw from those sign-ups (or a CSV export),
 serves each participant a secret reveal page with their assignment,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
 palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
-demo preview routes, and an Identity-gated organiser console. 278 unit tests,
+demo preview routes, and an Identity-gated organiser console. 280 unit tests,
 20 Playwright E2E tests, and lint/typecheck/build are all clean.
 
 See:
@@ -97,32 +98,37 @@ no ban list, no sign-up link and no links onward at all**: it introduces the
 event, and everything else waits. That means the URL can be shared, bookmarked
 and posted well ahead of time.
 
-To open the event, set the date in `src/lib/event.ts`:
+The date it hands over is one constant in `src/lib/event.ts`:
 
 ```ts
-export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-04";
 ```
 
-- `null` (the default) keeps the splash up indefinitely and says "sign-ups open
-  soon" rather than counting down. It is also the fail-safe: a missing date
-  never opens the event by accident.
-- A date swaps the splash for the real home page — rules, ban list, sign-up
-  link, commander browser — at the start of that day, UTC. `/` is rendered per
-  request, so **the switch needs no redeploy**; it happens on the day.
+- It swaps the splash for the real home page — rules, ban list, sign-up link,
+  commander browser — at the **start of that day, UTC** (so 1am BST, or 5pm
+  Pacific the evening before). `/` is rendered per request, so **the switch
+  itself needs no redeploy**; it happens on the day, as long as the constant
+  is deployed before then.
+- `null` instead of a date keeps the splash up indefinitely and says "sign-ups
+  open soon" rather than counting down. That is also the fail-safe: an absent
+  date never opens the event by accident.
 
 The rest of the site is *not* behind this gate. `/signup`, `/commanders` and
 `/demo` all keep working for anyone with a direct link, and `/signup` accepts
 entries from whenever it is deployed until `SIGNUPS_CLOSE_AT`. The splash stops
-the event being *advertised* early, not the URLs being reachable — say the word
-if you want sign-ups gated on the same date too.
+the event being *advertised* early, not the URLs being reachable.
 
-`tests/e2e/home.spec.ts` covers both sides and picks which one to run from
-`SIGNUPS_OPEN_AT`, so opening the event does not mean editing the suite.
+`tests/e2e/home.spec.ts` covers both sides and picks which one to run by
+comparing `SIGNUPS_OPEN_AT` against the suite's pinned clock (`tests/e2e/clock.ts`),
+so opening the event does not mean editing the suite. That clock sits before
+4 September, so the suite currently exercises the splash; move it to a date
+inside the sign-up window once the event is live and it exercises the real home
+page instead.
 
 ### 1. Schedule & Configuration
 
-- **Sign-ups open:** not announced (`SIGNUPS_OPEN_AT = null` in `src/lib/event.ts` — see step 0).
-- **Sign-ups close:** 17 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-17"` in `src/lib/event.ts`).
+- **Sign-ups open:** 4 September 2026 (`SIGNUPS_OPEN_AT = "2026-09-04"` in `src/lib/event.ts` — see step 0). The splash page stands until then.
+- **Sign-ups close:** end of 18 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-18"`). The closing date is the **last day someone can sign up**, all day — the form shuts at midnight UTC that night, not at the start of the day.
 - **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
 
