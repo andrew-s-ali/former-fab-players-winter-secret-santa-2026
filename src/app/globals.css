@@ -96,3 +96,39 @@ main {
   z-index: 1;
 }
 
+/* Pre-launch splash page. Decorative only. */
+.splash-seal {
+  animation: splash-float 6s ease-in-out infinite;
+}
+
+@keyframes splash-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Soft winter glow behind the splash copy. Never interactive. */
+.splash-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(38rem, 120vw);
+  height: min(38rem, 120vw);
+  transform: translate(-50%, -60%);
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(circle, color-mix(in srgb, currentColor 12%, transparent), transparent 70%);
+}
+
+/* Declared after the animation above: same specificity, so the last rule wins.
+   The seal is the splash page's centrepiece, so it stays — it just stops
+   moving, unlike the snow and confetti which exist only to move. */
+@media (prefers-reduced-motion: reduce) {
+  .splash-seal {
+    animation: none;
+  }
+}
