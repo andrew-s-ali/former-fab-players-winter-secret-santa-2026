@@ -216,9 +216,9 @@ no undo, so it stays on the CLI where running it takes intent.
 3. Invite yourself under Identity > Users. Identity email links may return to
    the site homepage; the app forwards their callback token to `/admin/login`,
    which processes it and asks for a password.
-4. Grant the `organizer` role (Identity > Users > Edit settings >
-   `app_metadata.roles`). Role changes take effect on the next login or token
-   refresh, not immediately.
+4. Grant the `admin`, `organiser`, or `organizer` role (Identity > Users > Edit
+   settings > `app_metadata.roles`). Role changes take effect on the next login
+   or token refresh, not immediately.
 
 **It cannot be tested locally.** Identity does not work under `netlify dev`, and
 `getUser()` returns `null` off-platform — so `/admin` always renders its

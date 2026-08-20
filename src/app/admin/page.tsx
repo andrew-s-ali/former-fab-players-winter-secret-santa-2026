@@ -40,7 +40,7 @@ export default async function AdminPage() {
         <h1 className="text-3xl font-semibold tracking-tight">Organiser console</h1>
         <p className="rounded-xl border border-slate-300/30 px-4 py-3 text-sm">
           {user
-            ? "You are signed in, but this account does not hold the organiser role. Ask whoever runs the event to grant it."
+            ? "You are signed in, but this account does not hold an admin, organiser, or organizer role. After changing roles in Netlify, sign in again to refresh access."
             : "You need to be signed in as an organiser to see this."}
         </p>
         <Link className="underline" href="/admin/login">

@@ -15,6 +15,13 @@ describe("isOrganizer", () => {
     expect(isOrganizer(user(["member", ORGANIZER_ROLE]))).toBe(true);
   });
 
+  it.each(["organiser", "admin", " Admin "])(
+    "accepts the dashboard role %s",
+    (role) => {
+      expect(isOrganizer(user([role]))).toBe(true);
+    }
+  );
+
   it("rejects a logged-out visitor", () => {
     expect(isOrganizer(null)).toBe(false);
   });
