@@ -68,23 +68,16 @@ test("the browser on a reveal page excludes the recipient's vetoed colour", asyn
   expect((await request).url()).toContain("exclude=R");
 });
 
-test("local scratchpad persists private notes across page reloads", async ({
-  page,
-}) => {
+// Private notes now live in Postgres, and this suite runs with
+// CARD_SELECTIONS_DISABLED=1 against a JSON fixture with no database behind
+// it. So the invariant worth asserting here is the negative one: that branch
+// must not offer a box whose contents it has nowhere to put. The saving
+// behaviour itself is covered by src/components/SecretScratchpad.test.tsx and
+// has to be exercised on a Deploy Preview.
+test("the no-database branch does not offer private notes", async ({ page }) => {
   await page.goto("/s/e2e-test-token-ada");
 
-  const scratchpad = page.getByRole("textbox", { name: /private notes/i });
-  await expect(scratchpad).toBeVisible();
-
-  const testNotes = "Deck ideas: Tatyova landfall with Simic Growth Chamber";
-  await scratchpad.fill(testNotes);
-
-  await expect(page.getByText(/saved to this browser/i)).toBeVisible();
-
-  await page.reload();
-
-  await expect(page.getByRole("textbox", { name: /private notes/i })).toHaveValue(
-    testNotes
-  );
+  await expect(page.getByRole("heading", { name: /Hi Ada/ })).toBeVisible();
+  await expect(page.getByRole("textbox", { name: /private notes/i })).toHaveCount(0);
 });
 

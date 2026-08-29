@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SecretCardChoices } from "./SecretCardChoices";
 import { cashInCardAction } from "@/app/s/actions";
 import type { Commander } from "@/lib/scryfall/types";
+import { soloPick } from "@/lib/pairing";
 
 const refresh = vi.fn();
 
@@ -31,6 +32,7 @@ function card(id: string): Commander {
     rarity: "uncommon",
     priceUsd: null,
     priceIsFoil: false,
+  pairingRole: null,
   };
 }
 
@@ -43,13 +45,13 @@ describe("SecretCardChoices", () => {
   it("requires confirmation before spending the one-time cash-in", async () => {
     render(
       <SecretCardChoices
-        cards={[card("one"), card("two"), card("three")]}
+        cards={[soloPick(card("one")), soloPick(card("two")), soloPick(card("three"))]}
         cashInUsed={false}
         token="private-token"
       />
     );
 
-    expect(screen.getByText(/fourth card stays completely hidden/i)).toBeInTheDocument();
+    expect(screen.getByText(/fourth choice stays completely hidden/i)).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button", { name: /trade this card/i })[1]);
     expect(cashInCardAction).not.toHaveBeenCalled();
 
@@ -61,7 +63,7 @@ describe("SecretCardChoices", () => {
   it("removes every trade control after the cash-in is used", () => {
     render(
       <SecretCardChoices
-        cards={[card("one"), card("two"), card("four")]}
+        cards={[soloPick(card("one")), soloPick(card("two")), soloPick(card("four"))]}
         cashInUsed
         token="private-token"
       />

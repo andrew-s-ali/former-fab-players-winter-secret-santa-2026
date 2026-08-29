@@ -71,6 +71,7 @@ describe("normalizeCard", () => {
       imageUrl: "https://cards.scryfall.io/normal/aang.jpg",
       scryfallUrl: "https://scryfall.com/card/tle/146/aang-a-lot-to-learn",
       hasPartner: false,
+      pairingRole: null,
       setName: "Commander 2019",
       rarity: "uncommon",
       canPair: false,

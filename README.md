@@ -7,11 +7,12 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 Feature-complete, and currently **pre-launch**: the home page is a splash page
 until the organiser opens registration (see *Before launch* below). Behind it,
 the site takes sign-ups through Netlify Forms, provides a
-filterable commander browser, runs the draw from those sign-ups (or a CSV export),
-collects private commander nominations, serves each participant a locked three-card
-shortlist with a one-time hidden-card trade,
+filterable commander browser, takes each person's own two pool commanders on the
+sign-up form itself, runs the draw from those sign-ups (or a CSV export),
+collects a private recommendation for every other participant, serves each
+participant a locked three-card shortlist with a one-time hidden-card trade,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
-palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
+palette with reduced-motion snowfall, private per-link scratchpads, interactive deck prompts,
 demo preview routes, and an Identity-gated organiser console. 283 unit tests,
 20 Playwright E2E tests, and lint/typecheck/build are all clean.
 
@@ -32,6 +33,7 @@ See:
 | E2E tests  | Playwright (Chromium)                         |
 | Hosting    | Netlify (zero-config Next.js runtime)         |
 | Data       | Netlify Blobs + Netlify Database (Postgres)   |
+| Sign-ups   | Netlify Forms → a `formSubmitted` function → Postgres |
 
 ## Getting started
 
@@ -56,7 +58,7 @@ npm run dev                       # http://localhost:3000
 | `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
 | `npm run update-participant`  | Edit one participant's vetoes/wish without redrawing                        |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
-| `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock) |
+| `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock); fetches the real pool so demo pool cards are real |
 
 CI runs lint → typecheck → unit → E2E on every push and pull request.
 
@@ -68,6 +70,8 @@ db/             Drizzle schema for persistent card picks and secret shortlists
 src/components/ React components (SplashPage, EventHome, CommanderBrowser, RevealRing, Countdown, Snowfall, etc.)
 src/lib/        framework-free logic; unit-tested (draw, ring, filtering, countdown, launch gate, Scryfall, store)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
+src/test-support/ commander fixtures shared by the test suite (never imported by app code)
+netlify/functions/ platform-event functions; signup-submitted.mts mirrors Forms into Postgres
 scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, demo seeder
 public/         static assets; __forms.html registers the sign-up form with Netlify
 tests/e2e/      Playwright specs
@@ -79,8 +83,16 @@ Unit tests sit next to their subject (`src/lib/event.ts` → `src/lib/event.test
 
 The site includes dedicated demo routes at `/demo`, `/demo/s/<token>`, and `/demo/reveal` so organizers and participants can preview the entire application workflow safely.
 
-- `/demo`: Lists invented demo participants (e.g. Ada Lovelace, Bob Ross, Eli 🎄) and provides direct links to their secret reveal pages and the demo reveal ring.
-- `/demo/s/<token>`: Renders the full recipient reveal page for a demo participant, including their assigned recipient, theme wish/veto, locked color veto, and the interactive commander browser.
+The demo data is a **complete event, mid-flight**: eight invented people have
+all signed up, all chosen their own two commanders, and all made their 56
+recommendations for each other, so the workshop has closed and every assignment
+is open. That is the state worth previewing — a half-finished one shows a
+workshop rather than the thing people are waiting for.
+
+- `/demo`: Lists the invented participants (Ada Lovelace, Bob Ross, Eli 🎄 …) with their colour vetoes and whether they have saved a decklist, plus links onward to reveal day, the sign-up form and the commander browser.
+- `/demo/s/<token>`: The full private link — the participant's own sign-up answers (collapsed), who they are building for with that person's vetoes, their three cards, a link to the browser, and the decklist box.
+  - **The shortlist is drawn by the real function.** `pickSecretCards` runs over the selections committed in `demo-event.json`, so what the demo shows is what the live site would compute, not a stand-in. That is what `src/lib/card-pool.ts` exists for: the pool rules are pure and separate from `card-selections.ts`, which owns the storage, so the demo can use them without loading a database client.
+  - The draw is seeded from the participant's token rather than `Math.random`, because a real shortlist is drawn once and stored. Without the seed, reloading a demo link would reshuffle the three cards and imply they are not fixed.
 - `/demo/reveal`: Renders the stepped reveal-day ring animation.
 - **Isolation guarantee:** Demo routes load strictly from `src/demo/demo-event.json` via `src/lib/demo.ts`. `src/lib/demo.ts` never imports `src/lib/store.ts` or Netlify Blobs, making it structurally impossible for real participant data to leak into demo views.
 - All demo pages display a prominent `DEMO` badge.
@@ -134,6 +146,59 @@ if you want sign-ups gated on the same date too.
 Sign-ups come in through **Netlify Forms** at `/signup`. Nothing is exported or
 copied by hand — `npm run draw` reads the submissions directly.
 
+A sign-up carries a name, an **email address**, an optional colour veto, two
+optional theme answers, and **two commanders, which are required**.
+
+The address is required, because a roster without one cannot be used to send
+the private links — which is the only reason it is collected. It is personal
+data: it lands in the Netlify Forms store, the `signups` table and the event
+store, and is shown on the Identity-gated organiser console. It is never
+rendered on a page any participant can see. Validation is deliberately
+permissive (`something@something.something`) — a stricter pattern mostly
+succeeds at rejecting real addresses, and a typo that parses is caught by the
+mail bouncing. Those two are the start of that
+person's own pool: everyone else adds one more card to it after the draw, and
+whoever ends up building their deck is shown a shortlist taken from the whole
+pool.
+
+The two commanders are chosen from a **type-to-filter dropdown of every legal
+commander**, not typed freely, so a submission cannot name a card outside the
+pool. Either may be a **partner pair** — a pair is one of the two choices, not
+both — and the form offers the partner slot only for a commander that can
+actually take one. The form also re-checks them against the colour veto, dropping a pick if
+the veto is changed underneath it. Alongside it is a link to the full commander
+browser at `/commanders`, opened in a new tab so following it does not discard
+a half-filled form.
+
+Card picks are submitted **by name** rather than by Scryfall id, so the Netlify
+Forms dashboard and the CSV fallback both stay readable.
+
+#### From Forms into the database
+
+Netlify Forms stores submissions in Netlify's own store, reachable only through
+the UI, the API or a CSV export — nothing queries it like a database. The bridge
+is a **platform-event function**, `netlify/functions/signup-submitted.mts`,
+which exports a `formSubmitted` handler. Netlify invokes it (signed, in the
+background) with the submitted fields; it resolves the two card names against
+the live pool and writes a row to the `signups` table.
+
+Forms deliberately stays the front door. It runs Akismet, gives the organiser a
+spam list and a dashboard, and needs no backend code — none of which is worth
+hand-rolling on a public endpoint.
+
+Two properties worth knowing:
+
+- **Picks are resolved on arrival, not at draw time.** The legal pool changes
+  when a set is released, so resolving late means a release between sign-up and
+  the draw can invalidate a pick that was fine when it was made. The CSV and
+  Forms-API fallbacks still resolve late, because that is all they can do.
+- **A retried delivery is a no-op.** `FormSubmittedEvent` is `{ data }` and
+  nothing else — no submission id, no timestamp — and platform-event functions
+  are retried on invocation error. The row's primary key is therefore a hash of
+  the submission's own content: the same answers collide and are dropped, while
+  a genuine resubmission hashes differently and lands as its own row for
+  `dedupeSignups` to arbitrate exactly as a second CSV row would.
+
 **One-time setup**, before sharing the link:
 
 1. Netlify UI > **Forms** > **Enable form detection**.
@@ -158,20 +223,37 @@ The CSV importer is still there for a Google Form export, a hand-written sheet,
 or a rescue if something goes wrong with the live form:
 
 1. Export the responses as CSV.
-2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts`. If they don't, the
-   draw fails immediately and lists the headers it actually found.
+2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts` — including the
+   two card columns (`First commander for your pool`, `Second commander for
+   your pool`). If they don't, the draw fails immediately and lists the headers
+   it actually found.
 
 Both sources funnel through `src/lib/signup.ts`, so validation, colour parsing
 and duplicate handling behave identically either way.
 
 ### 3. Draw and Mint Links
 
+The default source is the database — the rows the sign-up function wrote:
+
+```bash
+NETLIFY_DB_URL=<postgres-url> NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
+  npm run draw
+```
+
+`NETLIFY_DB_URL` is the connection string `drizzle-orm/netlify-db` reads; copy
+it from the Netlify UI. The Netlify variables are still needed because the draw
+*writes* to Blobs. Reading the database first means a bad connection string
+fails the run before anything has been written.
+
+Straight from the Forms API instead, skipping the database (card names are
+resolved at draw time on this path):
+
 ```bash
 NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
   npm run draw -- --from=netlify-forms
 ```
 
-From a CSV instead:
+From a CSV:
 
 ```bash
 NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.netlify.app \
@@ -189,8 +271,15 @@ Both `draw` and `update-participant` print their resolved target first — e.g. 
 
 Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - an unrecognised colour word (only white/blue/black/red/green plus "no preference" are understood),
-- an empty name (names the offending CSV row), and
-- two participants sharing a name, case-insensitively (names both). Names must be unique because `update-participant` looks people up by name, not row number.
+- an empty name (names the offending CSV row),
+- two participants sharing a name, case-insensitively (names both). Names must be unique because `update-participant` looks people up by name, not row number,
+- a missing card pick, or the same card picked twice, and
+- a card name that is not in the live pool, is banned, or carries that person's own vetoed colour. The draw fetches the pool and checks every pick **before writing anything**, and reports every bad pick in one go rather than dying on the first — each one means going back to the person who submitted it.
+
+The draw also refuses to run with fewer than **four** participants. A giver's
+shortlist is four unique cards from their recipient's pool minus their own
+contribution to it, which leaves exactly as many cards as there are
+participants — so three people can never unlock the exchange however they pick.
 
 On success it prints one `name<TAB>url` line per participant. **Treat that whole block as sensitive** — don't paste it into a shared channel, ticket, or chat; copy individual lines out to send privately instead.
 
@@ -198,9 +287,13 @@ On success it prints one `name<TAB>url` line per participant. **Treat that whole
 
 Send each person their own link (`https://<site>.netlify.app/s/<token>`). The link first opens a private card workshop, but it reveals the assignment once every participant has finished, so send it privately.
 
-Each participant saves two commanders for themselves and one commander for every other participant. The app excludes each recipient's vetoed colour on both the search endpoint and the save action. When every required slot is filled, the submissions lock automatically. Duplicate recommendations are allowed while choosing, but the exchange does not unlock until every assigned recipient has at least four unique eligible cards after excluding their deck builder's own recommendation.
+Each participant saves one commander for every other participant. Their own two cards came in with their sign-up and are shown read-only — changing one is an organiser job rather than a self-service one, because they are already in the pool everyone else is drawing against. The app excludes each recipient's vetoed colour on both the search endpoint and the save action. When every required slot is filled, the submissions lock automatically. Duplicate recommendations are allowed while choosing, but the exchange does not unlock until every assigned recipient has at least four unique eligible cards after excluding their deck builder's own recommendation.
 
-Once unlocked, each deck builder receives a stable random set of four cards drawn from their recipient's two self-picks plus recommendations from everyone except the deck builder. Three cards are shown. The fourth remains server-side and hidden until the participant permanently trades one visible card for it; that cash-in can only succeed once.
+Once unlocked, each deck builder receives a stable random set of four cards drawn from their recipient's two sign-up picks plus recommendations from everyone except the deck builder. Three cards are shown. The fourth remains server-side and hidden until the participant permanently trades one visible card for it; that cash-in can only succeed once.
+
+Their private link shows, in order: a collapsed recap of their own sign-up answers (their two cards, colour veto, theme veto and wish); the person they are building for, that person's stated vetoes, and the three-card shortlist; a link to the commander browser; and a box to save the decklist they are assembling. The decklist link lives in the `deck_builds` table keyed by *giver*, so reading that table never reveals who is building for whom.
+
+**Where the picks live.** The two sign-up picks are stored on the participant record in Netlify Blobs, written by the draw; the `card_selections` table holds peer picks only. The draw already writes the Blobs store and holds no Postgres credentials, so seeding the table there would add a second, separately-failing write to the one step that must not half-succeed.
 
 ### 5. Participant Edits (Post-Draw)
 
@@ -214,6 +307,10 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
 ```
 
 Looks the participant up by name (case-insensitive) and edits only the fields you pass — assignments and reveal tokens are never touched, so links already sent keep working. `--color` accepts either a code (`W`/`U`/`B`/`R`/`G`) or a colour name; `--veto`/`--wish` take free text; any of the three accepts `none` to clear that field.
+
+`--email` corrects an address; there is no `none` for it, since it is required.
+
+`--color` is refused if the participant's **own** pool cards carry that colour, and names them: those cards are already in the pool everyone else draws from, and nothing downstream re-checks them. Clearing the veto (`--color=none`) is always allowed.
 
 ### 6. Reveal Day
 
@@ -243,6 +340,23 @@ Locally, omit the Netlify variables and scripts operate on `data/event.local.jso
 reveal day, and edit a participant's preferences — behind Netlify Identity, so
 running the event no longer means pasting a full-scope `NETLIFY_AUTH_TOKEN` onto
 a command line.
+
+**What it shows.** The roster with everyone's email (and a "mail everyone"
+link that puts the addresses in Bcc), each person's stated preferences, and
+**every participant's pool** — their own two sign-up choices plus one from each
+other participant, attributed to whoever chose it, with a count of distinct
+choices and a list of who has not picked yet. Attribution is safe: everybody
+picks for everybody, so who contributed what says nothing about who was
+assigned whom.
+
+**It does not hide your own pool.** If you are playing, looking at your own
+entry spoils your own shortlist, and nothing stops you — that was a deliberate
+choice over special-casing the signed-in organiser.
+
+**The pools tolerate a database outage.** They are the only part of the console
+that needs Postgres; if the read fails the section says so and the reveal
+toggle and participant edits keep working, rather than the whole console 500ing
+over reference material.
 
 **It deliberately does not offer the draw.** Re-running it reshuffles everyone
 and invalidates every link already sent, and unlike the other actions there is
@@ -283,6 +397,59 @@ an organiser acting on the wrong browser tab.
 
 ## Development & Architecture notes
 
+- **Both stages of the private link are previewable** — `/demo/s/<token>?phase=workshop` and `/demo/s/<token>`, linked from each other and from `/demo`.
+  - The link means two different things at two different times: first the **workshop**, where each person picks one commander for every other participant, and then — once everybody has finished — their **assignment**. Only the second was ever visible in the demo, which made the workshop look like it did not exist.
+  - `DemoCardWorkshop.tsx` runs the **same `CardSelectionStudio`** against browser state, starting from a half-finished set of picks so both the done and the outstanding targets are on screen. `CardSelectionStudio` takes optional `onSave`/`onRemove` that override the server actions; only the demo passes them, and a test asserts the demo never calls the real ones.
+  - Saving is re-implemented rather than stubbed, because the rules are the part worth showing: the recipient's vetoed colour, legal partners, and both checked against the *pair* rather than either half. Those checks come from `pairing.ts`, so the demo runs the same ones the server action does — there is a test that picks a vetoed card and expects the refusal.
+
+- **The one-time trade, playable on `/demo` (`DemoCardTrade.tsx`):**
+  - The real cash-in writes to Postgres and cannot be undone — which is the point of it, and also why nobody wants to learn what it does by spending theirs. The demo runs the **same `SecretCardChoices` component** against browser state, so the trade can be tried, seen and reset.
+  - `visibleShortlist` in `card-pool.ts` is the rule for which of the four are shown; the real page and the demo both call it, so which card appears and where it lands (appended last, not slotted into the gap) is shared rather than re-implemented.
+  - `SecretCardChoices` takes an optional `onCashIn` that overrides the server action. Only the demo passes it; a test asserts the demo never calls `cashInCardAction`, since the cash-in is the one control on that page that writes.
+  - **The demo is handed all four cards**, so the hidden one sits in the page payload and could be read out of it. The real page never sends it — `getOrCreateSecretCards` returns only the visible three and the fourth stays in the database until the trade is spent. Don't take the demo's shape as a pattern for the real one.
+
+- **Card hover preview (`CardImage.tsx`):**
+  - Hovering any card image shows it enlarged next to the cursor — 340px wide, about 6× a 56px thumbnail — because card art at thumbnail size is unreadable and the reason to look at a commander is its rules text. Every card image on the site goes through this one component.
+  - **Rendered through a portal to `document.body`.** Several of the places a card appears sit inside `overflow-hidden` containers, which would clip a preview positioned in the normal flow.
+  - Position is written straight to the node on `mousemove` rather than held in React state: re-rendering the tree at pointer rate is what makes hover previews feel sticky. It flips to the left of the cursor near the right edge and clamps vertically, so it is never partly off-screen.
+  - **Suppressed where hovering is not a real thing** (`(hover: hover) and (pointer: fine)`). On a touch screen the first tap would fire the hover handlers and leave a card floating with nothing to dismiss it.
+  - Also opens on focus, anchored to the element rather than the cursor — these images sit inside buttons on the browser grid, so they are reachable by tab. `pointer-events: none` keeps the preview from ever swallowing a click.
+  - Note for tests: jsdom implements no `window.matchMedia`, so `vitest.setup.ts` stubs it (reporting hover-capable, the case worth exercising by default). React synthesises `onMouseEnter` from `mouseover`, so a test dispatching a raw `mouseenter` event will silently do nothing.
+
+- **Partner pairs (`src/lib/pairing.ts`):**
+  - A selection is a **pick**: one commander, optionally with a partner. A pair is *one* choice — it fills one of a person's two pool slots and one place on a shortlist, because it is one deck's worth of commander.
+  - Legality is derived from the card, with no hand-maintained pairing table. The pool contains exactly three pairing groups — 30 plain **Partner**, 20 **"Choose a Background"**, 15 **Backgrounds** — and `pairingRoleOf` reads them from the type line, rules text and keywords. Partner goes with Partner; a Background chooser goes with a Background; nothing else pairs.
+  - **It fails closed.** `"Partner with <name>"` is explicitly rejected rather than treated as generic Partner — that variant pairs with exactly one card, so treating it as generic would offer 29 illegal partners. None appear at uncommon today, but a set could add one. `fetchCommanderPool` cross-checks Scryfall's `otag:pair-commander` against the derived role and warns by name about anything it cannot classify; those cards are simply never offered a partner.
+  - **A Background is not a commander.** All 15 used to be selectable alone, so a sign-up could name one as a standalone commander and the draw would accept it. `canBePrimary` now keeps them out of every primary list (695 offered, not 710) and they appear only as the partner half.
+  - Identity is by `pickId`, the two ids sorted and joined, so "A + B" and "B + A" are one option — two people who independently choose the same pair cannot fill two of a shortlist's four slots with the same deck.
+  - **Colour vetoes apply to the combined identity.** A partner can carry a colour the commander does not; `pickColorIdentity` is what the veto is checked against, in the sign-up resolver, the save action and the organiser's `--color` guard alike.
+  - The rules are structural over `PairableCard`, so the same code runs against a full `Commander` on the server and the trimmed `CommanderOption` in the browser — one implementation that cannot disagree with itself.
+  - **A pair is drawn inside one card's footprint** (`PickCards.tsx`): the two cards overlap at the corners, each at 86% width, inset into a box the size of a single card. Side by side at half width they read as two separate things and shrink the art to nothing; stacked, a pair takes the same room as every other option in the row — which is what it is, one choice. The partner sits *behind and offset upward* so its title bar stays visible above the commander, letting both be named at a glance; tucking it under the bottom corner instead showed only art and an edge. Either half can still be hovered for the enlarged view.
+  - `PartnerPicker.tsx` is shared by the sign-up form and the card workshop: it appears only after a commander that can actually take a partner, lists only legal partners with the vetoed colour and banned combinations already removed, and always offers "save on its own". Everything it enforces is re-checked server-side in `saveCardAction` and `resolveSelfCards`, because a Server Action is a callable endpoint whatever the page showed.
+  - The jsonb columns needed **no migration**: `card_selections.card`, `signups.self_cards` and `secret_card_sets.cards` hold a richer shape, and jsonb is jsonb.
+
+- **Sign-up commander picker (`CommanderCombobox.tsx`):**
+  - Backed by `/api/commanders/names`, which returns the whole legal pool
+    trimmed to `id`, `name`, `colorIdentity` and `imageUrl` — 704 cards, 144 KB
+    raw and about 36 KB compressed. The full pool is 480 KB, nearly all of it
+    oracle text a dropdown never shows; keeping `imageUrl` costs only ~8 KB
+    compressed (the URLs share long prefixes) and buys an instant thumbnail for
+    whatever gets picked, with no second request.
+  - That endpoint takes **no colour-veto parameter and applies none**, unlike
+    `/api/commanders/sample`. The only veto in play here is the person's own,
+    chosen on the same form, so it is not a secret being kept from them — which
+    lets the client re-filter instantly when they change it, and lets one
+    response be cached for everybody. The ban list *is* applied server-side.
+  - Follows the ARIA combobox pattern rather than a `<datalist>`, whose
+    filtering, styling and mobile presentation are all browser-defined and
+    which offers no way to report "42 more matches". Renders at most 50 options
+    and states how many are hidden, so "my card isn't legal" stays
+    distinguishable from "I need to type more".
+  - Note for tests: the colour `<select>` is *also* exposed as a `combobox`
+    with its own `option` children, so option lookups must be scoped to the
+    listbox (`getByRole("listbox").getByRole("option")`). Playwright's `fill()`
+    does not open the list either — use `pressSequentially`.
+
 - **Commander Browser & Filtering:**
   - The browser (`src/components/CommanderBrowser.tsx`) provides 5 color filter pips (`W`, `U`, `B`, `R`, `G`) using subset semantics (a two-color card appears only when both of its colors are selected; colorless cards match all selections), a live search query input, and a "Can pair" toggle.
   - On the secret reveal page (`/s/[token]`), the recipient's color veto is pre-excluded, disabled, and rendered as a locked red pip.
@@ -293,11 +460,18 @@ an organiser acting on the wrong browser tab.
   - **Interactive Theme Prompts:** `ThemePrompt.tsx` surfaces curated deckbuilding hooks (e.g. "Spellslinger", "Artifacts", "Voltron") with a "Search this theme" button.
     - The button sets a **separate `theme=` filter matched against the card's rules text** — never the `q=` name filter. Prompt keywords are mechanics, and 16 of the 22 match **zero** commander names in the live pool while each matches 9–462 cards by rules text; routing them through the name box makes the feature return nothing for most prompts.
     - The active theme renders as a chip ("showing commanders whose rules text mentions…") with a Clear theme button, so it is visible and reversible rather than a mysterious empty grid.
+- **Saving on `/s/[token]` (`DecklistLink.tsx`, `SecretScratchpad.tsx`):**
+  - Both boxes save **when focus leaves them**, and neither requires a press. The notes box also autosaves a second after typing stops; the decklist box keeps its Save button as the visible affordance. They used to disagree — the decklist saved *only* on the button, so pasting a link and navigating away lost it silently, the one field on the page with no protection.
+  - The decklist only saves what validates. Tabbing out of a half-typed URL is ordinary, and firing a doomed request on every such blur would turn a normal pause into an error banner, so `normalizeDecklistUrl` runs on the client first — which is why it lives in `deck-build-rules.ts` with no database import.
+  - Emptying the decklist box does **not** clear the saved link; the box says so and points at Remove. Blanking a stored value by tabbing past it is too easy to do by accident.
+  - Both share `useLocalDraft`: every keystroke is mirrored to `localStorage` and the draft is cleared only once the server acknowledges the save. Anything a closed tab or a failed request left behind is offered back on the next visit, restored with a notice — and re-saved automatically, except a decklist draft that does not validate, which is restored but left for the participant to finish.
+
 - **Private Notes Scratchpad (`SecretScratchpad.tsx`):**
-  - Present on `/s/[token]` and `/demo/s/[token]`, providing participants a place to draft deck ideas, card links, or wishlist thoughts.
-  - Backed by browser `localStorage` keyed uniquely per token (`secret-santa-scratchpad-<token>`).
-  - SSR hydration-safe via React 19's `useSyncExternalStore` with custom window storage events for instantaneous multi-tab sync.
-  - **Privacy Guarantee:** Scratchpad notes are stored exclusively in the client's local browser and are never sent over the network, stored in Netlify Blobs, or leaked into server logs.
+  - Present on `/s/[token]`, providing participants a place to draft deck ideas, card links, or wishlist thoughts.
+  - **Stored in Postgres** (`deck_builds.notes`, keyed by giver), not in the browser. Debounced autosave a second after typing stops, and immediately on blur.
+  - `localStorage` is still used, for a different job — see `useLocalDraft` above, and React 19's `useSyncExternalStore` inside it.
+  - **These notes are no longer browser-only, and the copy no longer says they are.** They were local, and the UI promised it. Moving them to the database is what makes them survive a cleared browser or a swapped phone — which is why they moved — but notes about a named person now leave the device, so the wording says where they are kept instead. A test asserts the old "never sent to a server" claim has not crept back in.
+  - The `/demo` scratchpad is read-only, because the demo routes never reach a database. The no-database branch of `/s/[token]` (`CARD_SELECTIONS_DISABLED=1`) does not render notes at all.
 - **Reveal Day Confetti & Discord Export (`RevealRing.tsx`, `Confetti.tsx`):**
   - Once all participants are stepped through on `/reveal` and the loop closes, a festive CSS-only particle celebration (`<Confetti />`) triggers, respecting `@media (prefers-reduced-motion: reduce)` settings.
   - A "Copy Discord Summary" button formats the complete gift exchange ring into spoiler markdown (`||Giver ➜ Recipient||`) with copy feedback for instant channel announcements.
@@ -310,8 +484,25 @@ an organiser acting on the wrong browser tab.
   - Transform-layout cards (e.g. Exdeath, Garland, The Emperor of Palamecia, Ultimecia) fall back to `card_faces[0]` for image and oracle data.
 - **Reveal Ring Algorithm:**
   - `buildRing` (`src/lib/ring.ts`) verifies that the derangement forms a single complete cycle across all participants before constructing the stepped reveal sequence. If non-cycle or disconnected components are found, it fails loudly.
+- **What is and is not covered by the checks:**
+  - The Postgres paths — `src/lib/card-selections.ts`, `src/lib/signups.ts`,
+    `src/lib/deck-builds.ts` and the sign-up function — are **not exercised by
+    `npm test` or the E2E suite**, and never have been. The unit tests cover
+    their pure parts (shortlist selection, the content hash, decklist URL
+    validation); Playwright sets `CARD_SELECTIONS_DISABLED=1`, which routes
+    `/s/[token]` down a branch that touches no database at all. There is no
+    local Postgres in this repo, so the drizzle queries themselves first run on
+    a real deploy. Exercise them on a Deploy Preview, which gets its own
+    database branch, before trusting them in production.
+  - Likewise the `formSubmitted` handler: platform-event functions are invoked
+    by Netlify and cannot be triggered by `netlify dev`. Submit the form on a
+    Deploy Preview and check the function log.
+
 - **Path Imports:**
   - `package.json`'s `"imports"` map (`#lib/*` → `src/lib/*.ts`, `#scripts/*` → `scripts/*.ts`) exists because Node's built-in TypeScript stripping (`node --experimental-strip-types`, used to run the scripts) won't resolve extensionless relative imports, while `tsc` rejects imports with an explicit `.ts` suffix.
+  - **Client components and the database:** anything a `"use client"` component imports is bundled for the browser, so importing a module that reaches `db/` drags `drizzle-orm` and `pg` in and the build fails with `Can't resolve 'dns'` — an error that names `node_modules`, not the import that caused it. This is why the pure halves are split out: `card-pool.ts` from `card-selections.ts`, and `deck-build-rules.ts` from `deck-builds.ts`. `src/components/client-bundle.test.ts` walks each client component's import graph and fails with the offending chain, stopping at `"use server"` modules — a Server Action is a boundary rather than a leak, and is exactly how a client component is meant to reach the database.
+  - `src/lib/module-resolution.test.ts` enforces this: it parses each import statement in `src/lib` and fails naming any relative value import. It exists because the rule was broken twice by ordinary-looking edits, and both times the breakage was invisible until an operator ran a script — Next and Vitest resolve `./pairing` perfectly well, so lint, typecheck, unit tests, E2E and the build all pass while `npm run update-participant` is dead.
+  - **This applies transitively, and inside `src/lib` too.** A script importing `#lib/signup` also has to resolve everything `signup.ts` itself imports, so cross-module *value* imports within `src/lib` use `#lib/...` rather than `./...`. A plain `./rules` there is invisible to the app — Next and Vitest both resolve it — and breaks every operator script the moment one of them reaches that module. Type-only imports are erased before Node sees them and are exempt.
 - **E2E Test Fixtures:**
   - `playwright.config.ts` sets `EVENT_DATA_PATH=tests/e2e/fixture-event.json` for its `webServer`, running tests against fake, committed test data (Ada, Bob, Cleo) without requiring Netlify credentials.
   - **The suite runs serially (`workers: 1`), deliberately.** With four workers on a cold cache, parallel first-hits to each route contend on on-demand compilation and the initial Scryfall pool fetch, and 3–4 tests time out. CI always starts cold, where `retries: 2` was quietly masking it. Serial costs about seven seconds on a ~23s suite and makes cold runs deterministic.

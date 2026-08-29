@@ -17,6 +17,7 @@ const make = (name: string, colorIdentity: string[], hasPartner = false): Comman
   canPair: false,
   priceUsd: null,
   priceIsFoil: false,
+  pairingRole: null,
 });
 
 const pool: Commander[] = [

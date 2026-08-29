@@ -1,21 +1,46 @@
 import { describe, expect, it } from "vitest";
 import {
   applyParticipantEdits,
+  buildPools,
   findParticipantByName,
   parseColor,
   summarizeEvent,
 } from "./admin";
 import type { EventData, Participant } from "./participants";
+import { soloPick } from "./pairing";
+import type { Commander } from "./scryfall/types";
+
+function commander(name: string, colorIdentity: string[]): Commander {
+  return {
+    id: name.toLowerCase(),
+    name,
+    manaCost: "{2}",
+    typeLine: "Legendary Creature",
+    oracleText: "",
+    colorIdentity,
+    imageUrl: null,
+    scryfallUrl: `https://scryfall.com/card/${name.toLowerCase()}`,
+    hasPartner: false,
+    setName: "Test Set",
+    rarity: "uncommon",
+    canPair: false,
+    priceUsd: "1.00",
+    priceIsFoil: false,
+    pairingRole: null,
+  };
+}
 
 function participant(overrides: Partial<Participant> = {}): Participant {
   return {
     id: "p1",
     name: "Ada",
+    email: "ada@example.com",
     recipientId: "p2",
     token: "tok-ada",
     colorVeto: "R",
     themeVeto: "mill",
     themeWish: "elves",
+    selfCards: [soloPick(commander("Blue Pick", ["U"])), soloPick(commander("White Pick", ["W"]))],
     ...overrides,
   };
 }
@@ -97,6 +122,37 @@ describe("applyParticipantEdits", () => {
   });
 });
 
+describe("applyParticipantEdits and the participant's own pool cards", () => {
+  // The veto now constrains cards that are already in the participant's pool
+  // for everyone else to draw from, and nothing downstream re-checks them.
+  it("refuses a colour the participant's own pool cards carry, naming them", () => {
+    const p = participant({
+      selfCards: [soloPick(commander("Green Pick", ["G"])), soloPick(commander("White Pick", ["W"]))],
+    });
+
+    expect(() => applyParticipantEdits(p, { color: "G" })).toThrow(/Green Pick/);
+    expect(p.colorVeto).toBe("R");
+  });
+
+  it("allows a colour none of them carry", () => {
+    const p = participant();
+
+    applyParticipantEdits(p, { color: "G" });
+
+    expect(p.colorVeto).toBe("G");
+  });
+
+  it("always allows clearing the veto", () => {
+    const p = participant({
+      selfCards: [soloPick(commander("Green Pick", ["G"])), soloPick(commander("White Pick", ["W"]))],
+    });
+
+    applyParticipantEdits(p, { color: "none" });
+
+    expect(p.colorVeto).toBeNull();
+  });
+});
+
 describe("summarizeEvent", () => {
   it("counts participants and reports reveal state", () => {
     const summary = summarizeEvent({ ...event(), revealedAt: "2026-12-12T00:00:00Z" });
@@ -112,5 +168,94 @@ describe("summarizeEvent", () => {
 
     expect(serialized).not.toContain("tok-ada");
     expect(serialized).not.toContain("recipientId");
+  });
+});
+
+describe("buildPools", () => {
+  const people = ["Ada", "Bob", "Cleo", "Dev"].map((name, index) =>
+    participant({
+      id: `p${index + 1}`,
+      name,
+      email: `${name.toLowerCase()}@example.com`,
+      recipientId: `p${((index + 1) % 4) + 1}`,
+      token: `tok-${index}`,
+      colorVeto: null,
+      selfCards: [
+        soloPick(commander(`${name} own 1`, [])),
+        soloPick(commander(`${name} own 2`, [])),
+      ],
+    })
+  );
+  const event = { participants: people, revealedAt: null };
+
+  const pick = (selector: string, recipient: string, card: string) => ({
+    selectorId: selector,
+    recipientId: recipient,
+    slot: 1,
+    card: soloPick(commander(card, [])),
+  });
+
+  it("lists a participant's own two choices", () => {
+    const [ada] = buildPools(event, []);
+
+    expect(ada.name).toBe("Ada");
+    expect(ada.own.map((p) => p.commander.name)).toEqual(["Ada own 1", "Ada own 2"]);
+  });
+
+  // Everybody picks for everybody, so saying who chose what reveals nothing
+  // about who was assigned whom — and without it the organiser cannot tell who
+  // still needs chasing.
+  it("attributes each contribution to whoever made it", () => {
+    const [ada] = buildPools(event, [
+      pick("p3", "p1", "From Cleo"),
+      pick("p2", "p1", "From Bob"),
+    ]);
+
+    expect(ada.contributed).toEqual([
+      { from: "Bob", pick: expect.objectContaining({}) },
+      { from: "Cleo", pick: expect.objectContaining({}) },
+    ]);
+    expect(ada.contributed.map((c) => c.pick.commander.name)).toEqual([
+      "From Bob",
+      "From Cleo",
+    ]);
+  });
+
+  it("names who has not picked for them yet", () => {
+    const [ada] = buildPools(event, [pick("p2", "p1", "From Bob")]);
+
+    expect(ada.awaiting).toEqual(["Cleo", "Dev"]);
+  });
+
+  it("says nobody is awaited once everyone has picked", () => {
+    const [ada] = buildPools(event, [
+      pick("p2", "p1", "x"),
+      pick("p3", "p1", "y"),
+      pick("p4", "p1", "z"),
+    ]);
+
+    expect(ada.awaiting).toEqual([]);
+  });
+
+  // Four distinct choices are what the exchange needs, so duplicates have to
+  // be visible as a shortfall rather than counted twice.
+  it("counts distinct choices, not rows", () => {
+    const duplicate = "Same Card";
+    const [ada] = buildPools(event, [
+      pick("p2", "p1", duplicate),
+      pick("p3", "p1", duplicate),
+      pick("p4", "p1", duplicate),
+    ]);
+
+    // Two of their own plus one distinct contribution.
+    expect(ada.contributed).toHaveLength(3);
+    expect(ada.distinctCount).toBe(3);
+  });
+
+  it("ignores rows belonging to somebody else's pool", () => {
+    const [ada] = buildPools(event, [pick("p1", "p2", "For Bob")]);
+
+    expect(ada.contributed).toEqual([]);
+    expect(ada.awaiting).toEqual(["Bob", "Cleo", "Dev"]);
   });
 });

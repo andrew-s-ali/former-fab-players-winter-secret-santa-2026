@@ -39,13 +39,26 @@ describe("nextPageUrl", () => {
 
 describe("toSignupEntries", () => {
   it("normalises and sorts oldest first", () => {
+    const picks = {
+      email: "someone@example.com",
+      selfCard1: "Llanowar Elf",
+      selfCard2: "Deep Gnome",
+    };
     const entries = toSignupEntries([
-      { id: "2", created_at: "2026-09-02T10:00:00Z", data: { name: "Bob" } },
-      { id: "1", created_at: "2026-09-01T10:00:00Z", data: { name: "Ada", colorVeto: "Red" } },
+      { id: "2", created_at: "2026-09-02T10:00:00Z", data: { name: "Bob", ...picks } },
+      {
+        id: "1",
+        created_at: "2026-09-01T10:00:00Z",
+        data: { name: "Ada", colorVeto: "Red", ...picks },
+      },
     ]);
 
     expect(entries.map((e) => e.input.name)).toEqual(["Ada", "Bob"]);
     expect(entries[0].input.colorVeto).toBe("R");
+    expect(entries[0].input.selfCards).toEqual([
+      { commander: "Llanowar Elf", partner: null },
+      { commander: "Deep Gnome", partner: null },
+    ]);
   });
 
   it("labels a bad submission with its timestamp so it can be found in the UI", () => {

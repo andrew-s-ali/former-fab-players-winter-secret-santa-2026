@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EventData } from "#lib/participants";
 import { readEvent } from "#lib/store";
 import { main, reveal } from "./reveal";
+import { testSelfCards } from "../src/test-support/cards";
 
 const originalEnv = { ...process.env };
 
@@ -14,8 +15,10 @@ function sampleEvent(revealedAt: string | null = null): EventData {
       {
         id: "p1",
         name: "Ada",
+        email: "someone@example.com",
         recipientId: "p2",
         token: "tok-ada",
+        selfCards: testSelfCards(),
         colorVeto: "R",
         themeVeto: "mill",
         themeWish: "elves",
@@ -23,8 +26,10 @@ function sampleEvent(revealedAt: string | null = null): EventData {
       {
         id: "p2",
         name: "Bob",
+        email: "someone@example.com",
         recipientId: "p1",
         token: "tok-bob",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,

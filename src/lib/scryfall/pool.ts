@@ -1,6 +1,10 @@
-import { COMMANDER_POOL_QUERY } from "../rules";
-import { normalizeCard } from "./normalize";
-import type { Commander, ScryfallCard, ScryfallSearchPage } from "./types";
+// Imported through the `#lib/*` map rather than relatively, because
+// `scripts/draw.ts` needs the pool to check sign-up card picks and runs under
+// Node's type stripping, which cannot resolve an extensionless relative
+// import. See the "Path Imports" note in the README.
+import { COMMANDER_POOL_QUERY } from "#lib/rules";
+import { normalizeCard } from "#lib/scryfall/normalize";
+import type { Commander, ScryfallCard, ScryfallSearchPage } from "#lib/scryfall/types";
 
 /** Cards that can pair with another commander — broader than the Partner keyword. */
 const PAIR_QUERY = `${COMMANDER_POOL_QUERY} otag:pair-commander`;
@@ -82,8 +86,27 @@ export async function fetchCommanderPool(): Promise<Commander[]> {
 
   const pairable = new Set(pairCards.map((card) => card.id));
 
-  return poolCards.map((card) => ({
+  const commanders = poolCards.map((card) => ({
     ...normalizeCard(card),
     canPair: pairable.has(card.id),
   }));
+
+  // Scryfall says these pair, but none of the three pairing rules the event
+  // knows about matched — most likely a new variant ("Partner with <name>",
+  // Friends forever) arriving at uncommon in a new set. They stay unpairable,
+  // which refuses a legal pair rather than accepting an illegal one, but the
+  // organiser should hear about it.
+  const unclassified = commanders.filter(
+    (card) => card.canPair && card.pairingRole === null
+  );
+  if (unclassified.length > 0) {
+    console.warn(
+      `${unclassified.length} commander(s) are tagged as pairable but match no ` +
+        "known pairing rule, so no partner will be offered for them: " +
+        `${unclassified.map((card) => card.name).join(", ")}. ` +
+        "Add the variant to pairingRoleOf in src/lib/pairing.ts."
+    );
+  }
+
+  return commanders;
 }

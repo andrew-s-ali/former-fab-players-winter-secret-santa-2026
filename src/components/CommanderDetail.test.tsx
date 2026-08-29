@@ -36,6 +36,7 @@ const card = {
   rarity: "uncommon",
   priceUsd: null,
   priceIsFoil: false,
+  pairingRole: null,
 };
 
 describe("CommanderDetail", () => {

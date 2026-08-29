@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import RevealDayPage, { dynamic, metadata } from "./page";
 import * as store from "@/lib/store";
 import * as navigation from "next/navigation";
+import { testSelfCards } from "@/test-support/cards";
 
 vi.mock("@/lib/store", () => ({
   readEvent: vi.fn(),
@@ -30,8 +31,10 @@ describe("RevealDayPage", () => {
         {
           id: "1",
           name: "Alice",
+          email: "someone@example.com",
           recipientId: "2",
           token: "tok-1",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
@@ -39,8 +42,10 @@ describe("RevealDayPage", () => {
         {
           id: "2",
           name: "Bob",
+          email: "someone@example.com",
           recipientId: "1",
           token: "tok-2",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
@@ -69,8 +74,10 @@ describe("RevealDayPage", () => {
         {
           id: "1",
           name: "Alice",
+          email: "someone@example.com",
           recipientId: "2",
           token: "tok-1",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
@@ -78,8 +85,10 @@ describe("RevealDayPage", () => {
         {
           id: "2",
           name: "Bob",
+          email: "someone@example.com",
           recipientId: "1",
           token: "tok-2",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,

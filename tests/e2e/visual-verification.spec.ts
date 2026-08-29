@@ -51,11 +51,11 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
   // 3. Demo Index
   await page.goto("/demo");
   await expect(page.getByText(/demo — invented people/i)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Ada Lovelace" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "assignment" }).first()).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "04_demo_index.png"), fullPage: true });
 
   // 4. Demo Secret Page (/demo/s/[token])
-  const adaLink = page.getByRole("link", { name: "Ada Lovelace" });
+  const adaLink = page.getByRole("link", { name: "assignment" }).first();
   await Promise.all([
     page.waitForURL(/\/demo\/s\//),
     adaLink.click(),
@@ -63,10 +63,11 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
   await expect(page.getByRole("heading", { name: /Hi Ada Lovelace/ })).toBeVisible();
   await expect(page.getByRole("textbox", { name: /private notes/i })).toBeVisible();
 
-  // Test typing in Scratchpad
+  // The demo's notes box previews the real one but is read-only: the demo
+  // routes never reach the database the real notes are saved to.
   const scratchpad = page.getByRole("textbox", { name: /private notes/i });
-  await scratchpad.fill("Notes for Bob Ross:\n- Looking into Simic landfall commanders\n- Check Tatyova & Imoti");
-  await expect(page.getByText(/saved to this browser/i)).toBeVisible();
+  await expect(scratchpad).toHaveAttribute("readonly", "");
+  await expect(page.getByText(/Read-only in the demo/i).first()).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "05_demo_secret_page_scratchpad.png"), fullPage: true });
 
   // 5. Demo Reveal Day Page (/demo/reveal)
