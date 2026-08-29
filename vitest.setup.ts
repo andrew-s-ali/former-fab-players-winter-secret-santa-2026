@@ -43,3 +43,29 @@ if (typeof globalThis.localStorage?.clear !== "function") {
     });
   }
 }
+
+/**
+ * jsdom implements no `window.matchMedia`.
+ *
+ * `CardImage` uses it to decide whether hovering is a real thing before
+ * offering a cursor-following preview. Reporting `matches: true` puts tests in
+ * the hover-capable case, which is the one worth exercising by default; a test
+ * that needs the touch behaviour stubs this itself.
+ */
+if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    writable: true,
+    value: (query: string): MediaQueryList =>
+      ({
+        matches: true,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList,
+  });
+}

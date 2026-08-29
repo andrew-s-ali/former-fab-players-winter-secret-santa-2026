@@ -3,6 +3,7 @@ import * as navigation from "next/navigation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import RevealPage, { dynamic, metadata } from "./page";
 import * as store from "@/lib/store";
+import { testSelfCards } from "@/test-support/cards";
 
 vi.mock("@/lib/store", () => ({
   readEvent: vi.fn(),
@@ -20,8 +21,10 @@ describe("RevealPage (/s/[token])", () => {
       {
         id: "p-1",
         name: "Alice",
+        email: "someone@example.com",
         recipientId: "p-2",
         token: "tok-alice",
+        selfCards: testSelfCards(),
         colorVeto: "W" as const,
         themeVeto: "Infect",
         themeWish: "Dragons",
@@ -29,8 +32,10 @@ describe("RevealPage (/s/[token])", () => {
       {
         id: "p-2",
         name: "Bob",
+        email: "someone@example.com",
         recipientId: "p-1",
         token: "tok-bob",
+        selfCards: testSelfCards(),
         colorVeto: "U" as const,
         themeVeto: null,
         themeWish: "Artifacts",
@@ -38,8 +43,10 @@ describe("RevealPage (/s/[token])", () => {
       {
         id: "p-3",
         name: "Charlie",
+        email: "someone@example.com",
         recipientId: "nonexistent-id",
         token: "tok-broken",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
@@ -112,7 +119,7 @@ describe("RevealPage (/s/[token])", () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it("renders giver greeting, RevealDetails, SecretScratchpad, CommanderBrowser, and RulesSummary", async () => {
+  it("renders giver greeting, RevealDetails, CommanderBrowser, and RulesSummary", async () => {
     const jsx = await RevealPage({
       params: Promise.resolve({ token: "tok-alice" }),
     });
@@ -127,11 +134,9 @@ describe("RevealPage (/s/[token])", () => {
     expect(screen.getByText("Bob")).toBeInTheDocument();
     expect(screen.getByText("Artifacts")).toBeInTheDocument();
 
-    // SecretScratchpad
-    expect(
-      screen.getByRole("textbox", { name: /private notes/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/saved to this browser/i)).toBeInTheDocument();
+    // No private notes on this branch: they are stored in the database, which
+    // CARD_SELECTIONS_DISABLED exists precisely to avoid touching.
+    expect(screen.queryByRole("textbox", { name: /private notes/i })).toBeNull();
 
     // Commander browser loaded
     expect(await screen.findByText("Solphim, Mayhem Dominus")).toBeInTheDocument();

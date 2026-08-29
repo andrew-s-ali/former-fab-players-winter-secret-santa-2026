@@ -1,19 +1,34 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-import { getDb } from "../../db/index";
-import { cardSelections, secretCardSets } from "../../db/schema";
+import { getDb } from "#db/index";
+import { pickId } from "#lib/pairing";
+import { cardSelections, secretCardSets } from "#db/schema";
+import {
+  pickSecretCards,
+  relevantSelections,
+  requiredSelectionCount,
+  selectionsAreReady,
+  visibleShortlist,
+  type SavedSelection,
+} from "#lib/card-pool";
 import type { Participant } from "./participants";
-import type { Commander } from "./scryfall/types";
+import type { CommanderPick } from "./pairing";
 
-export type SavedSelection = {
-  selectorId: string;
-  recipientId: string;
-  slot: number;
-  card: Commander;
+/**
+ * Storage for card selections. The rules that decide what a pool contains and
+ * how a shortlist is drawn from it live in `card-pool.ts`, which has no
+ * database dependency; re-exported here so callers have one import.
+ */
+export {
+  pickSecretCards,
+  relevantSelections,
+  requiredSelectionCount,
+  selectionsAreReady,
+  visibleShortlist,
+  type SavedSelection,
 };
 
 export type SelectionWorkspace = {
-  ownCards: Array<{ slot: number; card: Commander }>;
-  peerCards: Record<string, Commander | null>;
+  peerCards: Record<string, CommanderPick | null>;
   completedSlots: number;
   totalSlots: number;
   ready: boolean;
@@ -21,75 +36,10 @@ export type SelectionWorkspace = {
 };
 
 export type SecretCards = {
-  cards: Commander[];
+  cards: CommanderPick[];
   cashInUsed: boolean;
   replacedIndex: number | null;
 };
-
-function relevantSelections(
-  rows: SavedSelection[],
-  participants: Participant[]
-): SavedSelection[] {
-  const ids = new Set(participants.map((participant) => participant.id));
-  return rows.filter(
-    (row) =>
-      ids.has(row.selectorId) &&
-      ids.has(row.recipientId) &&
-      (row.selectorId === row.recipientId ? row.slot === 1 || row.slot === 2 : row.slot === 1)
-  );
-}
-
-export function requiredSelectionCount(participantCount: number): number {
-  return participantCount * (participantCount + 1);
-}
-
-export function selectionsAreReady(
-  rows: SavedSelection[],
-  participants: Participant[]
-): boolean {
-  const relevant = relevantSelections(rows, participants);
-  if (relevant.length !== requiredSelectionCount(participants.length)) {
-    return false;
-  }
-  return participants.every((giver) => {
-    const recipient = participants.find(
-      (candidate) => candidate.id === giver.recipientId
-    );
-    return recipient && pickSecretCards(relevant, giver.id, recipient.id, () => 0) !== null;
-  });
-}
-
-function shuffle<T>(items: T[], random: () => number): T[] {
-  const result = [...items];
-  for (let index = result.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(random() * (index + 1));
-    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
-  }
-  return result;
-}
-
-export function pickSecretCards(
-  rows: SavedSelection[],
-  giverId: string,
-  recipientId: string,
-  random: () => number = Math.random
-): [Commander, Commander, Commander, Commander] | null {
-  const unique = new Map<string, Commander>();
-  for (const row of rows) {
-    if (row.recipientId === recipientId && row.selectorId !== giverId) {
-      unique.set(row.card.id, row.card);
-    }
-  }
-  if (unique.size < 4) {
-    return null;
-  }
-  return shuffle([...unique.values()], random).slice(0, 4) as [
-    Commander,
-    Commander,
-    Commander,
-    Commander,
-  ];
-}
 
 async function loadRelevantSelections(participants: Participant[]): Promise<SavedSelection[]> {
   if (participants.length === 0) {
@@ -119,12 +69,6 @@ export async function getSelectionWorkspace(
   participants: Participant[]
 ): Promise<SelectionWorkspace> {
   const rows = await loadRelevantSelections(participants);
-  const ownCards = rows
-    .filter(
-      (row) => row.selectorId === participant.id && row.recipientId === participant.id
-    )
-    .sort((left, right) => left.slot - right.slot)
-    .map((row) => ({ slot: row.slot, card: row.card }));
   const peerCards = Object.fromEntries(
     participants
       .filter((target) => target.id !== participant.id)
@@ -138,7 +82,6 @@ export async function getSelectionWorkspace(
   );
 
   return {
-    ownCards,
     peerCards,
     completedSlots: rows.length,
     totalSlots: requiredSelectionCount(participants.length),
@@ -158,8 +101,14 @@ export async function saveSelection({
   selector: Participant;
   recipient: Participant;
   participants: Participant[];
-  card: Commander;
+  card: CommanderPick;
 }): Promise<void> {
+  if (selector.id === recipient.id) {
+    throw new Error(
+      "Your own two cards were chosen at sign-up and cannot be changed here."
+    );
+  }
+
   const db = getDb();
   await db.transaction(async (tx) => {
     await tx.execute(
@@ -186,21 +135,11 @@ export async function saveSelection({
       throw new Error("Card choices are locked because every participant has finished.");
     }
 
-    const ownPick = selector.id === recipient.id;
-    const current = rows.filter(
+    const current = rows.find(
       (row) => row.selectorId === selector.id && row.recipientId === recipient.id
     );
-    if (current.some((row) => row.card.id === card.id)) {
+    if (current && pickId(current.card) === pickId(card)) {
       return;
-    }
-
-    let slot = 1;
-    if (ownPick) {
-      const used = new Set(current.map((row) => row.slot));
-      slot = used.has(1) ? 2 : 1;
-      if (used.has(1) && used.has(2)) {
-        throw new Error("Remove one of your two saved cards before choosing another.");
-      }
     }
 
     await tx
@@ -208,7 +147,7 @@ export async function saveSelection({
       .values({
         selectorId: selector.id,
         recipientId: recipient.id,
-        slot,
+        slot: 1,
         card,
         updatedAt: new Date(),
       })
@@ -234,6 +173,12 @@ export async function removeSelection({
   slot: number;
   participants: Participant[];
 }): Promise<void> {
+  if (recipientId === selector.id) {
+    throw new Error(
+      "Your own two cards were chosen at sign-up and cannot be removed here."
+    );
+  }
+
   const db = getDb();
   await db.transaction(async (tx) => {
     await tx.execute(
@@ -287,7 +232,7 @@ export async function getOrCreateSecretCards(
     .limit(1);
 
   if (!set) {
-    const cards = pickSecretCards(rows, giver.id, recipient.id);
+    const cards = pickSecretCards(rows, giver.id, recipient);
     if (!cards) {
       throw new Error(
         `Fewer than four unique cards were submitted for ${recipient.name}.`
@@ -308,12 +253,8 @@ export async function getOrCreateSecretCards(
     throw new Error("The saved card set does not match this assignment.");
   }
 
-  const visibleCards = set.cashedInAt
-    ? set.cards.filter((_, index) => index !== set.replacedIndex && index !== 3).concat(set.cards[3])
-    : set.cards.slice(0, 3);
-
   return {
-    cards: visibleCards,
+    cards: visibleShortlist(set.cards, set.cashedInAt ? set.replacedIndex : null),
     cashInUsed: Boolean(set.cashedInAt),
     replacedIndex: set.replacedIndex,
   };
@@ -340,4 +281,18 @@ export async function cashInSecretCard(
   if (updated.length === 0) {
     throw new Error("The one-time cash-in has already been used.");
   }
+}
+
+/**
+ * Every saved peer pick, for the organiser console.
+ *
+ * Separate from `loadRelevantSelections` only in being exported: the console
+ * needs the same rows the workspace does, and reads them the same way. Returns
+ * an empty list rather than throwing when there is no draw yet, so an empty
+ * console is a normal state rather than an error page.
+ */
+export async function readAllSelections(
+  participants: Participant[]
+): Promise<SavedSelection[]> {
+  return loadRelevantSelections(participants);
 }

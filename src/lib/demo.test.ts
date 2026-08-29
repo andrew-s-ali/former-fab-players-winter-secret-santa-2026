@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { readDemoEvent } from "./demo";
+import { pickSecretCards, selectionsAreReady, requiredSelectionCount } from "./card-pool";
+import { readDemoEvent, readDemoSelections, readDemoWorkspace } from "./demo";
+import { pickColorIdentity, pickId } from "./pairing";
 import { findById, findByToken, isRevealed } from "./participants";
 import { buildRing } from "./ring";
 
@@ -62,6 +64,60 @@ describe("demo data reader", () => {
     expect(event.revealedAt).not.toBeNull();
     expect(isRevealed(event)).toBe(true);
     expect(new Date(event.revealedAt!).getTime()).not.toBeNaN();
+  });
+
+  // The demo is meant to show the event as it looks once everybody has
+  // finished, so the committed selections have to be a complete, drawable set
+  // — otherwise a demo link renders a workshop, or throws.
+  it("carries a finished set of card selections", () => {
+    const event = readDemoEvent();
+    const selections = readDemoSelections();
+
+    expect(selections).toHaveLength(
+      requiredSelectionCount(event.participants.length)
+    );
+    expect(selectionsAreReady(selections, event.participants)).toBe(true);
+  });
+
+  it("gives every participant a drawable four-card shortlist", () => {
+    const event = readDemoEvent();
+    const selections = readDemoSelections();
+
+    for (const giver of event.participants) {
+      const recipient = event.participants.find((p) => p.id === giver.recipientId)!;
+      const cards = pickSecretCards(selections, giver.id, recipient);
+
+      expect(cards).not.toBeNull();
+      expect(new Set(cards!.map(pickId)).size).toBe(4);
+      // Nobody is shown the card they recommended themselves.
+      const own = selections.find(
+        (row) => row.selectorId === giver.id && row.recipientId === recipient.id
+      )!;
+      expect(cards!.some((pick) => pickId(pick) === pickId(own.card))).toBe(false);
+      // Nor a card in the colour the recipient asked to avoid.
+      if (recipient.colorVeto) {
+        expect(
+          cards!.some((pick) =>
+            pickColorIdentity(pick).includes(recipient.colorVeto!)
+          )
+        ).toBe(false);
+      }
+    }
+  });
+
+  // Neither field is required, so the demo has to show both the filled-in and
+  // the empty state rather than implying everyone has one.
+  it("has filled-in workspaces for some participants but not all", () => {
+    const event = readDemoEvent();
+    const withLink = event.participants.filter(
+      (p) => readDemoWorkspace(p.id).decklistUrl
+    );
+    const withNotes = event.participants.filter((p) => readDemoWorkspace(p.id).notes);
+
+    expect(withLink.length).toBeGreaterThan(0);
+    expect(withLink.length).toBeLessThan(event.participants.length);
+    expect(withNotes.length).toBeGreaterThan(0);
+    expect(withNotes.length).toBeLessThan(event.participants.length);
   });
 
   it("supports participant lookups by token and by id", () => {

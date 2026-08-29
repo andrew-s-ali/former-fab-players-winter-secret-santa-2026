@@ -77,6 +77,7 @@ export async function updateParticipantAction(
     const participant = findParticipantByName(event, name);
 
     applyParticipantEdits(participant, {
+      email: field("email"),
       color: field("color"),
       veto: field("veto"),
       wish: field("wish"),

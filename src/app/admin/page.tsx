@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getUser } from "@netlify/identity";
 import { AdminConsole } from "@/components/AdminConsole";
-import { summarizeEvent } from "@/lib/admin";
+import { buildPools, summarizeEvent, type ParticipantPool } from "@/lib/admin";
+import { readAllSelections } from "@/lib/card-selections";
 import { isOrganizer } from "@/lib/organizer";
+import type { EventData } from "@/lib/participants";
 import { readEvent } from "@/lib/store";
 
 export const metadata: Metadata = {
@@ -31,6 +33,35 @@ export const dynamic = "force-dynamic";
  * local equivalent, and `getUser()` returns null off-platform rather than
  * throwing. Test the real flow on a Deploy Preview.
  */
+/**
+ * Reads the pools, tolerating a database that is not answering.
+ *
+ * The roster, the reveal toggle and the participant edits all come from Blobs
+ * and work without Postgres. Letting a database problem throw here would take
+ * the whole console down — including the reveal-day switch — for a section
+ * that is reference material.
+ */
+async function loadPools(
+  event: EventData
+): Promise<{ pools: ParticipantPool[]; poolsError: string | null }> {
+  if (event.participants.length === 0) {
+    return { pools: [], poolsError: null };
+  }
+  try {
+    return {
+      pools: buildPools(event, await readAllSelections(event.participants)),
+      poolsError: null,
+    };
+  } catch (error) {
+    console.error("Organiser console: could not read card selections", error);
+    return {
+      pools: [],
+      poolsError:
+        error instanceof Error ? error.message : "The card selections could not be read.",
+    };
+  }
+}
+
 export default async function AdminPage() {
   const user = await getUser();
 
@@ -50,8 +81,11 @@ export default async function AdminPage() {
     );
   }
 
+  const event = await readEvent();
+  const { pools, poolsError } = await loadPools(event);
+
   return (
-    <main className="mx-auto max-w-3xl space-y-8 p-8">
+    <main className="mx-auto max-w-5xl space-y-8 p-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Organiser console</h1>
         <p className="mt-1 text-sm opacity-70">
@@ -59,7 +93,11 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      <AdminConsole summary={summarizeEvent(await readEvent())} />
+      <AdminConsole
+        pools={pools}
+        poolsError={poolsError}
+        summary={summarizeEvent(event)}
+      />
     </main>
   );
 }

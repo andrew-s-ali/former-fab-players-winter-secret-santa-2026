@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { removeCardAction, saveCardAction } from "@/app/s/actions";
+import {
+  removeCardAction,
+  saveCardAction,
+  type CardActionResult,
+} from "@/app/s/actions";
 import { CommanderBrowser } from "@/components/CommanderBrowser";
-import type { ColorCode } from "@/lib/commanders";
-import type { Commander } from "@/lib/scryfall/types";
+import { PartnerPicker } from "@/components/PartnerPicker";
+import { PickCards, PickName } from "@/components/PickCards";
+import { useCommanderOptions } from "@/components/use-commander-options";
+import type { ColorCode, CommanderOption } from "@/lib/commanders";
+import { canTakePartner, pickCards, type CommanderPick } from "@/lib/pairing";
 
 type Target = {
   id: string;
@@ -14,32 +21,31 @@ type Target = {
 };
 
 function SavedCard({
-  card,
+  pick,
   remove,
   pending,
 }: {
-  card: Commander;
-  remove: () => void;
-  pending: boolean;
+  pick: CommanderPick;
+  remove?: () => void;
+  pending?: boolean;
 }) {
   return (
-    <article className="grid grid-cols-[5rem_1fr] gap-3 rounded-xl border border-slate-300/25 bg-slate-950/20 p-3">
-      {card.imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img alt="" className="w-20 rounded-lg" src={card.imageUrl} />
-      ) : (
-        <div className="aspect-[5/7] w-20 rounded-lg bg-slate-500/20" />
-      )}
+    <article className="flex items-start gap-3 rounded-xl border border-slate-300/25 bg-slate-950/20 p-3">
+      <PickCards pick={pick} size="thumb" />
       <div className="space-y-2">
-        <h3 className="font-semibold leading-tight">{card.name}</h3>
-        <button
-          className="text-sm underline disabled:opacity-50"
-          disabled={pending}
-          onClick={remove}
-          type="button"
-        >
-          Remove
-        </button>
+        <h3 className="font-semibold leading-tight">
+          <PickName pick={pick} />
+        </h3>
+        {remove ? (
+          <button
+            className="text-sm underline disabled:opacity-50"
+            disabled={pending}
+            onClick={remove}
+            type="button"
+          >
+            Remove
+          </button>
+        ) : null}
       </div>
     </article>
   );
@@ -47,28 +53,37 @@ function SavedCard({
 
 export function CardSelectionStudio({
   token,
-  participant,
   targets,
-  ownCards,
   peerCards,
   completedSlots,
   totalSlots,
   needsMoreVariety,
+  onSave,
+  onRemove,
 }: {
   token: string;
-  participant: Target;
   targets: Target[];
-  ownCards: Array<{ slot: number; card: Commander }>;
-  peerCards: Record<string, Commander | null>;
+  peerCards: Record<string, CommanderPick | null>;
   completedSlots: number;
   totalSlots: number;
   needsMoreVariety: boolean;
+  /**
+   * Override the server actions. Only the `/demo` routes pass these: they let
+   * someone try the workshop without a database behind them, and they do it
+   * through this component rather than a lookalike so what the demo shows is
+   * what the real page does.
+   */
+  onSave?: (targetId: string, cardId: string, partnerId: string | null) => Promise<CardActionResult>;
+  onRemove?: (targetId: string) => Promise<CardActionResult>;
 }) {
   const router = useRouter();
   const [targetId, setTargetId] = useState(targets[0]?.id ?? "");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  /** A commander chosen for the current target, paused so a partner can be added. */
+  const [pendingPrimary, setPendingPrimary] = useState<CommanderOption | null>(null);
+  const { options } = useCommanderOptions();
   const target = targets.find((candidate) => candidate.id === targetId) ?? targets[0];
 
   async function dispatch(
@@ -84,7 +99,11 @@ export function CardSelectionStudio({
         return false;
       }
       setMessage(result.message);
-      router.refresh();
+      // The server path re-renders the page to pick up the saved rows; a
+      // simulated workshop already holds its own state.
+      if (!onSave) {
+        router.refresh();
+      }
       return true;
     } finally {
       setPending(false);
@@ -99,7 +118,7 @@ export function CardSelectionStudio({
             <p className="text-sm uppercase tracking-[0.18em] text-sky-200/70">Private card workshop</p>
             <h2 className="mt-2 text-2xl font-semibold">Choose before the draw unlocks</h2>
             <p className="mt-2 max-w-xl text-sm opacity-75">
-              Save two commanders for yourself and one for every other participant. When every slot is filled, all choices lock and your secret assignment opens.
+              Save one commander for every other participant. Your own two cards came in with your sign-up. When everyone has finished, all choices lock and your secret assignment opens.
             </p>
           </div>
           <p className="rounded-full border border-sky-200/20 px-4 py-2 text-sm">
@@ -124,42 +143,6 @@ export function CardSelectionStudio({
 
       <section className="space-y-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.18em] opacity-55">Step one</p>
-          <h2 className="text-2xl font-semibold">Your two cards</h2>
-          <p className="mt-1 text-sm opacity-70">These join the recommendation pool if someone draws your name.</p>
-        </div>
-        {ownCards.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {ownCards.map(({ card, slot }) => (
-              <SavedCard
-                card={card}
-                key={card.id}
-                pending={pending}
-                remove={() => void dispatch(() => removeCardAction(token, participant.id, slot))}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-dashed border-slate-300/30 p-5 text-sm opacity-70">No personal cards saved yet.</p>
-        )}
-        {ownCards.length < 2 ? (
-          <CommanderBrowser
-            actionLabel="Save for myself"
-            initialPrompt={undefined}
-            lockedExclude={participant.colorVeto}
-            lockedReason={participant.colorVeto ? "Your vetoed colour stays excluded." : undefined}
-            onChoose={async (card) => {
-              const saved = await dispatch(() => saveCardAction(token, participant.id, card.id));
-              if (!saved) throw new Error("Card was not saved.");
-            }}
-            savedCardIds={ownCards.map(({ card }) => card.id)}
-          />
-        ) : null}
-      </section>
-
-      <section className="space-y-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.18em] opacity-55">Step two</p>
           <h2 className="text-2xl font-semibold">A card for everyone else</h2>
           <p className="mt-1 text-sm opacity-70">Each recommendation goes only into that person’s private pool.</p>
         </div>
@@ -167,7 +150,10 @@ export function CardSelectionStudio({
           <span className="text-sm font-medium">Choose a participant</span>
           <select
             className="w-full rounded-lg border border-slate-300/30 bg-transparent px-3 py-2"
-            onChange={(event) => setTargetId(event.target.value)}
+            onChange={(event) => {
+              setTargetId(event.target.value);
+              setPendingPrimary(null);
+            }}
             value={target?.id ?? ""}
           >
             {targets.map((candidate) => (
@@ -180,13 +166,40 @@ export function CardSelectionStudio({
 
         {target && peerCards[target.id] ? (
           <SavedCard
-            card={peerCards[target.id]!}
             pending={pending}
-            remove={() => void dispatch(() => removeCardAction(token, target.id, 1))}
+            pick={peerCards[target.id]!}
+            remove={() =>
+              void dispatch(() =>
+                onRemove ? onRemove(target.id) : removeCardAction(token, target.id, 1)
+              )
+            }
           />
         ) : null}
 
-        {target ? (
+        {target && pendingPrimary ? (
+          <PartnerPicker
+            colorVeto={target.colorVeto}
+            onChoose={(partner) => {
+              void dispatch(() =>
+                onSave
+                  ? onSave(target.id, pendingPrimary.id, partner.id)
+                  : saveCardAction(token, target.id, pendingPrimary.id, partner.id)
+              ).then(() => setPendingPrimary(null));
+            }}
+            onSkip={() => {
+              void dispatch(() =>
+                onSave
+                  ? onSave(target.id, pendingPrimary.id, null)
+                  : saveCardAction(token, target.id, pendingPrimary.id)
+              ).then(() => setPendingPrimary(null));
+            }}
+            options={(options ?? []).filter((option) => option.id !== pendingPrimary.id)}
+            primary={pendingPrimary}
+            skipLabel={`Save ${pendingPrimary.name} on its own`}
+          />
+        ) : null}
+
+        {target && !pendingPrimary ? (
           <CommanderBrowser
             actionLabel={peerCards[target.id] ? `Replace pick for ${target.name}` : `Save for ${target.name}`}
             initialPrompt={undefined}
@@ -194,10 +207,24 @@ export function CardSelectionStudio({
             lockedExclude={target.colorVeto}
             lockedReason={target.colorVeto ? `${target.name}'s vetoed colour stays excluded.` : undefined}
             onChoose={async (card) => {
-              const saved = await dispatch(() => saveCardAction(token, target.id, card.id));
+              // A commander that can take a partner pauses so one can be
+              // offered; anything else saves immediately.
+              if (canTakePartner(card)) {
+                setPendingPrimary(card);
+                return;
+              }
+              const saved = await dispatch(() =>
+                onSave
+                  ? onSave(target.id, card.id, null)
+                  : saveCardAction(token, target.id, card.id)
+              );
               if (!saved) throw new Error("Card was not saved.");
             }}
-            savedCardIds={peerCards[target.id] ? [peerCards[target.id]!.id] : []}
+            savedCardIds={
+              peerCards[target.id]
+                ? pickCards(peerCards[target.id]!).map((card) => card.id)
+                : []
+            }
           />
         ) : null}
       </section>

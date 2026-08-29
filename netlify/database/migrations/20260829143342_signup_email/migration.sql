@@ -1,0 +1,1 @@
+ALTER TABLE "signups" ADD COLUMN "email" text NOT NULL;

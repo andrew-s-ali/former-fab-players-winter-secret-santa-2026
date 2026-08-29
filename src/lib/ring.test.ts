@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { buildRing } from "./ring";
 import type { Participant } from "./participants";
+import { testSelfCards } from "@/test-support/cards";
 
 const person = (id: string, name: string, recipientId: string): Participant => ({
   id,
   name,
+  email: `${id}@example.com`,
   recipientId,
   token: `token-${id}`,
+  selfCards: testSelfCards(),
   colorVeto: null,
   themeVeto: null,
   themeWish: null,

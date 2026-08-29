@@ -1,6 +1,8 @@
+import type { SavedSelection } from "./card-pool";
 import type { ColorCode } from "./commanders";
+import { pickColorIdentity, pickId, pickName, type CommanderPick } from "#lib/pairing";
 import type { EventData, Participant } from "./participants";
-import { COLOR_CODES } from "./signup";
+import { COLOR_CODES, parseEmail } from "#lib/signup";
 
 /**
  * Organiser operations, framework-free and pure over `EventData`.
@@ -63,11 +65,13 @@ export type ParticipantEdits = {
   color?: string;
   veto?: string;
   wish?: string;
+  email?: string;
 };
 
-export type EditableField = "colorVeto" | "themeVeto" | "themeWish";
+export type EditableField = "email" | "colorVeto" | "themeVeto" | "themeWish";
 
 export const EDITABLE_FIELDS: readonly EditableField[] = [
+  "email",
   "colorVeto",
   "themeVeto",
   "themeWish",
@@ -84,13 +88,42 @@ export function applyParticipantEdits(
   edits: ParticipantEdits
 ): { before: Record<EditableField, string | null> } {
   const before = {
+    email: participant.email,
     colorVeto: participant.colorVeto,
     themeVeto: participant.themeVeto,
     themeWish: participant.themeWish,
   };
 
+  // No "none" sentinel for the address: it is required, so the only sensible
+  // edit is a correction.
+  if (edits.email !== undefined) {
+    participant.email = parseEmail(edits.email, participant.name, "This edit");
+  }
   if (edits.color !== undefined) {
-    participant.colorVeto = edits.color === "none" ? null : parseColor(edits.color);
+    const colorVeto = edits.color === "none" ? null : parseColor(edits.color);
+
+    // A veto now constrains the participant's own sign-up picks, which are
+    // already sitting in their pool for everyone else to draw from. Letting
+    // the edit through would leave a card they asked not to receive in the
+    // pool, and nothing downstream re-checks it.
+    // The pair's combined identity, not either half's: a Partner pair is
+     // only safe if neither card brings the vetoed colour.
+    const clashing = colorVeto
+      ? participant.selfCards.filter((pick) =>
+          pickColorIdentity(pick).includes(colorVeto)
+        )
+      : [];
+    if (clashing.length > 0) {
+      throw new Error(
+        `${participant.name} cannot veto ${colorVeto}: their own pool card` +
+          `${clashing.length === 1 ? "" : "s"} ` +
+          `${clashing.map(pickName).join(" and ")} ` +
+          `${clashing.length === 1 ? "carries" : "carry"} that colour. ` +
+          "Swap the card first, or leave the veto as it is."
+      );
+    }
+
+    participant.colorVeto = colorVeto;
   }
   if (edits.veto !== undefined) {
     participant.themeVeto = edits.veto === "none" ? null : edits.veto;
@@ -114,11 +147,89 @@ export type EventSummary = {
   revealedAt: string | null;
   participants: {
     name: string;
+    email: string;
     colorVeto: ColorCode | null;
     themeVeto: string | null;
     themeWish: string | null;
   }[];
 };
+
+/** One card in somebody's pool, and who put it there. */
+export type PoolEntry = {
+  /** The name of whoever chose it, or null for the recipient's own sign-up picks. */
+  from: string | null;
+  pick: CommanderPick;
+};
+
+/**
+ * Everything in one participant's pool.
+ *
+ * This is what the shortlists are drawn from, so it is the answer to both
+ * "what will they be offered" and "who still has to pick".
+ */
+export type ParticipantPool = {
+  name: string;
+  /** The two they chose at sign-up. */
+  own: CommanderPick[];
+  /** One per other participant who has picked for them, in name order. */
+  contributed: PoolEntry[];
+  /** Participants who have not picked for them yet, in name order. */
+  awaiting: string[];
+  /** Distinct choices available — four are needed before the exchange unlocks. */
+  distinctCount: number;
+};
+
+/**
+ * Builds the pools from the participant list and the saved peer picks.
+ *
+ * Pure, so the console's shape is testable without a database; the caller
+ * supplies the rows.
+ *
+ * Deliberately shows who contributed what. Everybody picks for everybody, so
+ * attribution reveals nothing about who was assigned whom — and without it the
+ * organiser cannot tell who still needs chasing.
+ */
+export function buildPools(
+  event: EventData,
+  rows: SavedSelection[]
+): ParticipantPool[] {
+  const nameOf = new Map(event.participants.map((p) => [p.id, p.name]));
+  const byName = (left: { from: string | null }, right: { from: string | null }) =>
+    (left.from ?? "").localeCompare(right.from ?? "");
+
+  return event.participants.map((recipient) => {
+    const contributed = rows
+      .filter(
+        (row) =>
+          row.recipientId === recipient.id && row.selectorId !== recipient.id
+      )
+      .map((row) => ({ from: nameOf.get(row.selectorId) ?? "(unknown)", pick: row.card }))
+      .sort(byName);
+
+    const picked = new Set(
+      rows
+        .filter((row) => row.recipientId === recipient.id)
+        .map((row) => row.selectorId)
+    );
+    const awaiting = event.participants
+      .filter((other) => other.id !== recipient.id && !picked.has(other.id))
+      .map((other) => other.name)
+      .sort((left, right) => left.localeCompare(right));
+
+    const own = [...recipient.selfCards];
+    const distinct = new Set(
+      [...own, ...contributed.map((entry) => entry.pick)].map(pickId)
+    );
+
+    return {
+      name: recipient.name,
+      own,
+      contributed,
+      awaiting,
+      distinctCount: distinct.size,
+    };
+  });
+}
 
 export function summarizeEvent(event: EventData): EventSummary {
   return {
@@ -126,6 +237,7 @@ export function summarizeEvent(event: EventData): EventSummary {
     revealedAt: event.revealedAt,
     participants: event.participants.map((p) => ({
       name: p.name,
+      email: p.email,
       colorVeto: p.colorVeto,
       themeVeto: p.themeVeto,
       themeWish: p.themeWish,
@@ -144,7 +256,7 @@ export function summarizeEvent(event: EventData): EventSummary {
 export async function setReveal(
   options: { undo?: boolean } = {}
 ): Promise<{ revealedAt: string | null; message: string }> {
-  const { readEvent, writeEvent } = await import("./store");
+  const { readEvent, writeEvent } = await import("#lib/store");
   const undo = options.undo ?? false;
 
   const event = await readEvent();

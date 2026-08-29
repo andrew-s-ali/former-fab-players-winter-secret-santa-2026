@@ -7,7 +7,73 @@
       "token": "e2e-test-token-ada",
       "colorVeto": "R",
       "themeVeto": "mill",
-      "themeWish": "elves and tokens"
+      "themeWish": "elves and tokens",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "fc95324a-9a7f-4ed9-a3da-36a3eca91936",
+            "name": "Keleth, Sunmane Familiar",
+            "manaCost": "{1}{W}",
+            "typeLine": "Legendary Creature — Horse",
+            "oracleText": "Whenever a commander you control attacks, put a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/f/c/fc95324a-9a7f-4ed9-a3da-36a3eca91936.jpg?1783915720",
+            "scryfallUrl": "https://scryfall.com/card/cmm/33/keleth-sunmane-familiar?utm_source=api",
+            "hasPartner": true,
+            "pairingRole": "partner",
+            "setName": "Commander Masters",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.19",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "47c5948b-b021-4d07-8003-9c11db690bc0",
+            "name": "Nadier, Agent of the Duskenel",
+            "manaCost": "{5}{B}",
+            "typeLine": "Legendary Creature — Elf Warrior",
+            "oracleText": "Whenever a token you control leaves the battlefield, put a +1/+1 counter on Nadier.\nWhen Nadier leaves the battlefield, create a number of 1/1 green Elf Warrior creature tokens equal to its power.\nPartner (You can have two commanders if both have partner.)",
+            "colorIdentity": [
+              "B"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/4/7/47c5948b-b021-4d07-8003-9c11db690bc0.jpg?1783928833",
+            "scryfallUrl": "https://scryfall.com/card/cmr/135/nadier-agent-of-the-duskenel?utm_source=api",
+            "hasPartner": true,
+            "pairingRole": "partner",
+            "setName": "Commander Legends",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.33",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "97b80124-2b59-425c-93cc-9b032e631c6e",
+            "name": "Jedit Ojanen",
+            "manaCost": "{4}{W}{W}{U}",
+            "typeLine": "Legendary Creature — Cat Warrior",
+            "oracleText": "",
+            "colorIdentity": [
+              "U",
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/9/7/97b80124-2b59-425c-93cc-9b032e631c6e.jpg?1783948038",
+            "scryfallUrl": "https://scryfall.com/card/leg/234/jedit-ojanen?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Legends",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "4.42",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ],
+      "email": "ada@example.invalid"
     },
     {
       "id": "p2",
@@ -16,7 +82,54 @@
       "token": "e2e-test-token-bob",
       "colorVeto": null,
       "themeVeto": null,
-      "themeWish": null
+      "themeWish": null,
+      "selfCards": [
+        {
+          "commander": {
+            "id": "82ce13b0-372d-4664-a888-85f4c72e030d",
+            "name": "Whisper, Blood Liturgist",
+            "manaCost": "{3}{B}",
+            "typeLine": "Legendary Creature — Human Cleric",
+            "oracleText": "{T}, Sacrifice two creatures: Return target creature card from your graveyard to the battlefield.",
+            "colorIdentity": [
+              "B"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/8/2/82ce13b0-372d-4664-a888-85f4c72e030d.jpg?1783915662",
+            "scryfallUrl": "https://scryfall.com/card/cmm/198/whisper-blood-liturgist?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Commander Masters",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.20",
+            "priceIsFoil": false
+          },
+          "partner": null
+        },
+        {
+          "commander": {
+            "id": "fa305441-3fb7-4f59-8b39-984e931f9bcc",
+            "name": "Impossible Man",
+            "manaCost": "{2}{U}",
+            "typeLine": "Legendary Creature — Alien Shapeshifter",
+            "oracleText": "Flying\n{2}{U}: Impossible Man becomes a copy of another target permanent until end of turn, except his name is Impossible Man.",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/f/a/fa305441-3fb7-4f59-8b39-984e931f9bcc.jpg?1783903073",
+            "scryfallUrl": "https://scryfall.com/card/msc/625/impossible-man?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Marvel Super Heroes Commander",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "4.00",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ],
+      "email": "bob@example.invalid"
     },
     {
       "id": "p3",
@@ -25,7 +138,72 @@
       "token": "e2e-test-token-cleo",
       "colorVeto": "G",
       "themeVeto": "stax",
-      "themeWish": "artifacts"
+      "themeWish": "artifacts",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "396f9198-67b6-45d8-91b4-dc853bff9623",
+            "name": "Abdel Adrian, Gorion's Ward",
+            "manaCost": "{4}{W}",
+            "typeLine": "Legendary Creature — Human Warrior",
+            "oracleText": "When Abdel Adrian enters, exile any number of other nonland permanents you control until Abdel Adrian leaves the battlefield. Create a 1/1 white Soldier creature token for each permanent exiled this way.\nChoose a Background (You can have a Background as a second commander.)",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/3/9/396f9198-67b6-45d8-91b4-dc853bff9623.jpg?1783922823",
+            "scryfallUrl": "https://scryfall.com/card/clb/2/abdel-adrian-gorions-ward?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "choose-background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.34",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "f6d5249c-52b6-4349-adcd-dafdc21f572b",
+            "name": "Street Urchin",
+            "manaCost": "{1}{R}",
+            "typeLine": "Legendary Enchantment — Background",
+            "oracleText": "Commander creatures you own have \"{1}, Sacrifice another creature or an artifact: This creature deals 1 damage to any target.\"",
+            "colorIdentity": [
+              "R"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/f/6/f6d5249c-52b6-4349-adcd-dafdc21f572b.jpg?1783922729",
+            "scryfallUrl": "https://scryfall.com/card/clb/197/street-urchin?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.22",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "fa434b41-e5f7-4989-865a-95db67b05cb1",
+            "name": "Gran-Gran",
+            "manaCost": "{U}",
+            "typeLine": "Legendary Creature — Human Peasant Ally",
+            "oracleText": "Whenever Gran-Gran becomes tapped, draw a card, then discard a card.\nNoncreature spells you cast cost {1} less to cast as long as there are three or more Lesson cards in your graveyard.",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/f/a/fa434b41-e5f7-4989-865a-95db67b05cb1.jpg?1786399175",
+            "scryfallUrl": "https://scryfall.com/card/tla/54/gran-gran?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Avatar: The Last Airbender",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.28",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ],
+      "email": "cleo@example.invalid"
     }
   ],
   "revealedAt": "2026-12-05T18:00:00.000Z"

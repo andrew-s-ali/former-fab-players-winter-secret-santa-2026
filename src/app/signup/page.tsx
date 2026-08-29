@@ -27,14 +27,21 @@ export default function SignupPage() {
   const open = signupsOpen(siteNow());
 
   return (
-    <main className="mx-auto max-w-2xl space-y-8 p-8">
+    <main className="mx-auto max-w-3xl space-y-8 p-8">
       <h1 className="text-3xl font-semibold tracking-tight">Sign up</h1>
 
       {open ? (
         <>
           <p className="text-sm opacity-80">
-            Sign-ups close on {closingDate()}. Everything except your name is
-            optional — leave a box empty if you have no strong feelings.
+            Sign-ups close on {closingDate()}. You need a name, an email and
+            two commanders; the theme boxes are optional — leave one empty if
+            you have no strong feelings.
+          </p>
+          <p className="text-sm opacity-80">
+            The two commanders you choose start your own pool. Every other
+            player adds one more card to it, and whoever draws your name is
+            shown a shortlist taken from that pool — so nobody, including you,
+            decides your deck alone.
           </p>
           <SignupForm />
         </>

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import DemoRevealPage, { metadata } from "./page";
 import * as demoLib from "@/lib/demo";
+import { testSelfCards } from "@/test-support/cards";
 
 vi.mock("@/lib/demo", () => ({
   readDemoEvent: vi.fn(),
@@ -14,8 +15,10 @@ describe("DemoRevealPage", () => {
       {
         id: "demo-1",
         name: "Alice Adventurer",
+        email: "someone@example.com",
         recipientId: "demo-2",
         token: "demo-tok-1",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
@@ -23,8 +26,10 @@ describe("DemoRevealPage", () => {
       {
         id: "demo-2",
         name: "Bob Builder",
+        email: "someone@example.com",
         recipientId: "demo-1",
         token: "demo-tok-2",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
@@ -38,8 +43,10 @@ describe("DemoRevealPage", () => {
       {
         id: "demo-1",
         name: "Alice Adventurer",
+        email: "someone@example.com",
         recipientId: "demo-2",
         token: "demo-tok-1",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
@@ -47,8 +54,10 @@ describe("DemoRevealPage", () => {
       {
         id: "demo-2",
         name: "Bob Builder",
+        email: "someone@example.com",
         recipientId: "demo-1",
         token: "demo-tok-2",
+        selfCards: testSelfCards(),
         colorVeto: null,
         themeVeto: null,
         themeWish: null,

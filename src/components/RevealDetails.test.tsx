@@ -1,12 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { RevealDetails } from "./RevealDetails";
+import { testSelfCards } from "@/test-support/cards";
 
 const recipient = {
   id: "p2",
   name: "Ada Lovelace",
+  email: "someone@example.com",
   recipientId: "p3",
   token: "secret",
+  selfCards: testSelfCards(),
   colorVeto: "R" as const,
   themeVeto: "mill",
   themeWish: "something with elves",

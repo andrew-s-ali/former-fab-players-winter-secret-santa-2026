@@ -1,4 +1,5 @@
-import type { Commander, ScryfallCard } from "./types";
+import { pairingRoleOfScryfallCard } from "#lib/pairing";
+import type { Commander, ScryfallCard } from "#lib/scryfall/types";
 
 /**
  * Converts a raw Scryfall card into a `Commander`.
@@ -26,6 +27,7 @@ export function normalizeCard(card: ScryfallCard): Commander {
     imageUrl: card.image_uris?.normal ?? front?.image_uris?.normal ?? null,
     scryfallUrl: card.scryfall_uri,
     hasPartner: card.keywords.includes("Partner"),
+    pairingRole: pairingRoleOfScryfallCard(card),
     setName: card.set_name,
     rarity: card.rarity,
     // Whether a card can pair comes from a separate tagged query; the pool

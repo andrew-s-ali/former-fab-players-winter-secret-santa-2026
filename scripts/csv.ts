@@ -23,9 +23,14 @@ export type Row = Record<string, string>;
  */
 const COLUMN_MAP = {
   [SIGNUP_FIELDS.name]: "Your name",
+  [SIGNUP_FIELDS.email]: "Your email",
   [SIGNUP_FIELDS.colorVeto]: "Colour to avoid",
   [SIGNUP_FIELDS.themeVeto]: "Theme to avoid",
   [SIGNUP_FIELDS.themeWish]: "Theme you'd like",
+  [SIGNUP_FIELDS.selfCard1]: "First commander for your pool",
+  [SIGNUP_FIELDS.selfCard1Partner]: "Partner for the first commander",
+  [SIGNUP_FIELDS.selfCard2]: "Second commander for your pool",
+  [SIGNUP_FIELDS.selfCard2Partner]: "Partner for the second commander",
 } as const;
 
 export { COLOR_CODES } from "#lib/signup";

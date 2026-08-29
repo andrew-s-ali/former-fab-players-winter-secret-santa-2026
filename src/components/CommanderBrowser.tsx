@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { CardImage } from "@/components/CardImage";
 import { CommanderDetail } from "@/components/CommanderDetail";
 import { ThemePrompt } from "@/components/ThemePrompt";
 import type { ColorCode } from "@/lib/commanders";
@@ -245,12 +246,10 @@ export function CommanderBrowser({
               type="button"
             >
               {card.imageUrl ? (
-                // Scryfall images are external and deliberately unoptimised.
                 // Name is deliberately not repeated in alt text: the caption
                 // below already announces it, and this button's accessible
                 // name comes from that caption text.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img alt="" className="w-full rounded-lg" src={card.imageUrl} />
+                <CardImage className="w-full rounded-lg" src={card.imageUrl} />
               ) : null}
               <span className="mt-1 block text-sm">
                 {card.name}{savedCardIds.includes(card.id) ? " — saved" : ""}

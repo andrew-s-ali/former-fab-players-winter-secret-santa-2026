@@ -1,7 +1,33 @@
-import { BANNED_COMMANDERS } from "./rules";
+import { BANNED_COMMANDERS } from "#lib/rules";
 import type { Commander } from "./scryfall/types";
 
 export type ColorCode = "W" | "U" | "B" | "R" | "G";
+
+/**
+ * The slice of a commander needed to offer it in a picker.
+ *
+ * The whole legal pool is ~704 cards; sending them in full is 480 KB, and
+ * almost all of that is oracle text a dropdown never shows. This is 144 KB raw
+ * and 36 KB over the wire, which buys an instant thumbnail for whatever the
+ * person picks without a second request.
+ */
+export type CommanderOption = Pick<
+  Commander,
+  "id" | "name" | "colorIdentity" | "imageUrl" | "pairingRole"
+>;
+
+/** Narrows pool cards to what a picker needs, in name order. */
+export function toCommanderOptions(pool: Commander[]): CommanderOption[] {
+  return pool
+    .map(({ id, name, colorIdentity, imageUrl, pairingRole }) => ({
+      id,
+      name,
+      colorIdentity,
+      imageUrl,
+      pairingRole,
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
 
 export const COLORS = new Set<string>(["W", "U", "B", "R", "G"]);
 

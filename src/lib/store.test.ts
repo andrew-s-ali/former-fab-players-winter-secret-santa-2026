@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EventData } from "./participants";
 import { describeTarget, readEvent, writeEvent } from "./store";
+import { testSelfCards } from "@/test-support/cards";
 
 const originalEnv = { ...process.env };
 
@@ -33,8 +34,10 @@ describe("readEvent (local file)", () => {
           {
             id: "p1",
             name: "Ada",
+            email: "someone@example.com",
             recipientId: "p2",
             token: "tok",
+            selfCards: testSelfCards(),
             colorVeto: "R",
             themeVeto: "mill",
             themeWish: "elves",
@@ -94,8 +97,10 @@ describe("writeEvent (local file) backup on overwrite", () => {
         {
           id: "p1",
           name: "Ada",
+          email: "someone@example.com",
           recipientId: "p2",
           token: "tok-1",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
@@ -111,8 +116,10 @@ describe("writeEvent (local file) backup on overwrite", () => {
         {
           id: "p3",
           name: "Bob",
+          email: "someone@example.com",
           recipientId: "p4",
           token: "tok-2",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
@@ -216,8 +223,10 @@ describe("readEvent on Netlify (explicit credentials)", () => {
         {
           id: "p1",
           name: "Ada",
+          email: "someone@example.com",
           recipientId: "p2",
           token: "tok-1",
+          selfCards: testSelfCards(),
           colorVeto: null,
           themeVeto: null,
           themeWish: null,

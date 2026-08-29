@@ -1,77 +1,2496 @@
 {
   "participants": [
     {
-      "id": "1c029867-5b95-4b0a-9ad3-0e91701f8ba4",
+      "id": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
       "name": "Ada Lovelace",
-      "recipientId": "5dff1b8e-4888-4056-9b5c-48c30262893f",
-      "token": "imXm0LVPizaR9bsBW0CgDQ",
+      "email": "ada.lovelace@example.invalid",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "token": "i01ARokzr_erv_GG3_irww",
       "colorVeto": "R",
       "themeVeto": "mill",
-      "themeWish": "elves and tokens"
+      "themeWish": "elves and tokens",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "86958821-76eb-43a5-974b-7c945e826a66",
+            "name": "Esior, Wardwing Familiar",
+            "manaCost": "{1}{U}",
+            "typeLine": "Legendary Creature — Bird",
+            "oracleText": "Flying\nSpells your opponents cast that target one or more commanders you control cost {3} more to cast.\nPartner (You can have two commanders if both have partner.)",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/8/6/86958821-76eb-43a5-974b-7c945e826a66.jpg?1783928863",
+            "scryfallUrl": "https://scryfall.com/card/cmr/67/esior-wardwing-familiar?utm_source=api",
+            "hasPartner": true,
+            "pairingRole": "partner",
+            "setName": "Commander Legends",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.53",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "8107fd21-7d34-44ce-afb8-920eab3b924e",
+            "name": "Slurrk, All-Ingesting",
+            "manaCost": "{5}{G}",
+            "typeLine": "Legendary Creature — Ooze",
+            "oracleText": "Slurrk enters with five +1/+1 counters on it.\nWhenever Slurrk or another creature you control dies, if it had a +1/+1 counter on it, put a +1/+1 counter on each creature you control that has a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+            "colorIdentity": [
+              "G"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/8/1/8107fd21-7d34-44ce-afb8-920eab3b924e.jpg?1783917134",
+            "scryfallUrl": "https://scryfall.com/card/moc/312/slurrk-all-ingesting?utm_source=api",
+            "hasPartner": true,
+            "pairingRole": "partner",
+            "setName": "March of the Machine Commander",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.32",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "cebf2c16-bd9d-4a8f-a1b6-6e0c393178bc",
+            "name": "Slinn Voda, the Rising Deep",
+            "manaCost": "{6}{U}{U}",
+            "typeLine": "Legendary Creature — Leviathan",
+            "oracleText": "Kicker {1}{U} (You may pay an additional {1}{U} as you cast this spell.)\nWhen Slinn Voda enters, if it was kicked, return all creatures to their owners' hands except for Merfolk, Krakens, Leviathans, Octopuses, and Serpents.",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/c/e/cebf2c16-bd9d-4a8f-a1b6-6e0c393178bc.jpg?1783928715",
+            "scryfallUrl": "https://scryfall.com/card/cmr/405/slinn-voda-the-rising-deep?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Commander Legends",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.33",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "07baa902-5f7a-401e-805c-1d9d9a4e1d81",
+      "id": "e092684a-f6a7-4aea-a952-2a47ca739007",
       "name": "Bob Ross",
-      "recipientId": "1c029867-5b95-4b0a-9ad3-0e91701f8ba4",
-      "token": "6TckDtInNLCUJgfZrBiiig",
+      "email": "bob.ross@example.invalid",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "token": "T0uYoKchFFbB5PRkeGPx9Q",
       "colorVeto": null,
       "themeVeto": null,
-      "themeWish": null
+      "themeWish": null,
+      "selfCards": [
+        {
+          "commander": {
+            "id": "75e5a931-ad2d-4976-9c4e-b00325eb0fe1",
+            "name": "Foggy Nelson, On Retainer",
+            "manaCost": "{2}{W}",
+            "typeLine": "Legendary Creature — Human Advisor",
+            "oracleText": "Flash\nWhen Foggy Nelson enters, put a +1/+1 counter on another target creature you control. It gains hexproof until end of turn. (It can't be the target of spells or abilities your opponents control.)",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/7/5/75e5a931-ad2d-4976-9c4e-b00325eb0fe1.jpg?1783903084",
+            "scryfallUrl": "https://scryfall.com/card/msc/594/foggy-nelson-on-retainer?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Marvel Super Heroes Commander",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.28",
+            "priceIsFoil": false
+          },
+          "partner": null
+        },
+        {
+          "commander": {
+            "id": "eb17e6aa-8be5-40ea-a627-783c478c8eda",
+            "name": "Roshan, Hidden Magister",
+            "manaCost": "{3}{B}",
+            "typeLine": "Legendary Creature — Human Assassin",
+            "oracleText": "Other creatures you control are Assassins in addition to their other types. The same is true for creature spells you control and creature cards you own that aren't on the battlefield.\nFace-down creatures you control have menace.\nWhenever a permanent you control is turned face up, you draw a card and you lose 1 life.",
+            "colorIdentity": [
+              "B"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/e/b/eb17e6aa-8be5-40ea-a627-783c478c8eda.jpg?1783910981",
+            "scryfallUrl": "https://scryfall.com/card/acr/32/roshan-hidden-magister?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Assassin's Creed",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.27",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "e2c01233-48e0-422b-ae7d-a377e2633732",
+      "id": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
       "name": "Cleo Patra",
-      "recipientId": "0abc4e5c-9eb1-43a0-9e59-017519f410c5",
-      "token": "K6yDGOd2atnvfCDcIT3rcg",
+      "email": "cleo.patra@example.invalid",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "token": "Ti9zI6OBbmE6vtbb07UEGA",
       "colorVeto": "G",
       "themeVeto": "stax",
-      "themeWish": "artifacts, the more the better"
+      "themeWish": "artifacts, the more the better",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "6d67e95e-c4a7-45bc-ae83-0b532ad530db",
+            "name": "Lulu, Loyal Hollyphant",
+            "manaCost": "{3}{W}",
+            "typeLine": "Legendary Creature — Elephant Angel",
+            "oracleText": "Flying\nAt the beginning of your end step, if a permanent you controlled left the battlefield this turn, put a +1/+1 counter on each tapped creature you control, then untap them.\nChoose a Background (You can have a Background as a second commander.)",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/6/d/6d67e95e-c4a7-45bc-ae83-0b532ad530db.jpg?1783922808",
+            "scryfallUrl": "https://scryfall.com/card/clb/32/lulu-loyal-hollyphant?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "choose-background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.25",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "6410a2a2-48d9-4032-b585-4eaa5bc06581",
+            "name": "Criminal Past",
+            "manaCost": "{2}{B}",
+            "typeLine": "Legendary Enchantment — Background",
+            "oracleText": "Commander creatures you own have menace and \"This creature gets +X/+0, where X is the number of creature cards in your graveyard.\" (A creature with menace can't be blocked except by two or more creatures.)",
+            "colorIdentity": [
+              "B"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/6/4/6410a2a2-48d9-4032-b585-4eaa5bc06581.jpg?1783922765",
+            "scryfallUrl": "https://scryfall.com/card/clb/122/criminal-past?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.18",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "45e1ff1e-916b-4455-84cb-4125a79d76de",
+            "name": "Go-Shintai of Hidden Cruelty",
+            "manaCost": "{3}{B}",
+            "typeLine": "Legendary Enchantment Creature — Shrine",
+            "oracleText": "Deathtouch\nAt the beginning of your end step, you may pay {1}. When you do, destroy target creature with toughness X or less, where X is the number of Shrines you control.",
+            "colorIdentity": [
+              "B"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/4/5/45e1ff1e-916b-4455-84cb-4125a79d76de.jpg?1783923886",
+            "scryfallUrl": "https://scryfall.com/card/neo/97/go-shintai-of-hidden-cruelty?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Kamigawa: Neon Dynasty",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.26",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "0abc4e5c-9eb1-43a0-9e59-017519f410c5",
+      "id": "a43066d6-1714-401d-8af3-5965400c08d5",
       "name": "Dev Patel-Nakamura-Rodriguez",
-      "recipientId": "d1670c4d-2482-450a-a9c7-dacc50497c14",
-      "token": "GVA3O18paoym_Xocx7vyBA",
+      "email": "dev.patel.nakamura.rodriguez@example.invalid",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "token": "Xxy2-Pq1so96RgW9fxbqJg",
       "colorVeto": "U",
       "themeVeto": null,
-      "themeWish": "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it"
+      "themeWish": "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "28b41c48-0715-49d9-98e5-e82b706da816",
+            "name": "Gimli, Counter of Kills",
+            "manaCost": "{3}{R}",
+            "typeLine": "Legendary Creature — Dwarf Warrior",
+            "oracleText": "Trample\nWhenever a creature an opponent controls dies, Gimli deals 1 damage to that creature's controller.",
+            "colorIdentity": [
+              "R"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/2/8/28b41c48-0715-49d9-98e5-e82b706da816.jpg?1783916283",
+            "scryfallUrl": "https://scryfall.com/card/ltr/129/gimli-counter-of-kills?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "The Lord of the Rings: Tales of Middle-earth",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.23",
+            "priceIsFoil": false
+          },
+          "partner": null
+        },
+        {
+          "commander": {
+            "id": "2f80394b-2f7e-40a7-8203-720bcf39d71b",
+            "name": "Invisible Woman, Sue Storm",
+            "manaCost": "{4}{W}",
+            "typeLine": "Legendary Creature — Human Hero",
+            "oracleText": "Lifelink\nWhenever you put one or more +1/+1 counters on one or more other Heroes you control, you may create a 0/4 colorless Wall creature token with defender.",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/2/f/2f80394b-2f7e-40a7-8203-720bcf39d71b.jpg?1783902974",
+            "scryfallUrl": "https://scryfall.com/card/msh/17/invisible-woman-sue-storm?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Marvel Super Heroes",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.24",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "edb55605-22c7-47e7-a51f-ead193f7e9a4",
+      "id": "372eef22-3c25-4002-9dfe-50e84690a33e",
       "name": "Eli 🎄",
-      "recipientId": "07baa902-5f7a-401e-805c-1d9d9a4e1d81",
-      "token": "MafW-teDf3YyMNttYidqog",
+      "email": "eli@example.invalid",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "token": "CuTHpAN-fTJlLsDUEnVB9A",
       "colorVeto": null,
       "themeVeto": "combo",
-      "themeWish": "lifegain"
+      "themeWish": "lifegain",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "9f5bb319-29b2-4a7c-82e9-f8b5e47909a1",
+            "name": "Ganax, Astral Hunter",
+            "manaCost": "{4}{R}",
+            "typeLine": "Legendary Creature — Dragon",
+            "oracleText": "Flying\nWhenever Ganax or another Dragon you control enters, create a Treasure token. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")\nChoose a Background (You can have a Background as a second commander.)",
+            "colorIdentity": [
+              "R"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/9/f/9f5bb319-29b2-4a7c-82e9-f8b5e47909a1.jpg?1783922742",
+            "scryfallUrl": "https://scryfall.com/card/clb/176/ganax-astral-hunter?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "choose-background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "1.15",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "704f8ab7-63fd-4963-bacd-0076fffb34a1",
+            "name": "Sword Coast Sailor",
+            "manaCost": "{1}{U}",
+            "typeLine": "Legendary Enchantment — Background",
+            "oracleText": "Commander creatures you own have \"Whenever this creature attacks a player, if no opponent has more life than that player, this creature can't be blocked this turn.\"",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/7/0/704f8ab7-63fd-4963-bacd-0076fffb34a1.jpg?1783922775",
+            "scryfallUrl": "https://scryfall.com/card/clb/98/sword-coast-sailor?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.19",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "de1c0399-9db8-4901-b72e-0010eb9b92b0",
+            "name": "Frodo Baggins",
+            "manaCost": "{G}{W}",
+            "typeLine": "Legendary Creature — Halfling Scout",
+            "oracleText": "Whenever Frodo Baggins or another legendary creature you control enters, the Ring tempts you.\nAs long as Frodo Baggins is your Ring-bearer, it must be blocked if able.",
+            "colorIdentity": [
+              "G",
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/d/e/de1c0399-9db8-4901-b72e-0010eb9b92b0.jpg?1783916257",
+            "scryfallUrl": "https://scryfall.com/card/ltr/205/frodo-baggins?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "The Lord of the Rings: Tales of Middle-earth",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.18",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "d1670c4d-2482-450a-a9c7-dacc50497c14",
+      "id": "d3933986-d457-4216-9e48-e9a74cc60659",
       "name": "Fay Wray",
-      "recipientId": "69fb6ab0-a2ab-436e-89e0-21a3337a15ec",
-      "token": "O_xvcPA8Tex5mmHtpY7oOw",
+      "email": "fay.wray@example.invalid",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "token": "1i9WmoEPiAz6mYKLjyA-5g",
       "colorVeto": "B",
       "themeVeto": null,
-      "themeWish": null
+      "themeWish": null,
+      "selfCards": [
+        {
+          "commander": {
+            "id": "cc3707f1-ed9d-412e-a7be-b6d8b554bd6c",
+            "name": "Maja, Bretagard Protector",
+            "manaCost": "{2}{G}{W}{W}",
+            "typeLine": "Legendary Creature — Human Warrior",
+            "oracleText": "Other creatures you control get +1/+1.\nLandfall — Whenever a land you control enters, create a 1/1 white Human Warrior creature token.",
+            "colorIdentity": [
+              "G",
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/c/c/cc3707f1-ed9d-412e-a7be-b6d8b554bd6c.jpg?1783928194",
+            "scryfallUrl": "https://scryfall.com/card/khm/222/maja-bretagard-protector?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Kaldheim",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.29",
+            "priceIsFoil": false
+          },
+          "partner": null
+        },
+        {
+          "commander": {
+            "id": "14379198-9a0a-4853-9d51-fb074a24b1c0",
+            "name": "Ultros, Obnoxious Octopus",
+            "manaCost": "{1}{U}",
+            "typeLine": "Legendary Creature — Octopus",
+            "oracleText": "Whenever you cast a noncreature spell, if at least four mana was spent to cast it, tap target creature an opponent controls and put a stun counter on it. (If a permanent with a stun counter would become untapped, remove one from it instead.)\nWhenever you cast a noncreature spell, if at least eight mana was spent to cast it, put eight +1/+1 counters on Ultros.",
+            "colorIdentity": [
+              "U"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/1/4/14379198-9a0a-4853-9d51-fb074a24b1c0.jpg?1783906626",
+            "scryfallUrl": "https://scryfall.com/card/fin/83/ultros-obnoxious-octopus?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Final Fantasy",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.20",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "69fb6ab0-a2ab-436e-89e0-21a3337a15ec",
+      "id": "f4aae117-6195-478b-80c0-fcf36da0002c",
       "name": "Gus",
-      "recipientId": "edb55605-22c7-47e7-a51f-ead193f7e9a4",
-      "token": "eAoAOyIJztETqNzI7geLbQ",
+      "email": "gus@example.invalid",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "token": "ptHZAB-eXZN8UeMZojV4aA",
       "colorVeto": null,
       "themeVeto": null,
-      "themeWish": "go wide"
+      "themeWish": "go wide",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "5e185e5c-b6f9-4d36-a6b1-d7315de38fca",
+            "name": "Halsin, Emerald Archdruid",
+            "manaCost": "{3}{G}",
+            "typeLine": "Legendary Creature — Elf Druid",
+            "oracleText": "{1}: Until end of turn, target token you control becomes a green Bear creature with base power and toughness 4/4 in addition to its other colors and types.\nChoose a Background (You can have a Background as a second commander.)",
+            "colorIdentity": [
+              "G"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/5/e/5e185e5c-b6f9-4d36-a6b1-d7315de38fca.jpg?1783922712",
+            "scryfallUrl": "https://scryfall.com/card/clb/234/halsin-emerald-archdruid?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "choose-background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.12",
+            "priceIsFoil": false
+          },
+          "partner": {
+            "id": "3f4f074e-914e-4924-8b5e-b80b247bc341",
+            "name": "Veteran Soldier",
+            "manaCost": "{1}{W}",
+            "typeLine": "Legendary Enchantment — Background",
+            "oracleText": "Commander creatures you own have \"Whenever this creature attacks a player, if no opponent has more life than that player, for each opponent, create a 1/1 white Soldier creature token that's tapped and attacking that opponent.\"",
+            "colorIdentity": [
+              "W"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/3/f/3f4f074e-914e-4924-8b5e-b80b247bc341.jpg?1783922800",
+            "scryfallUrl": "https://scryfall.com/card/clb/48/veteran-soldier?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": "background",
+            "setName": "Commander Legends: Battle for Baldur's Gate",
+            "rarity": "uncommon",
+            "canPair": true,
+            "priceUsd": "0.21",
+            "priceIsFoil": false
+          }
+        },
+        {
+          "commander": {
+            "id": "65e9a757-7ed4-4cc0-bb6f-a59fa69b32a5",
+            "name": "Mauhúr, Uruk-hai Captain",
+            "manaCost": "{B}{R}",
+            "typeLine": "Legendary Creature — Orc Soldier",
+            "oracleText": "Menace\nIf one or more +1/+1 counters would be put on an Army, Goblin, or Orc you control, that many plus one +1/+1 counters are put on it instead.",
+            "colorIdentity": [
+              "B",
+              "R"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/6/5/65e9a757-7ed4-4cc0-bb6f-a59fa69b32a5.jpg?1783916249",
+            "scryfallUrl": "https://scryfall.com/card/ltr/214/mauh%C3%BAr-uruk-hai-captain?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "The Lord of the Rings: Tales of Middle-earth",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.22",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     },
     {
-      "id": "5dff1b8e-4888-4056-9b5c-48c30262893f",
+      "id": "114e3656-34cd-449f-8481-6bf26fb707fc",
       "name": "Hana",
-      "recipientId": "e2c01233-48e0-422b-ae7d-a377e2633732",
-      "token": "4-YFzg-FIUiA85-b8kUnZw",
+      "email": "hana@example.invalid",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "token": "riadvtc2flnWKVwEJOvsRQ",
       "colorVeto": "W",
       "themeVeto": "tribal",
-      "themeWish": "spellslinger"
+      "themeWish": "spellslinger",
+      "selfCards": [
+        {
+          "commander": {
+            "id": "27ce43cb-44f4-4d94-8700-d9f3cc043989",
+            "name": "Bladewing the Risen",
+            "manaCost": "{3}{B}{B}{R}{R}",
+            "typeLine": "Legendary Creature — Zombie Dragon",
+            "oracleText": "Flying\nWhen Bladewing enters, you may return target Dragon permanent card from your graveyard to the battlefield.\n{B}{R}: Dragon creatures get +1/+1 until end of turn.",
+            "colorIdentity": [
+              "B",
+              "R"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/2/7/27ce43cb-44f4-4d94-8700-d9f3cc043989.jpg?1783935513",
+            "scryfallUrl": "https://scryfall.com/card/ima/193/bladewing-the-risen?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Iconic Masters",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "3.32",
+            "priceIsFoil": false
+          },
+          "partner": null
+        },
+        {
+          "commander": {
+            "id": "a292094a-674a-401f-8776-ba5ebe57c946",
+            "name": "Cloud of Darkness",
+            "manaCost": "{2}{B}{G}{G}",
+            "typeLine": "Legendary Creature — Avatar",
+            "oracleText": "Flying\nParticle Beam — When Cloud of Darkness enters, target creature an opponent controls gets -X/-X until end of turn, where X is the number of permanent cards in your graveyard.",
+            "colorIdentity": [
+              "B",
+              "G"
+            ],
+            "imageUrl": "https://cards.scryfall.io/normal/front/a/2/a292094a-674a-401f-8776-ba5ebe57c946.jpg?1783906575",
+            "scryfallUrl": "https://scryfall.com/card/fin/217/cloud-of-darkness?utm_source=api",
+            "hasPartner": false,
+            "pairingRole": null,
+            "setName": "Final Fantasy",
+            "rarity": "uncommon",
+            "canPair": false,
+            "priceUsd": "0.17",
+            "priceIsFoil": false
+          },
+          "partner": null
+        }
+      ]
     }
   ],
-  "revealedAt": "2026-08-17T02:18:30.864Z"
+  "revealedAt": "2026-08-29T14:35:51.647Z",
+  "selections": [
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "b6a7d041-957a-4b19-9517-214689dadd45",
+          "name": "Erinis, Gloom Stalker",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Creature — Halfling Ranger",
+          "oracleText": "Deathtouch\nWhenever Erinis attacks, return target land card from your graveyard to the battlefield.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/b/6/b6a7d041-957a-4b19-9517-214689dadd45.jpg?1783922714",
+          "scryfallUrl": "https://scryfall.com/card/clb/230/erinis-gloom-stalker?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.20",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "cabc3688-2362-4757-a5be-087e577c4691",
+          "name": "Far Traveler",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, exile up to one target tapped creature you control, then return it to the battlefield under its owner's control.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/a/cabc3688-2362-4757-a5be-087e577c4691.jpg?1783922815",
+          "scryfallUrl": "https://scryfall.com/card/clb/17/far-traveler?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "9e327c67-1cf1-4d82-903c-b41c8e7cf747",
+          "name": "Agent Maria Hill",
+          "manaCost": "{W}",
+          "typeLine": "Legendary Creature — Human Spy Hero",
+          "oracleText": "Whenever Agent Maria Hill becomes tapped to pay a teamwork cost, put a +1/+1 counter on her and draw a card.",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/e/9e327c67-1cf1-4d82-903c-b41c8e7cf747.jpg?1783902980",
+          "scryfallUrl": "https://scryfall.com/card/msh/2/agent-maria-hill?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.17",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "90ebb129-aa8d-4107-8e74-0b04525d76e0",
+          "name": "Pianna, Nomad Captain",
+          "manaCost": "{1}{W}{W}",
+          "typeLine": "Legendary Creature — Human Nomad",
+          "oracleText": "Whenever Pianna attacks, attacking creatures get +1/+1 until end of turn.",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/0/90ebb129-aa8d-4107-8e74-0b04525d76e0.jpg?1783915714",
+          "scryfallUrl": "https://scryfall.com/card/cmm/50/pianna-nomad-captain?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.19",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "dfe0daf8-43da-484b-baa1-76f8313c5a0c",
+          "name": "Wilson, Refined Grizzly",
+          "manaCost": "{1}{G}",
+          "typeLine": "Legendary Creature — Bear Warrior",
+          "oracleText": "This spell can't be countered.\nReach, vigilance, trample\nWard {2} (Whenever this creature becomes the target of a spell or ability an opponent controls, counter it unless that player pays {2}.)\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/d/f/dfe0daf8-43da-484b-baa1-76f8313c5a0c.jpg?1783922700",
+          "scryfallUrl": "https://scryfall.com/card/clb/261/wilson-refined-grizzly?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "4bd8689d-a0c1-4041-bead-7b512fe25663",
+          "name": "Cloakwood Hermit",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, if a creature card was put into your graveyard from anywhere this turn, create two tapped 1/1 green Squirrel creature tokens.\"",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/b/4bd8689d-a0c1-4041-bead-7b512fe25663.jpg?1783922718",
+          "scryfallUrl": "https://scryfall.com/card/clb/221/cloakwood-hermit?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.33",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "29bffd7c-73be-4185-976b-36a42a4512fe",
+          "name": "Rick Jones, Destined Sidekick",
+          "manaCost": "{G}",
+          "typeLine": "Legendary Creature — Human Advisor",
+          "oracleText": "{3}, {T}: Mill four cards. You may put a Hero or enchantment card from among those cards into your hand. (To mill four cards, put the top four cards of your library into your graveyard.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/2/9/29bffd7c-73be-4185-976b-36a42a4512fe.jpg?1783902914",
+          "scryfallUrl": "https://scryfall.com/card/msh/184/rick-jones-destined-sidekick?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.15",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "e3998132-5746-4dde-9529-97d3ad7d7361",
+          "name": "The Prima Vista",
+          "manaCost": "{4}{U}",
+          "typeLine": "Legendary Artifact — Vehicle",
+          "oracleText": "Flying\nWhenever you cast a noncreature spell, if at least four mana was spent to cast it, The Prima Vista becomes an artifact creature until end of turn.\nCrew 2 (Tap any number of creatures you control with total power 2 or more: This Vehicle becomes an artifact creature until end of turn.)",
+          "colorIdentity": [
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/e/3/e3998132-5746-4dde-9529-97d3ad7d7361.jpg?1783906633",
+          "scryfallUrl": "https://scryfall.com/card/fin/64/the-prima-vista?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Final Fantasy",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.17",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "4009d5ab-945d-43c3-9077-f10f96249fc4",
+          "name": "Sarevok, Deathbringer",
+          "manaCost": "{3}{B}",
+          "typeLine": "Legendary Creature — Human Knight",
+          "oracleText": "At the beginning of each player's end step, if no permanents left the battlefield this turn, that player loses X life, where X is Sarevok's power.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/0/4009d5ab-945d-43c3-9077-f10f96249fc4.jpg?1783922753",
+          "scryfallUrl": "https://scryfall.com/card/clb/144/sarevok-deathbringer?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.16",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "b0260e1f-ff6a-4ef3-bef7-8c77f8413500",
+          "name": "Acolyte of Bahamut",
+          "manaCost": "{1}{G}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"The first Dragon spell you cast each turn costs {2} less to cast.\"",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/b/0/b0260e1f-ff6a-4ef3-bef7-8c77f8413500.jpg?1783922722",
+          "scryfallUrl": "https://scryfall.com/card/clb/212/acolyte-of-bahamut?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.25",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "e9367f66-6556-459c-a43d-5ba7a84b568d",
+          "name": "Safana, Calimport Cutthroat",
+          "manaCost": "{2}{B}",
+          "typeLine": "Legendary Creature — Human Rogue",
+          "oracleText": "Menace\nAt the beginning of your end step, if you have the initiative, create a Treasure token. Create three of those tokens instead if you've completed a dungeon.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/e/9/e9367f66-6556-459c-a43d-5ba7a84b568d.jpg?1783922756",
+          "scryfallUrl": "https://scryfall.com/card/clb/143/safana-calimport-cutthroat?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.25",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "e06ad968-ca7a-470b-ba3b-e0afc597b2cd",
+          "name": "Dragon Cultist",
+          "manaCost": "{4}{R}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, if a source you controlled dealt 5 or more damage this turn, create a 4/4 red Dragon creature token with flying.\"",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/e/0/e06ad968-ca7a-470b-ba3b-e0afc597b2cd.jpg?1783922743",
+          "scryfallUrl": "https://scryfall.com/card/clb/170/dragon-cultist?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.22",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "fa755966-0b96-4747-ba1f-26182d265335",
+          "name": "Photon, Lady of Light",
+          "manaCost": "{3}{W}",
+          "typeLine": "Legendary Creature — Human Hero",
+          "oracleText": "Flying\nWhenever Photon attacks, exile up to one other target creature you control, then return that card to the battlefield under its owner's control.",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/a/fa755966-0b96-4747-ba1f-26182d265335.jpg?1783903079",
+          "scryfallUrl": "https://scryfall.com/card/msc/606/photon-lady-of-light?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes Commander",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.47",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "3ee62dd1-97d0-4e5d-8937-26c9e51e9414",
+          "name": "Akawalli, the Seething Tower",
+          "manaCost": "{1}{B}{G}",
+          "typeLine": "Legendary Creature — Fungus",
+          "oracleText": "Descend 4 — As long as there are four or more permanent cards in your graveyard, Akawalli gets +2/+2 and has trample.\nDescend 8 — As long as there are eight or more permanent cards in your graveyard, Akawalli gets an additional +2/+2 and can't be blocked by more than one creature.",
+          "colorIdentity": [
+            "B",
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/e/3ee62dd1-97d0-4e5d-8937-26c9e51e9414.jpg?1783913735",
+          "scryfallUrl": "https://scryfall.com/card/lci/220/akawalli-the-seething-tower?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "The Lost Caverns of Ixalan",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.19",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "3fdf5020-ea97-4f95-a096-cb5688dad2e2",
+          "name": "Alharu, Solemn Ritualist",
+          "manaCost": "{4}{W}",
+          "typeLine": "Legendary Creature — Human Monk",
+          "oracleText": "When Alharu enters, put a +1/+1 counter on each of up to two other target creatures.\nWhenever a nontoken creature you control with a +1/+1 counter on it dies, create a 1/1 white Spirit creature token with flying.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/f/3fdf5020-ea97-4f95-a096-cb5688dad2e2.jpg?1783915730",
+          "scryfallUrl": "https://scryfall.com/card/cmm/8/alharu-solemn-ritualist?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.16",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "6ac36353-6bf7-46b1-85cb-87d389138d32",
+          "name": "Numa, Joraga Chieftain",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Creature — Elf Warrior",
+          "oracleText": "At the beginning of combat on your turn, you may pay {X}{X}. When you do, distribute X +1/+1 counters among any number of target Elves.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/6/a/6ac36353-6bf7-46b1-85cb-87d389138d32.jpg?1783928311",
+          "scryfallUrl": "https://scryfall.com/card/khc/71/numa-joraga-chieftain?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Kaldheim Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "f469d621-25d0-4d8e-909f-47dac0b9c5b0",
+          "name": "Molten Man, Inferno Incarnate",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Elemental Villain",
+          "oracleText": "When Molten Man enters, search your library for a basic Mountain card, put it onto the battlefield tapped, then shuffle.\nMolten Man gets +1/+1 for each Mountain you control.\nWhen Molten Man leaves the battlefield, sacrifice a land.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/4/f469d621-25d0-4d8e-909f-47dac0b9c5b0.jpg?1783905334",
+          "scryfallUrl": "https://scryfall.com/card/spm/84/molten-man-inferno-incarnate?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel's Spider-Man",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.15",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "f74b9794-946e-4ddc-93b2-5a321fc51fd0",
+          "name": "Ronin, Shadow Stalker",
+          "manaCost": "{2}{B}",
+          "typeLine": "Legendary Creature — Human Rogue Hero",
+          "oracleText": "Pay 2 life: Add two mana of any one color. Spend this mana only to cast Equipment spells or activate equip abilities. Activate only once each turn.\n{T}, Sacrifice an Equipment attached to Ronin: Target creature gets -4/-4 until end of turn. Activate only as a sorcery.",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/7/f74b9794-946e-4ddc-93b2-5a321fc51fd0.jpg?1783902939",
+          "scryfallUrl": "https://scryfall.com/card/msh/112/ronin-shadow-stalker?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.16",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "3d8ca18d-9099-4f1e-95c1-f04da58a26bd",
+          "name": "Gut, True Soul Zealot",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Goblin Shaman",
+          "oracleText": "Whenever you attack, you may sacrifice another creature or an artifact. If you do, create a 4/1 black Skeleton creature token with menace that's tapped and attacking. (It can't be blocked except by two or more creatures.)\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/d/3d8ca18d-9099-4f1e-95c1-f04da58a26bd.jpg?1783922736",
+          "scryfallUrl": "https://scryfall.com/card/clb/180/gut-true-soul-zealot?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.17",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "cabc3688-2362-4757-a5be-087e577c4691",
+          "name": "Far Traveler",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, exile up to one target tapped creature you control, then return it to the battlefield under its owner's control.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/a/cabc3688-2362-4757-a5be-087e577c4691.jpg?1783922815",
+          "scryfallUrl": "https://scryfall.com/card/clb/17/far-traveler?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "38b00110-e3de-40ce-b2bd-9466fe9e53a3",
+          "name": "Radiant, Serra Archangel",
+          "manaCost": "{6}{W}",
+          "typeLine": "Legendary Creature — Angel",
+          "oracleText": "Flying\nTap another untapped creature you control with flying: Radiant gains protection from the color of your choice until end of turn.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/8/38b00110-e3de-40ce-b2bd-9466fe9e53a3.jpg?1783928876",
+          "scryfallUrl": "https://scryfall.com/card/cmr/40/radiant-serra-archangel?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "90c51949-b1ef-4c6e-98b0-4fb33a81db24",
+          "name": "Alena, Kessig Trapper",
+          "manaCost": "{4}{R}",
+          "typeLine": "Legendary Creature — Human Scout",
+          "oracleText": "First strike\n{T}: Add an amount of {R} equal to the greatest power among creatures you control that entered this turn.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/0/90c51949-b1ef-4c6e-98b0-4fb33a81db24.jpg?1783928824",
+          "scryfallUrl": "https://scryfall.com/card/cmr/160/alena-kessig-trapper?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.30",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "0ea52228-f8ad-4623-9e05-f162473bfc03",
+          "name": "Barktooth Warbeard",
+          "manaCost": "{4}{B}{R}{R}",
+          "typeLine": "Legendary Creature — Human Warrior",
+          "oracleText": "",
+          "colorIdentity": [
+            "B",
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/0/e/0ea52228-f8ad-4623-9e05-f162473bfc03.jpg?1783948041",
+          "scryfallUrl": "https://scryfall.com/card/leg/221/barktooth-warbeard?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Legends",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "2.44",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "1a1b2bd0-e17d-4b34-a8ee-7c913a6bc945",
+          "name": "Moonstone, Harsh Mistress",
+          "manaCost": "{3}{B}",
+          "typeLine": "Legendary Creature — Human Doctor Villain",
+          "oracleText": "Flying\nWhenever you discard a card, you may exile that card from your graveyard. If you do, until the end of your next turn, you may play that card.",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/1/a/1a1b2bd0-e17d-4b34-a8ee-7c913a6bc945.jpg?1783902940",
+          "scryfallUrl": "https://scryfall.com/card/msh/107/moonstone-harsh-mistress?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.22",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "616c5b52-94bc-48e3-8e4f-e2db1eca7536",
+          "name": "Livaan, Cultist of Tiamat",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Dragon Shaman",
+          "oracleText": "Whenever you cast a noncreature spell, target creature gets +X/+0 until end of turn, where X is that spell's mana value.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/6/1/616c5b52-94bc-48e3-8e4f-e2db1eca7536.jpg?1783922733",
+          "scryfallUrl": "https://scryfall.com/card/clb/188/livaan-cultist-of-tiamat?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "e06ad968-ca7a-470b-ba3b-e0afc597b2cd",
+          "name": "Dragon Cultist",
+          "manaCost": "{4}{R}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, if a source you controlled dealt 5 or more damage this turn, create a 4/4 red Dragon creature token with flying.\"",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/e/0/e06ad968-ca7a-470b-ba3b-e0afc597b2cd.jpg?1783922743",
+          "scryfallUrl": "https://scryfall.com/card/clb/170/dragon-cultist?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.22",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "2b54d4a5-634f-4ae3-b592-0dc527f60d56",
+          "name": "Sun-Spider, Nimble Webber",
+          "manaCost": "{3}{W/U}",
+          "typeLine": "Legendary Creature — Spider Human Hero",
+          "oracleText": "During your turn, Sun-Spider has flying.\nWhen Sun-Spider enters, search your library for an Aura or Equipment card, reveal it, put it into your hand, then shuffle.",
+          "colorIdentity": [
+            "U",
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/2/b/2b54d4a5-634f-4ae3-b592-0dc527f60d56.jpg?1783905310",
+          "scryfallUrl": "https://scryfall.com/card/spm/154/sun-spider-nimble-webber?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel's Spider-Man",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.27",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "09cb553c-58c1-4cfd-b441-297b5f09b263",
+          "name": "Norika Yamazaki, the Poet",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Creature — Human Samurai",
+          "oracleText": "Vigilance\nWhenever a Samurai or Warrior you control attacks alone, you may cast target enchantment card from your graveyard this turn.",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/0/9/09cb553c-58c1-4cfd-b441-297b5f09b263.jpg?1783923915",
+          "scryfallUrl": "https://scryfall.com/card/neo/31/norika-yamazaki-the-poet?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Kamigawa: Neon Dynasty",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "396f9198-67b6-45d8-91b4-dc853bff9623",
+          "name": "Abdel Adrian, Gorion's Ward",
+          "manaCost": "{4}{W}",
+          "typeLine": "Legendary Creature — Human Warrior",
+          "oracleText": "When Abdel Adrian enters, exile any number of other nonland permanents you control until Abdel Adrian leaves the battlefield. Create a 1/1 white Soldier creature token for each permanent exiled this way.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/9/396f9198-67b6-45d8-91b4-dc853bff9623.jpg?1783922823",
+          "scryfallUrl": "https://scryfall.com/card/clb/2/abdel-adrian-gorions-ward?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.34",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "fc6eb9f3-0f7b-4623-806e-5e604a05d470",
+          "name": "Inspiring Leader",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"Creature tokens you control get +2/+2.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/c/fc6eb9f3-0f7b-4623-806e-5e604a05d470.jpg?1783922810",
+          "scryfallUrl": "https://scryfall.com/card/clb/28/inspiring-leader?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.36",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "728b802c-969b-4865-b7a0-871c585d097a",
+          "name": "Ardenn, Intrepid Archaeologist",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Creature — Kor Scout",
+          "oracleText": "At the beginning of combat on your turn, you may attach any number of Auras and Equipment you control to target permanent or player.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/7/2/728b802c-969b-4865-b7a0-871c585d097a.jpg?1783928890",
+          "scryfallUrl": "https://scryfall.com/card/cmr/10/ardenn-intrepid-archaeologist?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "4.32",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "46975250-950f-4f5d-a7c5-f61aec8e40ad",
+          "name": "Rebbec, Architect of Ascension",
+          "manaCost": "{3}{W}",
+          "typeLine": "Legendary Creature — Human Artificer",
+          "oracleText": "Artifacts you control have protection from each mana value among artifacts you control.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/6/46975250-950f-4f5d-a7c5-f61aec8e40ad.jpg?1783928875",
+          "scryfallUrl": "https://scryfall.com/card/cmr/42/rebbec-architect-of-ascension?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.31",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "b2e5435c-52f3-42d7-bcee-5aa13afd6626",
+          "name": "Sundial, Dawn Tyrant",
+          "manaCost": "{1}{W}",
+          "typeLine": "Legendary Artifact Creature — Construct",
+          "oracleText": "",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/b/2/b2e5435c-52f3-42d7-bcee-5aa13afd6626.jpg?1783907914",
+          "scryfallUrl": "https://scryfall.com/card/dft/31/sundial-dawn-tyrant?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Aetherdrift",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.25",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "5b915e8d-b972-4ae1-a1c3-74d6623963c8",
+          "name": "Go-Shintai of Ancient Wars",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Enchantment Creature — Shrine",
+          "oracleText": "First strike\nAt the beginning of your end step, you may pay {1}. When you do, Go-Shintai of Ancient Wars deals X damage to target player or planeswalker, where X is the number of Shrines you control.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/5/b/5b915e8d-b972-4ae1-a1c3-74d6623963c8.jpg?1783923866",
+          "scryfallUrl": "https://scryfall.com/card/neo/144/go-shintai-of-ancient-wars?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Kamigawa: Neon Dynasty",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.35",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "334bc010-5b60-4075-be12-0b36f41f32c6",
+          "name": "Sivriss, Nightmare Speaker",
+          "manaCost": "{3}{B}",
+          "typeLine": "Legendary Creature — Snake Cleric Warlock",
+          "oracleText": "{T}, Sacrifice another creature or an artifact: For each opponent, you mill a card, then return that card from your graveyard to your hand unless that player pays 3 life. (To mill a card, put the top card of your library into your graveyard.)\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/3/334bc010-5b60-4075-be12-0b36f41f32c6.jpg?1783922751",
+          "scryfallUrl": "https://scryfall.com/card/clb/148/sivriss-nightmare-speaker?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.08",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "fc6eb9f3-0f7b-4623-806e-5e604a05d470",
+          "name": "Inspiring Leader",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"Creature tokens you control get +2/+2.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/c/fc6eb9f3-0f7b-4623-806e-5e604a05d470.jpg?1783922810",
+          "scryfallUrl": "https://scryfall.com/card/clb/28/inspiring-leader?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.36",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "0362b7c4-fff5-4bc2-b32d-913f85c23cc4",
+          "name": "Old Man Willow",
+          "manaCost": "{2}{B}{G}",
+          "typeLine": "Legendary Creature — Treefolk",
+          "oracleText": "Old Man Willow's power and toughness are each equal to the number of lands you control.\nWhenever Old Man Willow attacks, you may sacrifice another creature or a token. When you do, target creature an opponent controls gets -2/-2 until end of turn.",
+          "colorIdentity": [
+            "B",
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/0/3/0362b7c4-fff5-4bc2-b32d-913f85c23cc4.jpg?1783916248",
+          "scryfallUrl": "https://scryfall.com/card/ltr/217/old-man-willow?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "The Lord of the Rings: Tales of Middle-earth",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.18",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "a89e2707-33eb-40b1-a883-bab02995da21",
+          "name": "Elektra, Femme Fatale",
+          "manaCost": "{3}{R}",
+          "typeLine": "Legendary Creature — Human Assassin Hero",
+          "oracleText": "When Elektra enters, you may have her deal 2 damage to you. When you do, she deals 4 damage to target creature.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/a/8/a89e2707-33eb-40b1-a883-bab02995da21.jpg?1783903051",
+          "scryfallUrl": "https://scryfall.com/card/msc/687/elektra-femme-fatale?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes Commander",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.33",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "4009d5ab-945d-43c3-9077-f10f96249fc4",
+          "name": "Sarevok, Deathbringer",
+          "manaCost": "{3}{B}",
+          "typeLine": "Legendary Creature — Human Knight",
+          "oracleText": "At the beginning of each player's end step, if no permanents left the battlefield this turn, that player loses X life, where X is Sarevok's power.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/0/4009d5ab-945d-43c3-9077-f10f96249fc4.jpg?1783922753",
+          "scryfallUrl": "https://scryfall.com/card/clb/144/sarevok-deathbringer?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.16",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "cabc3688-2362-4757-a5be-087e577c4691",
+          "name": "Far Traveler",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, exile up to one target tapped creature you control, then return it to the battlefield under its owner's control.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/a/cabc3688-2362-4757-a5be-087e577c4691.jpg?1783922815",
+          "scryfallUrl": "https://scryfall.com/card/clb/17/far-traveler?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "a4fab67f-00c2-4125-9262-d21a29411797",
+          "name": "Rograkh, Son of Rohgahh",
+          "manaCost": "{0}",
+          "typeLine": "Legendary Creature — Kobold Warrior",
+          "oracleText": "First strike, menace, trample\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/a/4/a4fab67f-00c2-4125-9262-d21a29411797.jpg?1783928807",
+          "scryfallUrl": "https://scryfall.com/card/cmr/197/rograkh-son-of-rohgahh?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "1.82",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "46975250-950f-4f5d-a7c5-f61aec8e40ad",
+          "name": "Rebbec, Architect of Ascension",
+          "manaCost": "{3}{W}",
+          "typeLine": "Legendary Creature — Human Artificer",
+          "oracleText": "Artifacts you control have protection from each mana value among artifacts you control.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/6/46975250-950f-4f5d-a7c5-f61aec8e40ad.jpg?1783928875",
+          "scryfallUrl": "https://scryfall.com/card/cmr/42/rebbec-architect-of-ascension?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.31",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "777bc602-3c8d-43a1-812f-2103dc26b635",
+          "name": "Ant-Man, Reformed Rogue",
+          "manaCost": "{2}{G/U}",
+          "typeLine": "Legendary Creature — Human Rogue Hero",
+          "oracleText": "Whenever you cast a green spell, Ant-Man gets +1/+0 and gains trample until end of turn.\nWhenever you cast a blue spell, Ant-Man gets -1/-0 until end of turn and can't be blocked this turn.\nWhenever Ant-Man deals combat damage to a player, draw a card.",
+          "colorIdentity": [
+            "G",
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/7/7/777bc602-3c8d-43a1-812f-2103dc26b635.jpg?1783903034",
+          "scryfallUrl": "https://scryfall.com/card/msc/739/ant-man-reformed-rogue?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes Commander",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "6385e769-f805-499d-9f47-494533362152",
+          "name": "Grishnákh, Brash Instigator",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Goblin Soldier",
+          "oracleText": "When Grishnákh enters, amass Orcs 2. When you do, until end of turn, gain control of target nonlegendary creature an opponent controls with power less than or equal to the amassed Army's power. Untap that creature. It gains haste until end of turn.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/6/3/6385e769-f805-499d-9f47-494533362152.jpg?1783916282",
+          "scryfallUrl": "https://scryfall.com/card/ltr/134/grishn%C3%A1kh-brash-instigator?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "The Lord of the Rings: Tales of Middle-earth",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.18",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "c606f8ea-815b-4308-8f1d-3dad4f45f70e",
+          "name": "Brinelin, the Moon Kraken",
+          "manaCost": "{6}{U}{U}",
+          "typeLine": "Legendary Creature — Kraken",
+          "oracleText": "When Brinelin enters and whenever you cast a spell with mana value 6 or greater, you may return target nonland permanent to its owner's hand.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/6/c606f8ea-815b-4308-8f1d-3dad4f45f70e.jpg?1783915704",
+          "scryfallUrl": "https://scryfall.com/card/cmm/78/brinelin-the-moon-kraken?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.24",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "8107fd21-7d34-44ce-afb8-920eab3b924e",
+          "name": "Slurrk, All-Ingesting",
+          "manaCost": "{5}{G}",
+          "typeLine": "Legendary Creature — Ooze",
+          "oracleText": "Slurrk enters with five +1/+1 counters on it.\nWhenever Slurrk or another creature you control dies, if it had a +1/+1 counter on it, put a +1/+1 counter on each creature you control that has a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/1/8107fd21-7d34-44ce-afb8-920eab3b924e.jpg?1783917134",
+          "scryfallUrl": "https://scryfall.com/card/moc/312/slurrk-all-ingesting?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "March of the Machine Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "cc0cba4c-d9f0-421f-acf4-ab1adcd59c80",
+          "name": "Raff, Weatherlight Stalwart",
+          "manaCost": "{W}{U}",
+          "typeLine": "Legendary Creature — Human Wizard",
+          "oracleText": "Whenever you cast an instant or sorcery spell, you may tap two untapped creatures you control. If you do, draw a card.\n{3}{W}{W}: Creatures you control get +1/+1 and gain vigilance until end of turn.",
+          "colorIdentity": [
+            "U",
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/c/cc0cba4c-d9f0-421f-acf4-ab1adcd59c80.jpg?1783921279",
+          "scryfallUrl": "https://scryfall.com/card/dmu/212/raff-weatherlight-stalwart?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Dominaria United",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "e5db6968-1ca3-46bd-8cf9-e2c411ab29c1",
+          "name": "Spider-Man, To the Rescue",
+          "manaCost": "{2}{G/W}",
+          "typeLine": "Legendary Creature — Spider Human Hero",
+          "oracleText": "Flash\nReach, vigilance\nNo One Dies! — When Spider-Man enters, you may tap him. When you do, another target nonattacking creature you control gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)",
+          "colorIdentity": [
+            "G",
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/e/5/e5db6968-1ca3-46bd-8cf9-e2c411ab29c1.jpg?1783902898",
+          "scryfallUrl": "https://scryfall.com/card/msh/228/spider-man-to-the-rescue?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "f6597ec7-0fc8-4aa5-a8a6-ea5f95f4ce15",
+          "name": "Rasaad yn Bashir",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Creature — Human Monk",
+          "oracleText": "Each creature you control assigns combat damage equal to its toughness rather than its power.\nWhenever Rasaad yn Bashir attacks, if you have the initiative, double the toughness of each creature you control until end of turn.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/6/f6597ec7-0fc8-4aa5-a8a6-ea5f95f4ce15.jpg?1783922806",
+          "scryfallUrl": "https://scryfall.com/card/clb/37/rasaad-yn-bashir?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "cba131bb-b8b3-4577-9f41-4700d9985134",
+          "name": "Dungeon Delver",
+          "manaCost": "{1}{U}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"Room abilities of dungeons you own trigger an additional time.\"",
+          "colorIdentity": [
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/b/cba131bb-b8b3-4577-9f41-4700d9985134.jpg?1783922789",
+          "scryfallUrl": "https://scryfall.com/card/clb/67/dungeon-delver?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.08",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "51187cdb-85ee-4f68-9e29-d84d296f0825",
+          "name": "Malcolm, Keen-Eyed Navigator",
+          "manaCost": "{2}{U}",
+          "typeLine": "Legendary Creature — Siren Pirate",
+          "oracleText": "Flying\nWhenever one or more Pirates you control deal damage to your opponents, you create a Treasure token for each opponent dealt damage. (It's an artifact with \"{T}, Sacrifice this token: Add one mana of any color.\")\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/5/1/51187cdb-85ee-4f68-9e29-d84d296f0825.jpg?1783913885",
+          "scryfallUrl": "https://scryfall.com/card/lcc/161/malcolm-keen-eyed-navigator?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "The Lost Caverns of Ixalan Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.26",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "745d297d-4bb4-40cf-bb9c-99dac04e5069",
+          "name": "Gilanra, Caller of Wirewood",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Creature — Elf Druid",
+          "oracleText": "{T}: Add {G}. When you spend this mana to cast a spell with mana value 6 or greater, draw a card.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/7/4/745d297d-4bb4-40cf-bb9c-99dac04e5069.jpg?1783928793",
+          "scryfallUrl": "https://scryfall.com/card/cmr/230/gilanra-caller-of-wirewood?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "c38c98bb-74c9-460f-9997-ea5c5f922347",
+          "name": "Queen Brahne",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Human Noble",
+          "oracleText": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\nWhenever Queen Brahne attacks, create a 0/1 black Wizard creature token with \"Whenever you cast a noncreature spell, this token deals 1 damage to each opponent.\"",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/3/c38c98bb-74c9-460f-9997-ea5c5f922347.jpg?1783906600",
+          "scryfallUrl": "https://scryfall.com/card/fin/149/queen-brahne?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Final Fantasy",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.28",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "0409a15a-7cf6-43e5-958c-d23da4304f29",
+          "name": "Ich-Tekik, Salvage Splicer",
+          "manaCost": "{4}{G}",
+          "typeLine": "Legendary Creature — Phyrexian Human Artificer",
+          "oracleText": "When Ich-Tekik enters, create a 3/3 colorless Phyrexian Golem artifact creature token.\nWhenever an artifact is put into a graveyard from the battlefield, put a +1/+1 counter on Ich-Tekik and a +1/+1 counter on each Golem you control.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/0/4/0409a15a-7cf6-43e5-958c-d23da4304f29.jpg?1783928793",
+          "scryfallUrl": "https://scryfall.com/card/cmr/233/ich-tekik-salvage-splicer?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.31",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "8107fd21-7d34-44ce-afb8-920eab3b924e",
+          "name": "Slurrk, All-Ingesting",
+          "manaCost": "{5}{G}",
+          "typeLine": "Legendary Creature — Ooze",
+          "oracleText": "Slurrk enters with five +1/+1 counters on it.\nWhenever Slurrk or another creature you control dies, if it had a +1/+1 counter on it, put a +1/+1 counter on each creature you control that has a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/1/8107fd21-7d34-44ce-afb8-920eab3b924e.jpg?1783917134",
+          "scryfallUrl": "https://scryfall.com/card/moc/312/slurrk-all-ingesting?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "March of the Machine Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "90c51949-b1ef-4c6e-98b0-4fb33a81db24",
+          "name": "Alena, Kessig Trapper",
+          "manaCost": "{4}{R}",
+          "typeLine": "Legendary Creature — Human Scout",
+          "oracleText": "First strike\n{T}: Add an amount of {R} equal to the greatest power among creatures you control that entered this turn.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/0/90c51949-b1ef-4c6e-98b0-4fb33a81db24.jpg?1783928824",
+          "scryfallUrl": "https://scryfall.com/card/cmr/160/alena-kessig-trapper?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.30",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "28b41c48-0715-49d9-98e5-e82b706da816",
+          "name": "Gimli, Counter of Kills",
+          "manaCost": "{3}{R}",
+          "typeLine": "Legendary Creature — Dwarf Warrior",
+          "oracleText": "Trample\nWhenever a creature an opponent controls dies, Gimli deals 1 damage to that creature's controller.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/2/8/28b41c48-0715-49d9-98e5-e82b706da816.jpg?1783916283",
+          "scryfallUrl": "https://scryfall.com/card/ltr/129/gimli-counter-of-kills?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "The Lord of the Rings: Tales of Middle-earth",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.23",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "da62b97e-e4cd-462d-9ab9-2230ca360c32",
+          "name": "Subira, Tulzidi Caravanner",
+          "manaCost": "{2}{R}",
+          "typeLine": "Legendary Creature — Human Shaman",
+          "oracleText": "Haste\n{1}: Another target creature with power 2 or less can't be blocked this turn.\n{1}{R}, {T}, Discard your hand: Until end of turn, whenever a creature you control with power 2 or less deals combat damage to a player, draw a card.",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/d/a/da62b97e-e4cd-462d-9ab9-2230ca360c32.jpg?1783915640",
+          "scryfallUrl": "https://scryfall.com/card/cmm/261/subira-tulzidi-caravanner?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.24",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "396f9198-67b6-45d8-91b4-dc853bff9623",
+          "name": "Abdel Adrian, Gorion's Ward",
+          "manaCost": "{4}{W}",
+          "typeLine": "Legendary Creature — Human Warrior",
+          "oracleText": "When Abdel Adrian enters, exile any number of other nonland permanents you control until Abdel Adrian leaves the battlefield. Create a 1/1 white Soldier creature token for each permanent exiled this way.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/9/396f9198-67b6-45d8-91b4-dc853bff9623.jpg?1783922823",
+          "scryfallUrl": "https://scryfall.com/card/clb/2/abdel-adrian-gorions-ward?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.34",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "fc6eb9f3-0f7b-4623-806e-5e604a05d470",
+          "name": "Inspiring Leader",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"Creature tokens you control get +2/+2.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/c/fc6eb9f3-0f7b-4623-806e-5e604a05d470.jpg?1783922810",
+          "scryfallUrl": "https://scryfall.com/card/clb/28/inspiring-leader?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.36",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "8107fd21-7d34-44ce-afb8-920eab3b924e",
+          "name": "Slurrk, All-Ingesting",
+          "manaCost": "{5}{G}",
+          "typeLine": "Legendary Creature — Ooze",
+          "oracleText": "Slurrk enters with five +1/+1 counters on it.\nWhenever Slurrk or another creature you control dies, if it had a +1/+1 counter on it, put a +1/+1 counter on each creature you control that has a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/1/8107fd21-7d34-44ce-afb8-920eab3b924e.jpg?1783917134",
+          "scryfallUrl": "https://scryfall.com/card/moc/312/slurrk-all-ingesting?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "March of the Machine Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "a9ecbf55-1f85-4877-a1ea-bf0d90dd9979",
+          "name": "Keskit, the Flesh Sculptor",
+          "manaCost": "{2}{B}",
+          "typeLine": "Legendary Creature — Phyrexian Human Artificer",
+          "oracleText": "{T}, Sacrifice three other artifacts and/or creatures: Look at the top three cards of your library. Put two of them into your hand and the other into your graveyard.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/a/9/a9ecbf55-1f85-4877-a1ea-bf0d90dd9979.jpg?1783917159",
+          "scryfallUrl": "https://scryfall.com/card/moc/254/keskit-the-flesh-sculptor?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "March of the Machine Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "8bffc505-608e-4a5b-9ed9-2321e4cab484",
+          "name": "Colleen Wing, Street Samurai",
+          "manaCost": "{1}{W}",
+          "typeLine": "Legendary Creature — Human Samurai Hero",
+          "oracleText": "Whenever you cast a spell that targets a creature you control, put a +1/+1 counter on Colleen Wing. Scry 1. (Look at the top card of your library. You may put that card on the bottom.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/b/8bffc505-608e-4a5b-9ed9-2321e4cab484.jpg?1783902974",
+          "scryfallUrl": "https://scryfall.com/card/msh/13/colleen-wing-street-samurai?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.22",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "676ba521-66e4-42cf-a315-70d03cb7334e",
+          "name": "Kirol, History Buff // Pack a Punch",
+          "manaCost": "{R}{W} // {1}{R}{W}",
+          "typeLine": "Legendary Creature — Vampire Cleric // Sorcery",
+          "oracleText": "Whenever one or more cards leave your graveyard, Kirol becomes prepared. (While it's prepared, you may cast a copy of its spell. Doing so unprepares it.)",
+          "colorIdentity": [
+            "R",
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/6/7/676ba521-66e4-42cf-a315-70d03cb7334e.jpg?1783903642",
+          "scryfallUrl": "https://scryfall.com/card/sos/198/kirol-history-buff-pack-a-punch?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Secrets of Strixhaven",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.16",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "334bc010-5b60-4075-be12-0b36f41f32c6",
+          "name": "Sivriss, Nightmare Speaker",
+          "manaCost": "{3}{B}",
+          "typeLine": "Legendary Creature — Snake Cleric Warlock",
+          "oracleText": "{T}, Sacrifice another creature or an artifact: For each opponent, you mill a card, then return that card from your graveyard to your hand unless that player pays 3 life. (To mill a card, put the top card of your library into your graveyard.)\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/3/334bc010-5b60-4075-be12-0b36f41f32c6.jpg?1783922751",
+          "scryfallUrl": "https://scryfall.com/card/clb/148/sivriss-nightmare-speaker?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.08",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "cabc3688-2362-4757-a5be-087e577c4691",
+          "name": "Far Traveler",
+          "manaCost": "{2}{W}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, exile up to one target tapped creature you control, then return it to the battlefield under its owner's control.\"",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/c/a/cabc3688-2362-4757-a5be-087e577c4691.jpg?1783922815",
+          "scryfallUrl": "https://scryfall.com/card/clb/17/far-traveler?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.29",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "99450143-6ab5-463d-9e04-e8e6703a8b92",
+          "name": "Rydia, Summoner of Mist",
+          "manaCost": "{R}{G}",
+          "typeLine": "Legendary Creature — Human Shaman",
+          "oracleText": "Landfall — Whenever a land you control enters, you may discard a card. If you do, draw a card.\nSummon — {X}, {T}: Return target Saga card with mana value X from your graveyard to the battlefield with a finality counter on it. It gains haste until end of turn. Activate only as a sorcery.",
+          "colorIdentity": [
+            "G",
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/9/99450143-6ab5-463d-9e04-e8e6703a8b92.jpg?1783906564",
+          "scryfallUrl": "https://scryfall.com/card/fin/239/rydia-summoner-of-mist?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Final Fantasy",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.28",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "88f4aecc-b728-4960-8131-1e5aa6c3c030",
+          "name": "Rishkar, Peema Renegade",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Creature — Elf Druid",
+          "oracleText": "When Rishkar enters, put a +1/+1 counter on each of up to two target creatures.\nEach creature you control with a counter on it has \"{T}: Add {G}.\"",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/8/88f4aecc-b728-4960-8131-1e5aa6c3c030.jpg?1783915622",
+          "scryfallUrl": "https://scryfall.com/card/cmm/317/rishkar-peema-renegade?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.24",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "recipientId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "9a67cfaa-990c-4dcb-97a9-9c5d7316cabe",
+          "name": "Anara, Wolvid Familiar",
+          "manaCost": "{3}{G}",
+          "typeLine": "Legendary Creature — Wolf Beast",
+          "oracleText": "During your turn, commanders you control have indestructible. (Effects that say \"destroy\" don't destroy them. A creature with indestructible can't be destroyed by damage.)\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/9/a/9a67cfaa-990c-4dcb-97a9-9c5d7316cabe.jpg?1783928801",
+          "scryfallUrl": "https://scryfall.com/card/cmr/214/anara-wolvid-familiar?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.56",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "fc95324a-9a7f-4ed9-a3da-36a3eca91936",
+          "name": "Keleth, Sunmane Familiar",
+          "manaCost": "{1}{W}",
+          "typeLine": "Legendary Creature — Horse",
+          "oracleText": "Whenever a commander you control attacks, put a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "W"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/c/fc95324a-9a7f-4ed9-a3da-36a3eca91936.jpg?1783915720",
+          "scryfallUrl": "https://scryfall.com/card/cmm/33/keleth-sunmane-familiar?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Masters",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.19",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "7a216f42-7e6b-44c0-a394-3436dbcc2435",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "5cd87cf8-4d5d-4aba-8dfa-800b1fb3799b",
+          "name": "Dargo, the Shipwrecker",
+          "manaCost": "{6}{R}",
+          "typeLine": "Legendary Creature — Giant Pirate",
+          "oracleText": "As an additional cost to cast this spell, you may sacrifice any number of artifacts and/or creatures. This spell costs {2} less to cast for each permanent sacrificed this way and {2} less to cast for each other artifact or creature you've sacrificed this turn.\nTrample\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "R"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/5/c/5cd87cf8-4d5d-4aba-8dfa-800b1fb3799b.jpg?1783928817",
+          "scryfallUrl": "https://scryfall.com/card/cmr/172/dargo-the-shipwrecker?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.27",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "0409a15a-7cf6-43e5-958c-d23da4304f29",
+          "name": "Ich-Tekik, Salvage Splicer",
+          "manaCost": "{4}{G}",
+          "typeLine": "Legendary Creature — Phyrexian Human Artificer",
+          "oracleText": "When Ich-Tekik enters, create a 3/3 colorless Phyrexian Golem artifact creature token.\nWhenever an artifact is put into a graveyard from the battlefield, put a +1/+1 counter on Ich-Tekik and a +1/+1 counter on each Golem you control.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/0/4/0409a15a-7cf6-43e5-958c-d23da4304f29.jpg?1783928793",
+          "scryfallUrl": "https://scryfall.com/card/cmr/233/ich-tekik-salvage-splicer?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.31",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "e092684a-f6a7-4aea-a952-2a47ca739007",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "f5baee8d-88e7-4468-94a9-66ca8e2caf15",
+          "name": "Peregrin Took",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Creature — Halfling Citizen",
+          "oracleText": "If one or more tokens would be created under your control, those tokens plus an additional Food token are created instead. (It's an artifact with \"{2}, {T}, Sacrifice this token: You gain 3 life.\")\nSacrifice three Foods: Draw a card.",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/f/5/f5baee8d-88e7-4468-94a9-66ca8e2caf15.jpg?1783916263",
+          "scryfallUrl": "https://scryfall.com/card/ltr/181/peregrin-took?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "The Lord of the Rings: Tales of Middle-earth",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "1.61",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "bffbe7ab-fb19-4f61-ae71-9ebe63a758f3",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "4c45b36f-b879-417c-b284-0176990fb9f9",
+          "name": "Sachi, Daughter of Seshiro",
+          "manaCost": "{2}{G}{G}",
+          "typeLine": "Legendary Creature — Snake Shaman",
+          "oracleText": "Other Snake creatures you control get +0/+1.\nShamans you control have \"{T}: Add {G}{G}.\"",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/c/4c45b36f-b879-417c-b284-0176990fb9f9.jpg?1783944283",
+          "scryfallUrl": "https://scryfall.com/card/chk/238/sachi-daughter-of-seshiro?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Champions of Kamigawa",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.67",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "a43066d6-1714-401d-8af3-5965400c08d5",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "47c5948b-b021-4d07-8003-9c11db690bc0",
+          "name": "Nadier, Agent of the Duskenel",
+          "manaCost": "{5}{B}",
+          "typeLine": "Legendary Creature — Elf Warrior",
+          "oracleText": "Whenever a token you control leaves the battlefield, put a +1/+1 counter on Nadier.\nWhen Nadier leaves the battlefield, create a number of 1/1 green Elf Warrior creature tokens equal to its power.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "B"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/7/47c5948b-b021-4d07-8003-9c11db690bc0.jpg?1783928833",
+          "scryfallUrl": "https://scryfall.com/card/cmr/135/nadier-agent-of-the-duskenel?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "Commander Legends",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.33",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "8107fd21-7d34-44ce-afb8-920eab3b924e",
+          "name": "Slurrk, All-Ingesting",
+          "manaCost": "{5}{G}",
+          "typeLine": "Legendary Creature — Ooze",
+          "oracleText": "Slurrk enters with five +1/+1 counters on it.\nWhenever Slurrk or another creature you control dies, if it had a +1/+1 counter on it, put a +1/+1 counter on each creature you control that has a +1/+1 counter on it.\nPartner (You can have two commanders if both have partner.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/8/1/8107fd21-7d34-44ce-afb8-920eab3b924e.jpg?1783917134",
+          "scryfallUrl": "https://scryfall.com/card/moc/312/slurrk-all-ingesting?utm_source=api",
+          "hasPartner": true,
+          "pairingRole": "partner",
+          "setName": "March of the Machine Commander",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        }
+      }
+    },
+    {
+      "selectorId": "372eef22-3c25-4002-9dfe-50e84690a33e",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "355e7197-2f20-43b6-9305-73c4e1fd4a3c",
+          "name": "Iron Lad, Diverging Destiny",
+          "manaCost": "{2}{U}",
+          "typeLine": "Legendary Artifact Creature — Human Hero",
+          "oracleText": "Flying, vigilance\nYou may look at the top card of your library any time.\n{T}: Reveal the top card of your library. If it's an artifact card, draw a card.",
+          "colorIdentity": [
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/3/5/355e7197-2f20-43b6-9305-73c4e1fd4a3c.jpg?1783902957",
+          "scryfallUrl": "https://scryfall.com/card/msh/59/iron-lad-diverging-destiny?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.32",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "d3933986-d457-4216-9e48-e9a74cc60659",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "26faf2db-ad86-462f-b61f-c1893c9aebbf",
+          "name": "Ant-Man, Colony Commander",
+          "manaCost": "{1}{G}{U}",
+          "typeLine": "Legendary Creature — Human Rogue Hero",
+          "oracleText": "Whenever Ant-Man attacks, you may pay {1}. When you do, put a +1/+1 counter on target creature.\nWhenever you put a +1/+1 counter on a creature, create a 1/1 green Insect creature token. This ability triggers only once each turn.",
+          "colorIdentity": [
+            "G",
+            "U"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/2/6/26faf2db-ad86-462f-b61f-c1893c9aebbf.jpg?1783902906",
+          "scryfallUrl": "https://scryfall.com/card/msh/201/ant-man-colony-commander?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": null,
+          "setName": "Marvel Super Heroes",
+          "rarity": "uncommon",
+          "canPair": false,
+          "priceUsd": "0.22",
+          "priceIsFoil": false
+        },
+        "partner": null
+      }
+    },
+    {
+      "selectorId": "f4aae117-6195-478b-80c0-fcf36da0002c",
+      "recipientId": "114e3656-34cd-449f-8481-6bf26fb707fc",
+      "slot": 1,
+      "card": {
+        "commander": {
+          "id": "5e185e5c-b6f9-4d36-a6b1-d7315de38fca",
+          "name": "Halsin, Emerald Archdruid",
+          "manaCost": "{3}{G}",
+          "typeLine": "Legendary Creature — Elf Druid",
+          "oracleText": "{1}: Until end of turn, target token you control becomes a green Bear creature with base power and toughness 4/4 in addition to its other colors and types.\nChoose a Background (You can have a Background as a second commander.)",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/5/e/5e185e5c-b6f9-4d36-a6b1-d7315de38fca.jpg?1783922712",
+          "scryfallUrl": "https://scryfall.com/card/clb/234/halsin-emerald-archdruid?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "choose-background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.12",
+          "priceIsFoil": false
+        },
+        "partner": {
+          "id": "4bd8689d-a0c1-4041-bead-7b512fe25663",
+          "name": "Cloakwood Hermit",
+          "manaCost": "{2}{G}",
+          "typeLine": "Legendary Enchantment — Background",
+          "oracleText": "Commander creatures you own have \"At the beginning of your end step, if a creature card was put into your graveyard from anywhere this turn, create two tapped 1/1 green Squirrel creature tokens.\"",
+          "colorIdentity": [
+            "G"
+          ],
+          "imageUrl": "https://cards.scryfall.io/normal/front/4/b/4bd8689d-a0c1-4041-bead-7b512fe25663.jpg?1783922718",
+          "scryfallUrl": "https://scryfall.com/card/clb/221/cloakwood-hermit?utm_source=api",
+          "hasPartner": false,
+          "pairingRole": "background",
+          "setName": "Commander Legends: Battle for Baldur's Gate",
+          "rarity": "uncommon",
+          "canPair": true,
+          "priceUsd": "0.33",
+          "priceIsFoil": false
+        }
+      }
+    }
+  ],
+  "workspaces": {
+    "7a216f42-7e6b-44c0-a394-3436dbcc2435": {
+      "decklistUrl": "https://moxfield.com/decks/demo-elves-and-tokens",
+      "notes": "Leaning elves — cheap bodies, one big finisher.\nStill need a sweeper answer.\nBudget so far: about $48."
+    },
+    "a43066d6-1714-401d-8af3-5965400c08d5": {
+      "decklistUrl": "https://archidekt.com/decks/demo-artifact-storm",
+      "notes": "Artifact ramp into a big turn. Check the ban list before locking the commander."
+    }
+  }
 }

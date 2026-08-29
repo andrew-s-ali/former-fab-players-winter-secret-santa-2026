@@ -9,14 +9,75 @@ import {
   dedupeSignups,
   normalizeSignup,
   parseColorWord,
+  resolveSelfCards,
   signupsOpen,
+  type ParticipantInput,
   type SignupEntry,
 } from "./signup";
+import type { Commander } from "./scryfall/types";
+
+/** The fields every valid submission must carry. */
+const EMAIL = "ada@example.com";
+const REQUIRED = { email: EMAIL };
+const PICKS = { selfCard1: "Ada's First", selfCard2: "Ada's Second" };
+const PICKED = [
+  { commander: "Ada's First", partner: null },
+  { commander: "Ada's Second", partner: null },
+];
 
 function entry(name: string, submittedAt: string): SignupEntry {
   return {
-    input: { name, colorVeto: null, themeVeto: null, themeWish: null },
+    input: {
+      name,
+      email: "someone@example.com",
+      colorVeto: null,
+      themeVeto: null,
+      themeWish: null,
+      selfCards: [
+        { commander: "First", partner: null },
+        { commander: "Second", partner: null },
+      ],
+    },
     submittedAt,
+  };
+}
+
+function commander(
+  name: string,
+  colorIdentity: string[] = [],
+  id = name.toLowerCase().replace(/\W+/g, "-")
+): Commander {
+  return {
+    id,
+    name,
+    manaCost: "{1}{G}",
+    typeLine: "Legendary Creature — Elf",
+    oracleText: "",
+    colorIdentity,
+    imageUrl: null,
+    scryfallUrl: `https://scryfall.com/card/${id}`,
+    hasPartner: false,
+    setName: "Test Set",
+    rarity: "uncommon",
+    canPair: false,
+    priceUsd: "1.00",
+    priceIsFoil: false,
+    pairingRole: null,
+  };
+}
+
+function input(overrides: Partial<ParticipantInput> = {}): ParticipantInput {
+  return {
+    name: "Ada",
+    email: EMAIL,
+    colorVeto: null,
+    themeVeto: null,
+    themeWish: null,
+    selfCards: [
+      { commander: "Green One", partner: null },
+      { commander: "Blue One", partner: null },
+    ],
+    ...overrides,
   };
 }
 
@@ -52,25 +113,194 @@ describe("normalizeSignup", () => {
   it("normalises a full submission", () => {
     expect(
       normalizeSignup(
-        { name: " Ada ", colorVeto: "Red", themeWish: "elves", themeVeto: "mill" },
+        {
+          name: " Ada ",
+          ...REQUIRED,
+          colorVeto: "Red",
+          themeWish: "elves",
+          themeVeto: "mill",
+          selfCard1: "  Llanowar Elf  ",
+          selfCard2: "Deep Gnome",
+        },
         "test"
       )
-    ).toEqual({ name: "Ada", colorVeto: "R", themeVeto: "mill", themeWish: "elves" });
-  });
-
-  it("leaves every optional field null when the form was left empty", () => {
-    expect(normalizeSignup({ name: "Ada" }, "test")).toEqual({
+    ).toEqual({
       name: "Ada",
-      colorVeto: null,
-      themeVeto: null,
-      themeWish: null,
+      email: EMAIL,
+      colorVeto: "R",
+      themeVeto: "mill",
+      themeWish: "elves",
+      selfCards: [
+        { commander: "Llanowar Elf", partner: null },
+        { commander: "Deep Gnome", partner: null },
+      ],
     });
   });
 
+  it("leaves every optional field null when only the required ones are given", () => {
+    expect(normalizeSignup({ name: "Ada", ...REQUIRED, ...PICKS }, "test")).toEqual({
+      name: "Ada",
+      email: EMAIL,
+      colorVeto: null,
+      themeVeto: null,
+      themeWish: null,
+      selfCards: PICKED,
+    });
+  });
+
+  // Required, because a roster without addresses cannot be used to send the
+  // private links, which is the whole reason it is collected.
+  it("rejects a submission with no email, naming the person and the source", () => {
+    expect(() =>
+      normalizeSignup({ name: "Ada", ...PICKS }, "Row 4 of the CSV")
+    ).toThrow(/Row 4 of the CSV/);
+    expect(() => normalizeSignup({ name: "Ada", ...PICKS }, "test")).toThrow(/Ada/);
+  });
+
+  it("rejects something that is not shaped like an address", () => {
+    expect(() =>
+      normalizeSignup({ name: "Ada", email: "ada at example", ...PICKS }, "test")
+    ).toThrow(/not shaped like an email/);
+  });
+
+  it("trims the address", () => {
+    expect(
+      normalizeSignup({ name: "Ada", email: "  ada@example.com ", ...PICKS }, "test")
+        .email
+    ).toBe("ada@example.com");
+  });
+
   it("labels an empty name with where it came from", () => {
-    expect(() => normalizeSignup({ name: "  " }, "Row 4 of the CSV")).toThrow(
+    expect(() => normalizeSignup({ name: "  ", ...REQUIRED, ...PICKS }, "Row 4 of the CSV")).toThrow(
       /Row 4 of the CSV/
     );
+  });
+
+  // The two card picks are not preferences the organiser can shrug off: a
+  // missing one leaves a pool two cards short, which only shows up much later
+  // as an exchange that will not unlock.
+  it("rejects a submission missing a card pick, naming the person and the source", () => {
+    expect(() =>
+      normalizeSignup({ name: "Ada", ...REQUIRED, selfCard1: "Only One" }, "Row 4 of the CSV")
+    ).toThrow(/Row 4 of the CSV/);
+    expect(() =>
+      normalizeSignup({ name: "Ada", ...REQUIRED, selfCard1: "Only One" }, "Row 4 of the CSV")
+    ).toThrow(/Ada/);
+  });
+
+  it("rejects two picks that share a card", () => {
+    expect(() =>
+      normalizeSignup(
+        { name: "Ada", ...REQUIRED, selfCard1: "Llanowar Elf", selfCard2: "llanowar elf" },
+        "test"
+      )
+    ).toThrow(/both of its picks/);
+  });
+
+  it("reads a partner alongside its commander", () => {
+    expect(
+      normalizeSignup(
+        {
+          name: "Ada",
+          ...REQUIRED,
+          selfCard1: "Alena",
+          selfCard1Partner: "Halana",
+          selfCard2: "Deep Gnome",
+        },
+        "test"
+      ).selfCards
+    ).toEqual([
+      { commander: "Alena", partner: "Halana" },
+      { commander: "Deep Gnome", partner: null },
+    ]);
+  });
+
+  // Overlap, not just exact repetition: the same commander under two pairings
+  // would make a four-option shortlist read as two.
+  it("rejects picks that share only a partner", () => {
+    expect(() =>
+      normalizeSignup(
+        {
+          name: "Ada",
+          ...REQUIRED,
+          selfCard1: "Alena",
+          selfCard1Partner: "Halana",
+          selfCard2: "Kediss",
+          selfCard2Partner: "halana",
+        },
+        "test"
+      )
+    ).toThrow(/both of its picks/);
+  });
+});
+
+describe("resolveSelfCards", () => {
+  const pool = [
+    commander("Green One", ["G"]),
+    commander("Blue One", ["U"]),
+    commander("Zada, Hedron Grinder", ["R"]),
+  ];
+
+  it("resolves names to pool cards, case-insensitively", () => {
+    expect(
+      resolveSelfCards(
+        input({
+          selfCards: [
+            { commander: "green one", partner: null },
+            { commander: "BLUE ONE", partner: null },
+          ],
+        }),
+        pool
+      )
+    ).toEqual([
+      { commander: pool[0], partner: null },
+      { commander: pool[1], partner: null },
+    ]);
+  });
+
+  it("rejects a name that is not in the pool", () => {
+    expect(() =>
+      resolveSelfCards(
+        input({
+          selfCards: [
+            { commander: "Green One", partner: null },
+            { commander: "Made Up", partner: null },
+          ],
+        }),
+        pool
+      )
+    ).toThrow(/Made Up/);
+  });
+
+  // Reachable without any bad faith: the form lets you pick a card and then
+  // change the veto underneath it.
+  it("rejects a pick carrying the person's own vetoed colour", () => {
+    expect(() =>
+      resolveSelfCards(
+        input({
+          colorVeto: "G",
+          selfCards: [
+            { commander: "Green One", partner: null },
+            { commander: "Blue One", partner: null },
+          ],
+        }),
+        pool
+      )
+    ).toThrow(/Green One/);
+  });
+
+  it("rejects a banned commander", () => {
+    expect(() =>
+      resolveSelfCards(
+        input({
+          selfCards: [
+            { commander: "Zada, Hedron Grinder", partner: null },
+            { commander: "Blue One", partner: null },
+          ],
+        }),
+        pool
+      )
+    ).toThrow(/Zada/);
   });
 });
 
@@ -93,11 +323,11 @@ describe("dedupeSignups", () => {
 
   it("keeps the newest submission per name under --latest-wins", () => {
     const first: SignupEntry = {
-      input: { name: "Ada", colorVeto: "R", themeVeto: null, themeWish: null },
+      input: input({ colorVeto: "R" }),
       submittedAt: "2026-09-01",
     };
     const second: SignupEntry = {
-      input: { name: "Ada", colorVeto: "G", themeVeto: null, themeWish: null },
+      input: input({ colorVeto: "G" }),
       submittedAt: "2026-09-02",
     };
 
@@ -110,7 +340,7 @@ describe("dedupeSignups", () => {
 
   it("keeps the newest even when submissions arrive out of order", () => {
     const newer: SignupEntry = {
-      input: { name: "Ada", colorVeto: "G", themeVeto: null, themeWish: null },
+      input: input({ colorVeto: "G" }),
       submittedAt: "2026-09-05",
     };
 
@@ -119,6 +349,34 @@ describe("dedupeSignups", () => {
       { latestWins: true }
     );
 
+    expect(inputs).toEqual([newer.input]);
+  });
+});
+
+describe("dedupeSignups carrying extra fields", () => {
+  // The database path attaches its already-resolved commanders to the entry.
+  // Without the generic it would have to re-implement this whole policy.
+  type WithCards = SignupEntry & { cards: string[] };
+
+  it("returns the winning entry, not just its input", () => {
+    const older: WithCards = {
+      input: input({ themeWish: "old" }),
+      submittedAt: "2026-09-01",
+      cards: ["a", "b"],
+    };
+    const newer: WithCards = {
+      input: input({ themeWish: "new" }),
+      submittedAt: "2026-09-04",
+      cards: ["c", "d"],
+    };
+
+    const { entries, inputs } = dedupeSignups<WithCards>([older, newer], {
+      latestWins: true,
+    });
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].cards).toEqual(["c", "d"]);
+    // `inputs` stays the same list, projected, so the CSV path is unchanged.
     expect(inputs).toEqual([newer.input]);
   });
 });

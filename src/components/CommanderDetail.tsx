@@ -1,5 +1,6 @@
 "use client";
 
+import { CardImage } from "@/components/CardImage";
 import type { Commander } from "@/lib/scryfall/types";
 
 export function edhrecSlug(name: string): string {
@@ -38,8 +39,8 @@ export function CommanderDetail({
       <div className="flex flex-wrap gap-4">
         {card.imageUrl ? (
           // Scryfall images are external and deliberately unoptimised.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img alt={card.name} className="w-56 rounded-xl" src={card.imageUrl} />
+           
+          <CardImage alt={card.name} className="w-56 rounded-xl" src={card.imageUrl} />
         ) : null}
 
         <div className="min-w-48 flex-1 space-y-2">
