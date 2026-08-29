@@ -40,6 +40,7 @@ export default defineConfig({
       // unit tests in src/lib/signup.test.ts. tests/e2e/home.spec.ts reads the
       // same constant to work out which home page it should be looking at.
       SIGNUPS_NOW: E2E_NOW,
+      CARD_SELECTIONS_DISABLED: "1",
     },
   },
 });

@@ -8,10 +8,11 @@ Feature-complete, and currently **pre-launch**: the home page is a splash page
 until the organiser opens registration (see *Before launch* below). Behind it,
 the site takes sign-ups through Netlify Forms, provides a
 filterable commander browser, runs the draw from those sign-ups (or a CSV export),
-serves each participant a secret reveal page with their assignment,
+collects private commander nominations, serves each participant a locked three-card
+shortlist with a one-time hidden-card trade,
 and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
 palette with reduced-motion snowfall, local private scratchpads, interactive deck prompts,
-demo preview routes, and an Identity-gated organiser console. 278 unit tests,
+demo preview routes, and an Identity-gated organiser console. 283 unit tests,
 20 Playwright E2E tests, and lint/typecheck/build are all clean.
 
 See:
@@ -30,6 +31,7 @@ See:
 | Unit tests | Vitest + Testing Library (jsdom)              |
 | E2E tests  | Playwright (Chromium)                         |
 | Hosting    | Netlify (zero-config Next.js runtime)         |
+| Data       | Netlify Blobs + Netlify Database (Postgres)   |
 
 ## Getting started
 
@@ -62,6 +64,7 @@ CI runs lint → typecheck → unit → E2E on every push and pull request.
 
 ```
 src/app/        routes and layouts (App Router: /, /signup, /commanders, /s/[token], /reveal, /admin/**, /demo/**)
+db/             Drizzle schema for persistent card picks and secret shortlists
 src/components/ React components (SplashPage, EventHome, CommanderBrowser, RevealRing, Countdown, Snowfall, etc.)
 src/lib/        framework-free logic; unit-tested (draw, ring, filtering, countdown, launch gate, Scryfall, store)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
@@ -189,11 +192,15 @@ Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - an empty name (names the offending CSV row), and
 - two participants sharing a name, case-insensitively (names both). Names must be unique because `update-participant` looks people up by name, not row number.
 
-On success it prints one `name<TAB>url` line per participant, followed by a warning that anyone holding a link can read that assignment. **Treat that whole block as sensitive** — don't paste it into a shared channel, ticket, or chat; copy individual lines out to send privately instead.
+On success it prints one `name<TAB>url` line per participant. **Treat that whole block as sensitive** — don't paste it into a shared channel, ticket, or chat; copy individual lines out to send privately instead.
 
 ### 4. Distribute Links
 
-Send each person their own link (`https://<site>.netlify.app/s/<token>`). Anyone holding a link can read that assignment, so send them privately.
+Send each person their own link (`https://<site>.netlify.app/s/<token>`). The link first opens a private card workshop, but it reveals the assignment once every participant has finished, so send it privately.
+
+Each participant saves two commanders for themselves and one commander for every other participant. The app excludes each recipient's vetoed colour on both the search endpoint and the save action. When every required slot is filled, the submissions lock automatically. Duplicate recommendations are allowed while choosing, but the exchange does not unlock until every assigned recipient has at least four unique eligible cards after excluding their deck builder's own recommendation.
+
+Once unlocked, each deck builder receives a stable random set of four cards drawn from their recipient's two self-picks plus recommendations from everyone except the deck builder. Three cards are shown. The fourth remains server-side and hidden until the participant permanently trades one visible card for it; that cash-in can only succeed once.
 
 ### 5. Participant Edits (Post-Draw)
 
@@ -311,7 +318,7 @@ an organiser acting on the wrong browser tab.
 
 ## Deploying
 
-`netlify.toml` pins the build command (`npm run build`), publish directory (`.next`), and Node version (22). Netlify installs its Next.js runtime automatically — no adapter package needed. The site uses Netlify Blobs (`secret-santa` store) provisioned automatically per-site.
+`netlify.toml` pins the build command (`npm run build`), publish directory (`.next`), and Node version (22). Netlify installs its Next.js runtime automatically — no adapter package needed. Assignment data remains in the Netlify Blobs `secret-santa` store. Card submissions and immutable shortlists use Netlify Database through Drizzle; migrations in `netlify/database/migrations/` are applied automatically during deploy.
 
 The Netlify CLI is **not** a project dependency (due to an OpenTelemetry dependency conflict with Vitest 4). Run it via `npx` or install it globally:
 

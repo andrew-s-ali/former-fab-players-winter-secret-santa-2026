@@ -17,9 +17,11 @@ export function edhrecSlug(name: string): string {
 export function CommanderDetail({
   card,
   onClose,
+  primaryAction,
 }: {
   card: Commander;
   onClose: () => void;
+  primaryAction?: { label: string; onClick: () => void; disabled?: boolean };
 }) {
   return (
     <div
@@ -60,6 +62,16 @@ export function CommanderDetail({
             ) : null}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
+            {primaryAction ? (
+              <button
+                className="rounded-lg bg-sky-200 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
+                disabled={primaryAction.disabled}
+                onClick={primaryAction.onClick}
+                type="button"
+              >
+                {primaryAction.label}
+              </button>
+            ) : null}
             <a
               aria-label="View on Scryfall (opens in a new tab)"
               className="text-sm underline"
@@ -93,4 +105,3 @@ export function CommanderDetail({
     </div>
   );
 }
-

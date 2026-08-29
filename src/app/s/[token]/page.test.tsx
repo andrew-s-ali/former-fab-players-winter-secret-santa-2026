@@ -50,6 +50,7 @@ describe("RevealPage (/s/[token])", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("CARD_SELECTIONS_DISABLED", "1");
     vi.mocked(store.readEvent).mockResolvedValue(mockEvent);
     vi.stubGlobal(
       "fetch",
@@ -82,6 +83,7 @@ describe("RevealPage (/s/[token])", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
