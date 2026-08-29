@@ -28,10 +28,16 @@ export function CommanderBrowser({
   lockedExclude,
   lockedReason,
   initialPrompt,
+  onChoose,
+  actionLabel,
+  savedCardIds = [],
 }: {
   lockedExclude: ColorCode | null;
   lockedReason?: string;
   initialPrompt?: ThemePromptItem;
+  onChoose?: (card: Commander) => Promise<void>;
+  actionLabel?: string;
+  savedCardIds?: string[];
 }) {
   const lockedReasonId = useId();
   const [commanders, setCommanders] = useState<Commander[] | null>(null);
@@ -47,6 +53,8 @@ export function CommanderBrowser({
   const [pairsOnly, setPairsOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [chooseError, setChooseError] = useState<string | null>(null);
 
   // Search refetches per keystroke, so responses can land out of order.
   // Only the newest request is allowed to write state.
@@ -115,6 +123,16 @@ export function CommanderBrowser({
     setColors((current) =>
       current.includes(code) ? current.filter((c) => c !== code) : [...current, code]
     );
+  }
+
+  function chooseSelected() {
+    if (!selected || !onChoose) return;
+    setChoosing(true);
+    setChooseError(null);
+    void onChoose(selected)
+      .then(() => setSelected(null))
+      .catch(() => setChooseError("Couldn't save that card. Try again."))
+      .finally(() => setChoosing(false));
   }
 
   return (
@@ -200,8 +218,18 @@ export function CommanderBrowser({
         </p>
       ) : null}
 
+      {chooseError ? <p className="text-red-500" role="alert">{chooseError}</p> : null}
+
       {selected ? (
-        <CommanderDetail card={selected} onClose={() => setSelected(null)} />
+        <CommanderDetail
+          card={selected}
+          onClose={() => setSelected(null)}
+          primaryAction={onChoose ? {
+            label: choosing ? "Saving…" : actionLabel ?? "Save this card",
+            onClick: chooseSelected,
+            disabled: choosing || savedCardIds.includes(selected.id),
+          } : undefined}
+        />
       ) : null}
 
       {commanders && commanders.length === 0 ? (
@@ -224,7 +252,9 @@ export function CommanderBrowser({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img alt="" className="w-full rounded-lg" src={card.imageUrl} />
               ) : null}
-              <span className="mt-1 block text-sm">{card.name}</span>
+              <span className="mt-1 block text-sm">
+                {card.name}{savedCardIds.includes(card.id) ? " — saved" : ""}
+              </span>
             </button>
           </li>
         ))}
