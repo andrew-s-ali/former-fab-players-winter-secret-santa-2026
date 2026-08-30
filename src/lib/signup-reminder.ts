@@ -122,11 +122,11 @@ export function reminderMessage(
       // Mind the spaces at these joins: adjacent template strings concatenate
       // with nothing between them, so a line ending mid-sentence needs its own
       // trailing space or the words run together.
-      `Following having feedback from _most_ members I have kept a similar ` +
-      `style of selecting format, but also have a these this time.\n\n` +
-      `The theme is **Uncommon Legendaries Only**\n\n` +
-      `Find more _updated_ rules on the site, and let's use this site as our ` +
-      `event portal. ` +
+      `Following having feedback from **_most_** members, I have kept a similar ` +
+      `style of selecting format, but also with a theme this time.\n\n` +
+      `The theme is **Uncommon Commanders Only**\n\n` +
+      `Find more _updated_ rules on the site, including budget and clarity ` +
+      `on what this means and let's use this site as our event portal. ` +
       // `deadline` already reads "midnight on 8 September 2026", so "closes"
       // rather than "closes on".
       `Signups closes at ${deadline} (US Eastern).${soFar}${signUp}`
