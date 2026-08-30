@@ -16,17 +16,27 @@ export function eventTitle(): string {
 }
 
 /**
- * Registration opens at the start of this day (UTC).
+ * When registration opens.
  *
  * Until then the home page is a splash page: the event is teased, but nothing
- * is on offer yet. Set this to the day you want to open sign-ups — e.g.
- * `export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";` — and the home
- * page switches itself over on the day, with no redeploy needed.
+ * is on offer yet. The home page is rendered per request, so once this is
+ * deployed the switch happens on its own — **but setting it is a code change
+ * and does need a deploy.**
  *
- * `null` means "not announced yet": the splash page stays up and says
- * "soon" instead of counting down.
+ * Two accepted forms:
+ *   - `"2026-09-01"` — the start of that day in **UTC**.
+ *   - `"2026-09-01T04:00:00Z"` — that exact instant.
+ *
+ * This is the second form because the group is US Eastern and wanted local
+ * midnight. September is EDT (UTC-4), so midnight in New York is 04:00 UTC;
+ * the bare-date form would have opened the site at 8pm on 31 August. If this
+ * is ever moved to a date outside daylight saving, EST is UTC-5 and the
+ * equivalent instant is `T05:00:00Z`.
+ *
+ * `null` means "not announced yet": the splash page stays up and says "soon"
+ * instead of counting down.
  */
-export const SIGNUPS_OPEN_AT: string | null = null;
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";
 
 /** Sign-ups close at the end of this day. */
 export const SIGNUPS_CLOSE_AT = "2026-09-17";

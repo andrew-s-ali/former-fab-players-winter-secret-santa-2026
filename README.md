@@ -4,8 +4,9 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
 ## Status
 
-Feature-complete, and currently **pre-launch**: the home page is a splash page
-until the organiser opens registration (see *Before launch* below). Behind it,
+Feature-complete, and **launching at midnight US Eastern on 1 September 2026**:
+until then the home page is a splash page counting down (see *Before launch*
+below). Behind it,
 the site takes sign-ups through Netlify Forms, provides a filterable commander
 browser, takes each person's own two pool commanders — either of which may be a
 **partner pair** — on the sign-up form itself, runs the draw from those sign-ups
@@ -118,18 +119,26 @@ no ban list, no sign-up link and no links onward at all**: it introduces the
 event, and everything else waits. That means the URL can be shared, bookmarked
 and posted well ahead of time.
 
-To open the event, set the date in `src/lib/event.ts`:
+The switch-over is set in `src/lib/event.ts`, and takes one of two forms:
 
 ```ts
-export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";            // 00:00 UTC
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";  // an exact instant
 ```
 
-- `null` (the default) keeps the splash up indefinitely and says "sign-ups open
-  soon" rather than counting down. It is also the fail-safe: a missing date
-  never opens the event by accident.
-- A date swaps the splash for the real home page — rules, ban list, sign-up
-  link, commander browser — at the start of that day, UTC. `/` is rendered per
-  request, so **the switch needs no redeploy**; it happens on the day.
+- `null` keeps the splash up indefinitely and says "sign-ups open soon" rather
+  than counting down. It is the fail-safe: a missing date never opens the event
+  by accident.
+- A **bare date** opens at the start of that day **in UTC**. Watch this if the
+  group is not on UTC: `"2026-09-01"` goes live at 8pm Eastern on 31 August.
+- A **full ISO instant** opens at exactly that moment, which is how to hit
+  local midnight. The value in the repo today is `"2026-09-01T04:00:00Z"` —
+  midnight in New York, September being EDT (UTC-4). Outside daylight saving,
+  EST is UTC-5 and the equivalent is `T05:00:00Z`.
+
+Either way `/` is rendered per request, so **the switch itself needs no
+redeploy** — it happens on its own. **Setting or changing the value is a code
+change and does need one**, so deploy it before the day, not on it.
 
 The rest of the site is *not* behind this gate. `/signup`, `/commanders` and
 `/demo` all keep working for anyone with a direct link, and `/signup` accepts
@@ -142,7 +151,7 @@ if you want sign-ups gated on the same date too.
 
 ### 1. Schedule & Configuration
 
-- **Sign-ups open:** not announced (`SIGNUPS_OPEN_AT = null` in `src/lib/event.ts` — see step 0).
+- **Sign-ups open:** 1 September 2026 at midnight US Eastern (`SIGNUPS_OPEN_AT = "2026-09-01T04:00:00Z"` in `src/lib/event.ts` — see step 0).
 - **Sign-ups close:** 17 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-17"` in `src/lib/event.ts`).
 - **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
