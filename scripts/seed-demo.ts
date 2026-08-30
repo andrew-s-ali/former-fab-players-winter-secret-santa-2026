@@ -139,7 +139,6 @@ function buildSelections(
       return {
         selectorId: selector.id,
         recipientId: recipient.id,
-        slot: 1,
         card: pick,
       };
     });

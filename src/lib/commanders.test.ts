@@ -122,15 +122,37 @@ describe("legalCommanders colour and text filters", () => {
     expect(names).toEqual(["Grave Titan"]);
   });
 
-  it("keeps only pairable commanders when asked", () => {
+  it("keeps only commanders that can take a partner when asked", () => {
     const mixed = [
-      { ...make("Pairs, the Willing", ["G"]), canPair: true },
-      { ...make("Solo, the Lonely", ["G"]), canPair: false },
+      { ...make("Pairs, the Willing", ["G"]), pairingRole: "partner" as const },
+      { ...make("Chooser, the Host", ["G"]), pairingRole: "choose-background" as const },
+      { ...make("Solo, the Lonely", ["G"]), pairingRole: null },
+      // A Background pairs, but it is the second half — never the card you
+      // start from — so it is not what this filter is asking for.
+      { ...make("A Background", ["G"]), pairingRole: "background" as const },
     ];
 
     const names = legalCommanders(mixed, { pairsOnly: true }).map((c) => c.name);
 
-    expect(names).toEqual(["Pairs, the Willing"]);
+    expect(names).toEqual(["Pairs, the Willing", "Chooser, the Host"]);
+  });
+
+  // A Background cannot lead a deck, so nothing that offers a commander should
+  // list one. Callers opt out only if they specifically want the partner half —
+  // /api/commanders/names does, because one response feeds both the commander
+  // list and the partner list, and filtering there left "Choose a Background"
+  // commanders with nothing to pair with.
+  it("drops Backgrounds unless primaryOnly is turned off", () => {
+    const mixed = [
+      { ...make("Real Commander", ["G"]), pairingRole: null },
+      { ...make("A Background", ["G"]), pairingRole: "background" as const },
+    ];
+
+    expect(legalCommanders(mixed, {}).map((c) => c.name)).toEqual(["Real Commander"]);
+    expect(legalCommanders(mixed, { primaryOnly: false }).map((c) => c.name)).toEqual([
+      "Real Commander",
+      "A Background",
+    ]);
   });
 
   it("ignores the pairable filter when it is off", () => {

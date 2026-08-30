@@ -55,7 +55,6 @@ function completeRows(): SavedSelection[] {
       .map((recipient) => ({
         selectorId: selector.id,
         recipientId: recipient.id,
-        slot: 1,
         card: soloPick(card(`${selector.id}-${recipient.id}`)),
       }))
   );
@@ -83,7 +82,7 @@ describe("card selection rules", () => {
   it("ignores a self row left in the table by an earlier version", () => {
     const rows = [
       ...completeRows(),
-      { selectorId: "b", recipientId: "b", slot: 1, card: soloPick(card("stale")) },
+      { selectorId: "b", recipientId: "b", card: soloPick(card("stale")) },
     ];
 
     expect(selectionsAreReady(rows, participants)).toBe(true);
@@ -130,7 +129,6 @@ describe("card selection rules", () => {
         .map((recipient) => ({
           selectorId: selector.id,
           recipientId: recipient.id,
-          slot: 1,
           card: soloPick(card(`${selector.id}-${recipient.id}`)),
         }))
     );

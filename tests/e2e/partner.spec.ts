@@ -62,3 +62,20 @@ test("Backgrounds are not offered as standalone commanders", async ({ page }) =>
   await expect(listbox).toBeVisible();
   await expect(listbox.getByRole("option", { name: "Street Urchin" })).toHaveCount(0);
 });
+
+// One response feeds both the commander list and the partner list. Filtering
+// Backgrounds out of it leaves "Choose a Background" commanders unpairable —
+// which is exactly what happened once.
+test("the name list keeps Backgrounds so partners can be offered", async ({ request }) => {
+  const response = await request.get("/api/commanders/names");
+  expect(response.status()).toBe(200);
+
+  const { commanders } = (await response.json()) as {
+    commanders: { pairingRole: string | null }[];
+  };
+  const roles = commanders.map((c) => c.pairingRole);
+
+  expect(roles).toContain("background");
+  expect(roles).toContain("choose-background");
+  expect(roles).toContain("partner");
+});

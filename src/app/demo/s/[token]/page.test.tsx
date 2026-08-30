@@ -78,10 +78,10 @@ describe("DemoTokenPage", () => {
    * what `pickSecretCards` requires.
    */
   const mockSelections = [
-    { selectorId: "demo-3", recipientId: "demo-2", slot: 1, card: soloPick(testCommander("from-charlie")) },
-    { selectorId: "demo-4", recipientId: "demo-2", slot: 1, card: soloPick(testCommander("from-dana")) },
+    { selectorId: "demo-3", recipientId: "demo-2", card: soloPick(testCommander("from-charlie")) },
+    { selectorId: "demo-4", recipientId: "demo-2", card: soloPick(testCommander("from-dana")) },
     // Alice's own pick for Bob, which must never come back to her.
-    { selectorId: "demo-1", recipientId: "demo-2", slot: 1, card: soloPick(testCommander("from-alice")) },
+    { selectorId: "demo-1", recipientId: "demo-2", card: soloPick(testCommander("from-alice")) },
   ];
 
   beforeEach(() => {

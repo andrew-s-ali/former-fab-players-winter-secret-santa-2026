@@ -18,7 +18,14 @@ import { fetchCommanderPool } from "@/lib/scryfall/pool";
  */
 export async function GET() {
   const pool = await fetchCommanderPool();
-  const commanders = toCommanderOptions(legalCommanders(pool, {}));
+  // Backgrounds are kept in deliberately: this one response feeds both the
+  // commander list and the partner list, and a Background is the second half
+  // of a pairing. The client drops them from the primary list with
+  // `canBePrimary` — filtering here would leave "Choose a Background"
+  // commanders with nothing to pair with.
+  const commanders = toCommanderOptions(
+    legalCommanders(pool, { primaryOnly: false })
+  );
 
   return NextResponse.json(
     { commanders },

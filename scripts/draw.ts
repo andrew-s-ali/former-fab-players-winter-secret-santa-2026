@@ -19,6 +19,11 @@ import { mintToken } from "#lib/tokens";
 import { readSignups, type StoredSignup } from "#lib/signups";
 import { parseCsv, toParticipantInputs } from "#scripts/csv";
 import { fetchSubmissions, toSignupEntries } from "#scripts/netlify-forms";
+import {
+  describeReconciliation,
+  isClean,
+  reconcileSignups,
+} from "#scripts/reconcile";
 
 /** Crypto-backed float in [0, 1) — the spec requires the real draw not use Math.random. */
 const cryptoRng = () => randomInt(2 ** 30) / 2 ** 30;
@@ -26,6 +31,7 @@ const cryptoRng = () => randomInt(2 ** 30) / 2 ** 30;
 const USAGE =
   "Usage:\n" +
   "  npm run draw                        [--latest-wins] [--force]   (database)\n" +
+  "        [--ignore-unrecorded]  draw even though sign-ups are missing rows\n" +
   "  npm run draw -- <responses.csv>                     [--force]\n" +
   "  npm run draw -- --from=netlify-forms [--latest-wins] [--force]";
 
@@ -42,9 +48,14 @@ type DrawInput = { input: ParticipantInput; cards: [CommanderPick, CommanderPick
  * Needs `NETLIFY_DB_URL`; it is a read, so a missing or wrong one fails the
  * run before anything is written.
  */
-async function fromDatabase(latestWins: boolean): Promise<DrawInput[]> {
+async function fromDatabase(
+  latestWins: boolean,
+  ignoreUnrecorded: boolean
+): Promise<DrawInput[]> {
   const stored = await readSignups();
   console.log(`Read ${stored.length} sign-up(s) from the database.`);
+
+  await checkAgainstForms(stored, ignoreUnrecorded);
 
   const { entries, superseded } = dedupeSignups<StoredSignup>(stored, { latestWins });
   for (const note of superseded) {
@@ -52,6 +63,77 @@ async function fromDatabase(latestWins: boolean): Promise<DrawInput[]> {
   }
 
   return entries.map((entry) => ({ input: entry.input, cards: entry.cards }));
+}
+
+/**
+ * Compares the rows against Netlify Forms before drawing.
+ *
+ * The draw is the irreversible step: re-running it reshuffles everyone and
+ * invalidates every link already sent. So a sign-up that never reached the
+ * database **stops** the run rather than warning, because carrying on writes
+ * a ring that is permanently short a person. Spam only warns — whether those
+ * are real people is a judgement the organiser has to make in the Netlify UI.
+ */
+async function checkAgainstForms(
+  stored: StoredSignup[],
+  ignoreUnrecorded: boolean
+): Promise<void> {
+  const siteId = process.env.NETLIFY_SITE_ID;
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+
+  if (!siteId || !token) {
+    // Loud rather than silent: the whole point of this check is that the
+    // failures it catches leave no other trace.
+    console.warn(
+      "\n⚠  Skipping the Netlify Forms cross-check — NETLIFY_SITE_ID and " +
+        "NETLIFY_AUTH_TOKEN are not both set.\n" +
+        "   Sign-ups held back as spam, or dropped by a failing " +
+        "signup-submitted, cannot be detected without them.\n"
+    );
+    return;
+  }
+
+  let report;
+  try {
+    const [verified, spam] = await Promise.all([
+      fetchSubmissions(siteId, token),
+      fetchSubmissions(siteId, token, { state: "spam" }),
+    ]);
+    report = reconcileSignups({
+      verified,
+      spam,
+      storedNames: stored.map((entry) => entry.input.name),
+    });
+  } catch (error) {
+    // A Forms API blip should not block a draw that is otherwise fine, but the
+    // organiser has to know the check did not happen.
+    console.warn(
+      `\n⚠  Could not reach Netlify Forms to cross-check the sign-ups ` +
+        `(${error instanceof Error ? error.message : String(error)}).\n` +
+        "   Missing or spam-flagged sign-ups cannot be detected. Re-run when " +
+        "the API is reachable if you want that assurance.\n"
+    );
+    return;
+  }
+
+  if (isClean(report)) {
+    console.log("Cross-checked against Netlify Forms: every submission is accounted for.");
+    return;
+  }
+
+  console.warn("");
+  for (const line of describeReconciliation(report)) {
+    console.warn(line);
+  }
+
+  if (report.unrecorded.length > 0 && !ignoreUnrecorded) {
+    throw new Error(
+      `Refusing to draw with ${report.unrecorded.length} sign-up(s) missing from ` +
+        "the database. Fix them — re-submit the form, or add them with the CSV " +
+        "path — then run the draw again. Pass --ignore-unrecorded to draw " +
+        "without them anyway."
+    );
+  }
 }
 
 /**
@@ -173,7 +255,10 @@ async function main() {
 
   let drawInputs: DrawInput[];
   if (useDatabase) {
-    drawInputs = await fromDatabase(flags.includes("--latest-wins"));
+    drawInputs = await fromDatabase(
+      flags.includes("--latest-wins"),
+      flags.includes("--ignore-unrecorded")
+    );
   } else {
     // The two import paths carry card *names*, so they still have to be
     // resolved here. Before anything is written: a bad name should fail the

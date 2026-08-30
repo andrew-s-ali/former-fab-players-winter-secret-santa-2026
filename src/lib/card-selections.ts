@@ -51,7 +51,6 @@ async function loadRelevantSelections(participants: Participant[]): Promise<Save
     .select({
       selectorId: cardSelections.selectorId,
       recipientId: cardSelections.recipientId,
-      slot: cardSelections.slot,
       card: cardSelections.card,
     })
     .from(cardSelections)
@@ -119,7 +118,6 @@ export async function saveSelection({
       .select({
         selectorId: cardSelections.selectorId,
         recipientId: cardSelections.recipientId,
-        slot: cardSelections.slot,
         card: cardSelections.card,
       })
       .from(cardSelections)
@@ -147,16 +145,11 @@ export async function saveSelection({
       .values({
         selectorId: selector.id,
         recipientId: recipient.id,
-        slot: 1,
         card,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
-        target: [
-          cardSelections.selectorId,
-          cardSelections.recipientId,
-          cardSelections.slot,
-        ],
+        target: [cardSelections.selectorId, cardSelections.recipientId],
         set: { card, updatedAt: new Date() },
       });
   });
@@ -165,12 +158,10 @@ export async function saveSelection({
 export async function removeSelection({
   selector,
   recipientId,
-  slot,
   participants,
 }: {
   selector: Participant;
   recipientId: string;
-  slot: number;
   participants: Participant[];
 }): Promise<void> {
   if (recipientId === selector.id) {
@@ -189,7 +180,6 @@ export async function removeSelection({
       .select({
         selectorId: cardSelections.selectorId,
         recipientId: cardSelections.recipientId,
-        slot: cardSelections.slot,
         card: cardSelections.card,
       })
       .from(cardSelections)
@@ -207,8 +197,7 @@ export async function removeSelection({
       .where(
         and(
           eq(cardSelections.selectorId, selector.id),
-          eq(cardSelections.recipientId, recipientId),
-          eq(cardSelections.slot, slot)
+          eq(cardSelections.recipientId, recipientId)
         )
       );
   });

@@ -276,6 +276,22 @@ Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - a missing card pick, or the same card picked twice, and
 - a card name that is not in the live pool, is banned, or carries that person's own vetoed colour. The draw fetches the pool and checks every pick **before writing anything**, and reports every bad pick in one go rather than dying on the first — each one means going back to the person who submitted it.
 
+**The draw cross-checks Netlify Forms against the database before it runs.**
+Two things can silently swallow a real sign-up: Akismet flags it into the spam
+list, or `signup-submitted` throws and no row is ever written. Either way the
+submitter sees success and the person is simply absent — the draw succeeds and
+the ring is quietly one short. `scripts/reconcile.ts` compares the two and:
+
+- **stops the draw** when a verified submission has no row, because the draw is
+  the irreversible step and carrying on writes a ring permanently missing
+  someone (`--ignore-unrecorded` overrides);
+- **warns** about anything in the spam list, since whether those are real people
+  is a judgement only the organiser can make;
+- **notes** rows with no verified submission behind them, and draws them anyway.
+
+Without `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` the check cannot run, and the
+draw says so loudly rather than passing in silence.
+
 The draw also refuses to run with fewer than **four** participants. A giver's
 shortlist is four unique cards from their recipient's pool minus their own
 contribution to it, which leaves exactly as many cards as there are
@@ -485,18 +501,22 @@ an organiser acting on the wrong browser tab.
 - **Reveal Ring Algorithm:**
   - `buildRing` (`src/lib/ring.ts`) verifies that the derangement forms a single complete cycle across all participants before constructing the stepped reveal sequence. If non-cycle or disconnected components are found, it fails loudly.
 - **What is and is not covered by the checks:**
-  - The Postgres paths — `src/lib/card-selections.ts`, `src/lib/signups.ts`,
-    `src/lib/deck-builds.ts` and the sign-up function — are **not exercised by
-    `npm test` or the E2E suite**, and never have been. The unit tests cover
-    their pure parts (shortlist selection, the content hash, decklist URL
-    validation); Playwright sets `CARD_SELECTIONS_DISABLED=1`, which routes
-    `/s/[token]` down a branch that touches no database at all. There is no
-    local Postgres in this repo, so the drizzle queries themselves first run on
-    a real deploy. Exercise them on a Deploy Preview, which gets its own
-    database branch, before trusting them in production.
-  - Likewise the `formSubmitted` handler: platform-event functions are invoked
-    by Netlify and cannot be triggered by `netlify dev`. Submit the form on a
-    Deploy Preview and check the function log.
+  - The Postgres paths **are** covered, by `*.integration.test.ts` files that
+    run against [PGlite](https://pglite.dev) — Postgres compiled to
+    WebAssembly, in-process, no container and no connection string. The
+    harness in `src/test-support/database.ts` applies the **real committed
+    migrations**, so a migration that does not apply cleanly fails in `npm test`
+    rather than on deploy. Tests mock `#db/index` onto it, so the code under
+    test is the real code: no injected client, no test-only branch in
+    production.
+  - What that does *not* prove: that the Netlify driver connects, that
+    `NETLIFY_DB_URL` is right, or that migrations run in the deploy pipeline.
+    Those still need a Deploy Preview.
+  - The `formSubmitted` handler is still uncovered: platform-event functions
+    are invoked by Netlify and cannot be triggered by `netlify dev`. Submit the
+    form on a Deploy Preview and check the function log — and note that the
+    draw now cross-checks Netlify Forms against the database precisely because
+    a failure there is otherwise silent (see *Draw and Mint Links*).
 
 - **Path Imports:**
   - `package.json`'s `"imports"` map (`#lib/*` → `src/lib/*.ts`, `#scripts/*` → `scripts/*.ts`) exists because Node's built-in TypeScript stripping (`node --experimental-strip-types`, used to run the scripts) won't resolve extensionless relative imports, while `tsc` rejects imports with an explicit `.ts` suffix.

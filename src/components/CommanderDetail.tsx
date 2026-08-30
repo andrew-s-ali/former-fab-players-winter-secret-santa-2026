@@ -1,7 +1,19 @@
 "use client";
 
 import { CardImage } from "@/components/CardImage";
-import type { Commander } from "@/lib/scryfall/types";
+import type { Commander, PairingRole } from "@/lib/scryfall/types";
+
+/**
+ * Says what kind of pairing a card offers, rather than just that it pairs.
+ *
+ * "Can pair" was true of a Background too, which reads as though you could
+ * lead a deck with one.
+ */
+const PAIRING_LABEL: Record<PairingRole, string> = {
+  partner: "Partner — pairs with another Partner",
+  "choose-background": "Choose a Background — pairs with a Background",
+  background: "Background — the second half of a pair, not a commander",
+};
 
 export function edhrecSlug(name: string): string {
   return name
@@ -47,9 +59,9 @@ export function CommanderDetail({
           <h3 className="text-lg font-semibold">{card.name}</h3>
           <p className="text-sm opacity-80">{card.manaCost}</p>
           <p className="text-sm">{card.typeLine}</p>
-          {card.canPair ? (
+          {card.pairingRole ? (
             <p className="inline-block rounded border px-2 py-0.5 text-xs">
-              Can pair with another commander
+              {PAIRING_LABEL[card.pairingRole]}
             </p>
           ) : null}
           <p className="whitespace-pre-line text-sm opacity-90">{card.oracleText}</p>

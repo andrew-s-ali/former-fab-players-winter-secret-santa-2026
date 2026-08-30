@@ -42,8 +42,8 @@ describe("DemoIndexPage", () => {
   };
 
   const mockSelections = [
-    { selectorId: "demo-1", recipientId: "demo-2", slot: 1, card: soloPick(testCommander("x")) },
-    { selectorId: "demo-2", recipientId: "demo-1", slot: 1, card: soloPick(testCommander("y")) },
+    { selectorId: "demo-1", recipientId: "demo-2", card: soloPick(testCommander("x")) },
+    { selectorId: "demo-2", recipientId: "demo-1", card: soloPick(testCommander("y")) },
   ];
 
   beforeEach(() => {
