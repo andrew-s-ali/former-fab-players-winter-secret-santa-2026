@@ -10,6 +10,7 @@ import {
 import { PickName } from "@/components/PickCards";
 import type { EventSummary, ExchangeVote, ParticipantPool } from "@/lib/admin";
 import { DiscordError, parseDiscordRef, willPing } from "@/lib/discord";
+import { eventTitle } from "@/lib/event";
 import { formatEventDate } from "@/lib/launch";
 import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
@@ -27,7 +28,7 @@ function mailtoStragglers(summary: EventSummary, nudge: NudgeStatus): string {
   const addresses = summary.participants
     .filter((p) => owing.has(p.name) && p.email !== "")
     .map((p) => encodeURIComponent(p.email));
-  const subject = encodeURIComponent("Secret Santa: your commander picks");
+  const subject = encodeURIComponent(`${eventTitle()}: your commander picks`);
   const body = encodeURIComponent(
     "Quick nudge — the exchange can't start until everyone has picked one " +
       "commander for every other player. Your private link is the one you " +

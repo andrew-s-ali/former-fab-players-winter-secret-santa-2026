@@ -6,7 +6,6 @@
  * elsewhere — see docs/superpowers/specs for what is still undecided.
  */
 export const EVENT = {
-  name: "Former Fab Players Winter Secret Santa",
   year: 2026,
 } as const;
 
@@ -21,9 +20,22 @@ export const EVENT = {
  */
 export const SITE_URL = "https://former-fab-players-winter-exchange-26.netlify.app";
 
-/** Display title, e.g. "Former Fab Players Winter Secret Santa 2026". */
+/**
+ * The event's name, everywhere it is named: the browser title, every heading,
+ * the reveal-day export and every Discord message.
+ *
+ * A function rather than a constant because the year sits in the *middle* of
+ * the name, so it cannot be assembled by appending `EVENT.year` to a prefix —
+ * and the year is still wanted on its own elsewhere.
+ *
+ * One place to change it, which is the point: this used to be spelled three
+ * different ways — "Former Fab Players Winter Secret Santa 2026" on the site,
+ * "Winter Secret Santa 2026" in the reveal export, and "Winter 2026 Exchange"
+ * in the bot — so somebody reading the announcement and then opening the site
+ * saw two different events.
+ */
 export function eventTitle(): string {
-  return `${EVENT.name} ${EVENT.year}`;
+  return `Winter Secret Santa ${EVENT.year} Exchange`;
 }
 
 /**

@@ -1,3 +1,5 @@
+import { eventTitle } from "#lib/event";
+
 /**
  * Posting to a Discord incoming webhook.
  *
@@ -73,7 +75,7 @@ export async function postToDiscord(
   webhookUrl: string,
   content: string,
   {
-    username = "Secret Santa",
+    username = eventTitle(),
     alertChannel = false,
   }: { username?: string; alertChannel?: boolean } = {}
 ): Promise<void> {

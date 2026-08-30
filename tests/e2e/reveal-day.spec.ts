@@ -36,7 +36,7 @@ test("stepping to the end closes the loop, shows confetti, and allows copying Di
     navigator.clipboard.readText()
   );
   expect(clipboardText).toContain(
-    "🎄 **Winter Secret Santa 2026 — Reveal Day Pairings** 🎁"
+    "🎄 **Winter Secret Santa 2026 Exchange — Reveal Day Pairings** 🎁"
   );
   expect(clipboardText).toContain("||Ada ➜ Bob||");
   expect(clipboardText).toContain("||Bob ➜ Cleo||");

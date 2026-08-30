@@ -109,7 +109,7 @@ describe("RevealDayPage", () => {
     render(jsx);
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /former fab players winter secret santa 2026/i })
+      screen.getByRole("heading", { level: 1, name: /winter secret santa 2026 exchange/i })
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { level: 2, name: /who had who/i })

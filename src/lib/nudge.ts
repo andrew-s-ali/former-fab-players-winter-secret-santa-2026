@@ -1,6 +1,6 @@
 import { requiredSelectionCount, type SavedSelection } from "#lib/card-pool";
 import { mentionFor } from "#lib/discord";
-import { WORKSHOP_CLOSE_AT } from "#lib/event";
+import { WORKSHOP_CLOSE_AT, eventTitle } from "#lib/event";
 import { formatDeadline } from "#lib/launch";
 import type { EventData } from "#lib/participants";
 
@@ -128,7 +128,7 @@ export function nudgeMessage(
   }
 
   const header =
-    `🎁 **Winter 2026 Exchange — commander picks**\n\n` +
+    `🎁 **${eventTitle()} — commander picks**\n\n` +
     `${status.picksIn} of ${status.picksRequired} picks are in. ` +
     `Waiting on ${status.outstanding.length} ` +
     `${status.outstanding.length === 1 ? "person" : "people"}:\n`;

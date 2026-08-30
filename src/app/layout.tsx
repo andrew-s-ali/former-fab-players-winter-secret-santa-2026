@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: eventTitle(),
-  description: "Secret Santa for the former Fab players, winter 2026.",
+  description: `${eventTitle()} — a Commander deck exchange for the former Fab players.`,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
