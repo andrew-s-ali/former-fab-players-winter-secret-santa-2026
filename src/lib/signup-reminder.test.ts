@@ -98,12 +98,15 @@ describe("reminderMessage", () => {
   const final = currentReminder(at("2026-09-07T12:00:00Z"), WINDOW)!;
   const base = { closesAt: WINDOW.closesAt, url: "https://santa.example.com" };
 
-  it("states the deadline as a time, not just a date", () => {
-    // "closes on 17 September" reads as "the 17th is your last day", and the
-    // deadline is the start of it.
-    expect(reminderMessage(opening, { ...base, signupCount: 3 })).toContain(
-      "midnight on 8 September 2026"
-    );
+  it("names the last day people can actually act, not the boundary date", () => {
+    // The deadline is midnight as the 8th begins. "Closes on 8 September"
+    // reads as "the 8th is your last day"; "midnight on 8 September" is
+    // correct but half the room hears "the night of the 8th". Naming Monday
+    // the 7th leaves nothing to interpret.
+    const message = reminderMessage(opening, { ...base, signupCount: 3 });
+
+    expect(message).toContain("the end of Monday, 7 September 2026");
+    expect(message).not.toContain("8 September");
   });
 
   it("links the home page, not /signup", () => {

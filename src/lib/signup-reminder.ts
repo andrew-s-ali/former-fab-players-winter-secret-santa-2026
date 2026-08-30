@@ -129,13 +129,13 @@ export function reminderMessage(
       `event portal. ` +
       // `deadline` already reads "midnight on 8 September 2026", so "closes"
       // rather than "closes on".
-      `Signups closes ${deadline} (US Eastern).${soFar}${signUp}`
+      `Signups closes at ${deadline} (US Eastern).${soFar}${signUp}`
     );
   }
 
   if (reminder.kind === "final") {
     return (
-      `@here ⏳ **Last chance — Winter 2026 Exchange sign-ups close ${deadline}.**\n\n` +
+      `@here ⏳ **Last chance — Winter 2026 Exchange sign-ups close at ${deadline}.**\n\n` +
       `After that the draw runs and the pool is fixed, so there is no adding ` +
       `people later.${soFar}${signUp}`
     );
@@ -143,7 +143,7 @@ export function reminderMessage(
 
   return (
     `🎁 **${reminder.daysLeft} days left to sign up for the Winter 2026 Exchange.**\n\n` +
-    `Closes ${deadline} (US Eastern).${soFar}${signUp}`
+    `Closes at ${deadline} (US Eastern).${soFar}${signUp}`
   );
 }
 

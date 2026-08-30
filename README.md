@@ -143,9 +143,11 @@ about what a configured date means. It is an instant today for a reason worth
 remembering: as a bare `"2026-09-17"` sign-ups shut at midnight **UTC**, which
 is 8pm Eastern on the *16th*, while `/signup` displayed "sign-ups close on 17
 September". Anyone signing up that evening was refused by a page that had just
-told them otherwise. `formatDeadline` now renders the closing moment as a time
-("midnight on 17 September 2026") rather than a bare date, because a date alone
-is genuinely ambiguous at a boundary.
+told them otherwise. `formatDeadline` renders a deadline by naming the **last day anybody can
+act** — "the end of Monday, 7 September 2026" — rather than the boundary date.
+A date alone is ambiguous at a boundary, and so is the obvious fix: "midnight
+on 8 September" is correct and half the room still hears "the night of the
+8th". The weekday is there because that is what people plan against.
 
 Either way `/` is rendered per request, so **the switch itself needs no
 redeploy** — it happens on its own. **Setting or changing the value is a code

@@ -33,8 +33,8 @@ export default function SignupPage() {
       {open ? (
         <>
           <p className="text-sm opacity-80">
-            Sign-ups close at {closingDate()} (US Eastern), so the last full
-            day is the one before. You need a name, an email, two commanders
+            Sign-ups close at {closingDate()} (US Eastern). You need a name,
+            an email, two commanders
             and an order of preference for the exchange dates; the theme boxes
             are optional — leave one empty if you have no strong feelings.
           </p>

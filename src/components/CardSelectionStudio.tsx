@@ -131,7 +131,7 @@ export function CardSelectionStudio({
             <p className="mt-2 text-sm opacity-75">
               Aim to be done by{" "}
               <strong>{formatDeadline(WORKSHOP_CLOSE_AT)}</strong>. Building
-              starts the next day, and nobody&rsquo;s deck can start until the
+              starts the day after, and nobody&rsquo;s deck can start until the
               last pick is in.
             </p>
           </div>

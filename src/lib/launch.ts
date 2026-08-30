@@ -65,12 +65,20 @@ export function formatEventDate(day: string): string {
 export const EVENT_TIME_ZONE = "America/New_York";
 
 /**
- * Renders a closing instant as "midnight on 17 September 2026".
+ * Renders a deadline as a phrase that reads correctly after a preposition:
+ * "the end of Monday 7 September 2026", or "17:30 on Thursday 17 September
+ * 2026" for a deadline that is not at midnight.
  *
  * Separate from `formatEventDate` because a date alone is genuinely ambiguous
- * at a boundary: "sign-ups close on 17 September" reads as "the 17th is your
- * last day", while the deadline is the *start* of it. Saying the time removes
- * the reading that costs somebody their place.
+ * at a boundary, and so is the obvious fix. "Sign-ups close on 8 September"
+ * reads as "the 8th is your last day"; "midnight on 8 September" is correct
+ * but half the room hears "the night of the 8th". Naming the **last day** in
+ * full — weekday included — leaves nothing to interpret, and a weekday is what
+ * people actually plan against.
+ *
+ * The midnight case is the only one this event uses. The other branch exists
+ * so a deadline moved to, say, 6pm still renders sensibly rather than claiming
+ * the wrong day.
  */
 export function formatDeadline(value: string): string {
   const at = new Date(instantOf(value));
@@ -88,21 +96,30 @@ export function formatDeadline(value: string): string {
   const hour = part("hour");
   const minute = part("minute");
 
+  const onDay = (moment: Date) =>
+    moment.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: EVENT_TIME_ZONE,
+    });
+
+  // A midnight deadline belongs to the day that just ended, not the one
+  // starting: "closes at midnight on the 8th" is true and still misread. One
+  // millisecond earlier is the last moment anybody can act, and naming that
+  // day is what removes the ambiguity.
+  if (hour === 0 && minute === 0) {
+    return `the end of ${onDay(new Date(at.getTime() - 1))}`;
+  }
+
   const time =
-    minute === 0 && hour === 0
-      ? "midnight"
-      : minute === 0 && hour === 12
-        ? "midday"
-        : at.toLocaleTimeString("en-GB", {
-            hour: "numeric",
-            minute: "2-digit",
-            timeZone: EVENT_TIME_ZONE,
-          });
-  const date = at.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: EVENT_TIME_ZONE,
-  });
-  return `${time} on ${date}`;
+    minute === 0 && hour === 12
+      ? "midday"
+      : at.toLocaleTimeString("en-GB", {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: EVENT_TIME_ZONE,
+        });
+  return `${time} on ${onDay(at)}`;
 }
