@@ -18,7 +18,7 @@ export default function Home() {
   const now = siteNow();
 
   return registrationOpen(now, SIGNUPS_OPEN_AT) ? (
-    <EventHome />
+    <EventHome now={now} />
   ) : (
     <SplashPage now={now} />
   );

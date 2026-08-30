@@ -58,3 +58,19 @@ describe("Home", () => {
     );
   });
 });
+
+describe("Home, the clock override", () => {
+  it("uses SIGNUPS_NOW for the countdown, not just for splash-or-event", async () => {
+    // The override exists so date-driven UI can be tested without the suite
+    // failing of its own accord as dates pass. The countdown was reading the
+    // real clock while the page around it honoured the override, which made a
+    // simulated launch day render the wrong number of days.
+    process.env.SIGNUPS_NOW = "2026-09-01T12:00:00.000Z";
+    const Home = await homeWithOpenDate("2026-09-01T04:00:00Z");
+    render(<Home />);
+
+    // Sign-ups close midnight ET on the 8th (04:00Z): 6d16h away, rounded up.
+    expect(screen.getByText(/7 days/i)).toBeInTheDocument();
+    expect(screen.getByText(/until sign-ups close/i)).toBeInTheDocument();
+  });
+});
