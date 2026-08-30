@@ -1,0 +1,180 @@
+import { describe, expect, it } from "vitest";
+import {
+  REMINDER_THRESHOLDS,
+  alertsChannel,
+  currentReminder,
+  reminderMessage,
+  shouldPostReminder,
+} from "./signup-reminder";
+
+/** The real window: seven days, midnight Eastern to midnight Eastern. */
+const WINDOW = {
+  opensAt: "2026-09-01T04:00:00Z", // midnight ET, 1 September
+  closesAt: "2026-09-08T04:00:00Z", // midnight ET, 8 September
+};
+const at = (iso: string) => new Date(iso);
+
+describe("currentReminder", () => {
+  it("says nothing before sign-ups open", () => {
+    expect(currentReminder(at("2026-08-31T23:00:00Z"), WINDOW)).toBeNull();
+    // To the minute: the window opens at midnight Eastern, not the evening
+    // before.
+    expect(currentReminder(at("2026-09-01T03:59:00Z"), WINDOW)).toBeNull();
+    expect(currentReminder(at("2026-09-01T04:00:00Z"), WINDOW)).not.toBeNull();
+  });
+
+  it("says nothing once they have closed", () => {
+    // A reminder to sign up for something that is over is worse than silence.
+    expect(currentReminder(at("2026-09-08T03:59:00Z"), WINDOW)).not.toBeNull();
+    expect(currentReminder(at("2026-09-08T04:00:00Z"), WINDOW)).toBeNull();
+    expect(currentReminder(at("2026-09-12T12:00:00Z"), WINDOW)).toBeNull();
+  });
+
+  it("says nothing at all when no opening date is set", () => {
+    expect(
+      currentReminder(at("2026-09-03T12:00:00Z"), { ...WINDOW, opensAt: null })
+    ).toBeNull();
+  });
+
+  it("opens with the announcement, then walks the milestones", () => {
+    // 12:00Z is 8am Eastern, the hour the schedule fires.
+    const keyAt = (day: string) => currentReminder(at(`2026-09-${day}T12:00:00Z`), WINDOW)?.key;
+
+    expect(keyAt("01")).toBe("opening");
+    expect(keyAt("02")).toBe("opening");
+    expect(keyAt("03")).toBe("days-5");
+    expect(keyAt("04")).toBe("days-5");
+    expect(keyAt("05")).toBe("days-3");
+    expect(keyAt("06")).toBe("days-3");
+    expect(keyAt("07")).toBe("days-1");
+    expect(keyAt("08")).toBeUndefined();
+  });
+
+  it("never leaves a threshold that cannot fire", () => {
+    // A threshold at or above the window length would either never be the
+    // current milestone or collide with the opening announcement.
+    const windowDays =
+      (Date.parse(WINDOW.closesAt) - Date.parse(WINDOW.opensAt)) / 86_400_000;
+
+    expect(Math.max(...REMINDER_THRESHOLDS)).toBeLessThan(windowDays);
+  });
+
+  it("reports where things stand, not the mark it passed", () => {
+    // Four days left is still the "five days" milestone — so a cron that
+    // missed a day posts something true rather than something stale.
+    const four = currentReminder(at("2026-09-04T12:00:00Z"), WINDOW)!;
+    expect(four.key).toBe("days-5");
+    expect(four.daysLeft).toBe(4);
+  });
+
+  it("marks only the smallest threshold as the final call", () => {
+    expect(currentReminder(at("2026-09-07T12:00:00Z"), WINDOW)!.kind).toBe("final");
+    expect(currentReminder(at("2026-09-05T12:00:00Z"), WINDOW)!.kind).toBe("countdown");
+    expect(Math.min(...REMINDER_THRESHOLDS)).toBe(1);
+  });
+});
+
+describe("shouldPostReminder", () => {
+  const reminder = currentReminder(at("2026-09-03T12:00:00Z"), WINDOW);
+
+  it("posts a milestone that has not gone yet", () => {
+    expect(shouldPostReminder(reminder, null)).toBe(true);
+    expect(shouldPostReminder(reminder, { postedKeys: ["opening"] })).toBe(true);
+  });
+
+  it("posts each milestone exactly once, however often the cron runs", () => {
+    expect(shouldPostReminder(reminder, { postedKeys: ["opening", "days-5"] })).toBe(
+      false
+    );
+  });
+
+  it("never posts when there is no milestone", () => {
+    expect(shouldPostReminder(null, null)).toBe(false);
+  });
+});
+
+describe("reminderMessage", () => {
+  const opening = currentReminder(at("2026-09-01T12:00:00Z"), WINDOW)!;
+  const final = currentReminder(at("2026-09-07T12:00:00Z"), WINDOW)!;
+  const base = { closesAt: WINDOW.closesAt, url: "https://santa.example.com" };
+
+  it("states the deadline as a time, not just a date", () => {
+    // "closes on 17 September" reads as "the 17th is your last day", and the
+    // deadline is the start of it.
+    expect(reminderMessage(opening, { ...base, signupCount: 3 })).toContain(
+      "midnight on 8 September 2026"
+    );
+  });
+
+  it("links to the sign-up page", () => {
+    expect(reminderMessage(opening, { ...base, signupCount: 3 })).toContain(
+      "https://santa.example.com/signup"
+    );
+  });
+
+  it("omits the link when no site URL is known", () => {
+    expect(
+      reminderMessage(opening, { ...base, url: null, signupCount: 3 })
+    ).not.toContain("Sign up:");
+  });
+
+  it("counts people, and says so in the singular", () => {
+    expect(reminderMessage(opening, { ...base, signupCount: 1 })).toContain(
+      "1 person has signed up"
+    );
+    expect(reminderMessage(opening, { ...base, signupCount: 4 })).toContain(
+      "4 people have signed up"
+    );
+  });
+
+  it("invites the first sign-up rather than reporting zero", () => {
+    expect(reminderMessage(opening, { ...base, signupCount: 0 })).toContain(
+      "be the first"
+    );
+  });
+
+  it("still goes out when the count could not be read", () => {
+    // The deadline is the point of the message; a database blip is a poor
+    // reason to let a milestone pass in silence.
+    const message = reminderMessage(final, { ...base, signupCount: null });
+
+    expect(message).toContain("Last chance");
+    expect(message).not.toContain("signed up so far");
+  });
+
+  it("says what closing actually means, on the last day", () => {
+    expect(reminderMessage(final, { ...base, signupCount: 9 })).toContain(
+      "no adding people later"
+    );
+  });
+});
+
+describe("alertsChannel", () => {
+  const reminderAt = (day: string) =>
+    currentReminder(at(`2026-09-${day}T12:00:00Z`), WINDOW)!;
+
+  it("pings the channel on the announcement and the last call", () => {
+    expect(alertsChannel(reminderAt("01"))).toBe(true);
+    expect(alertsChannel(reminderAt("07"))).toBe(true);
+  });
+
+  it("leaves the midweek nudges unpinged", () => {
+    // Four channel-wide alerts in seven days is how a bot gets muted — and a
+    // muted bot is silent on the last day too.
+    expect(alertsChannel(reminderAt("03"))).toBe(false);
+    expect(alertsChannel(reminderAt("05"))).toBe(false);
+  });
+
+  it("puts @here in the text of exactly the pinged messages", () => {
+    const text = (day: string) =>
+      reminderMessage(reminderAt(day), {
+        signupCount: 3,
+        closesAt: WINDOW.closesAt,
+        url: null,
+      });
+
+    expect(text("01")).toContain("@here");
+    expect(text("07")).toContain("@here");
+    expect(text("03")).not.toContain("@here");
+  });
+});

@@ -1,3 +1,5 @@
+import { instantOf } from "#lib/launch";
+
 export type CountdownConfig = {
   signupsCloseAt: string;
   exchangeCandidates: readonly string[];
@@ -12,9 +14,15 @@ export type CountdownPhase =
 
 const DAY_MS = 86_400_000;
 
-/** Whole days from `now` to `target`, rounded up. */
+/**
+ * Whole days from `now` to `target`, rounded up.
+ *
+ * `target` may be a bare `YYYY-MM-DD` (the start of that day, UTC) or a full
+ * ISO instant — `instantOf` decides, so this agrees with the opening gate
+ * about what a configured date means.
+ */
 function daysUntil(now: Date, target: string): number {
-  return Math.ceil((new Date(`${target}T00:00:00Z`).getTime() - now.getTime()) / DAY_MS);
+  return Math.ceil((instantOf(target) - now.getTime()) / DAY_MS);
 }
 
 /**

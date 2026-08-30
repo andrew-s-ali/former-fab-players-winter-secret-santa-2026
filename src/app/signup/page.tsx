@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SignupForm } from "@/components/SignupForm";
 import { siteNow } from "@/lib/clock";
 import { eventTitle, SIGNUPS_CLOSE_AT } from "@/lib/event";
-import { formatEventDate } from "@/lib/launch";
+import { formatDeadline } from "@/lib/launch";
 import { signupsOpen } from "@/lib/signup";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 function closingDate(): string {
-  return formatEventDate(SIGNUPS_CLOSE_AT);
+  return formatDeadline(SIGNUPS_CLOSE_AT);
 }
 
 export default function SignupPage() {
@@ -33,9 +33,10 @@ export default function SignupPage() {
       {open ? (
         <>
           <p className="text-sm opacity-80">
-            Sign-ups close on {closingDate()}. You need a name, an email and
-            two commanders; the theme boxes are optional — leave one empty if
-            you have no strong feelings.
+            Sign-ups close at {closingDate()} (US Eastern), so the last full
+            day is the one before. You need a name, an email, two commanders
+            and an order of preference for the exchange dates; the theme boxes
+            are optional — leave one empty if you have no strong feelings.
           </p>
           <p className="text-sm opacity-80">
             The two commanders you choose start your own pool. Every other
@@ -47,7 +48,7 @@ export default function SignupPage() {
         </>
       ) : (
         <p className="rounded-xl border border-slate-300/30 px-4 py-3 text-sm">
-          Sign-ups closed on {closingDate()}. If you meant to be in and
+          Sign-ups closed at {closingDate()}. If you meant to be in and
           aren&rsquo;t, talk to the organiser — they can still add you by hand
           before the draw runs.
         </p>

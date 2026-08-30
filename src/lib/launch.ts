@@ -3,6 +3,10 @@ const DAY_MS = 86_400_000;
 /**
  * The instant a configured date refers to.
  *
+ * Shared with `countdown.ts`: the opening gate and the closing countdown have
+ * to agree about what a configured date means, and they did not while only one
+ * of them understood a time of day.
+ *
  * A bare `YYYY-MM-DD` means the start of that day in UTC, which is all this
  * ever used to accept. A full ISO instant is taken as given, because "the
  * first of September" and "midnight where the group lives" are not the same
@@ -10,7 +14,7 @@ const DAY_MS = 86_400_000;
  * opening on `2026-09-01` would have flipped the site over at 8pm Eastern on
  * the 31st.
  */
-function instantOf(value: string): number {
+export function instantOf(value: string): number {
   return new Date(value.includes("T") ? value : `${value}T00:00:00Z`).getTime();
 }
 
@@ -55,4 +59,50 @@ export function formatEventDate(day: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+/** The timezone the event's stated times are in. */
+export const EVENT_TIME_ZONE = "America/New_York";
+
+/**
+ * Renders a closing instant as "midnight on 17 September 2026".
+ *
+ * Separate from `formatEventDate` because a date alone is genuinely ambiguous
+ * at a boundary: "sign-ups close on 17 September" reads as "the 17th is your
+ * last day", while the deadline is the *start* of it. Saying the time removes
+ * the reading that costs somebody their place.
+ */
+export function formatDeadline(value: string): string {
+  const at = new Date(instantOf(value));
+  // Read the clock face in the event's zone rather than pattern-matching the
+  // formatted string: locales disagree about whether midnight is "00:00" or
+  // "0:00", and the whole point of this function is to be unambiguous.
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: EVENT_TIME_ZONE,
+  }).formatToParts(at);
+  const part = (type: string) =>
+    Number(parts.find((entry) => entry.type === type)?.value ?? "0");
+  const hour = part("hour");
+  const minute = part("minute");
+
+  const time =
+    minute === 0 && hour === 0
+      ? "midnight"
+      : minute === 0 && hour === 12
+        ? "midday"
+        : at.toLocaleTimeString("en-GB", {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: EVENT_TIME_ZONE,
+          });
+  const date = at.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: EVENT_TIME_ZONE,
+  });
+  return `${time} on ${date}`;
 }

@@ -65,6 +65,7 @@ npm run dev                       # http://localhost:3000
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
 | `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
+| `npm run remind`              | Post the sign-up reminder for the current milestone (`-- --dry-run` to preview, `-- --force` to repost a spent one) |
 | `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock); fetches the real pool so demo pool cards are real |
 
 CI runs lint → typecheck → unit → E2E on every push and pull request.
@@ -78,7 +79,7 @@ src/components/ React components (SplashPage, EventHome, CommanderBrowser, Revea
 src/lib/        framework-free logic; unit-tested (draw, ring, pairing, pool rules, filtering, countdown, launch gate, Scryfall, store, nudge, erasure planning)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
 src/test-support/ commander fixtures shared by the test suite (never imported by app code)
-netlify/functions/ signup-submitted.mts mirrors Forms into Postgres; nudge.mts posts outstanding picks to Discord on a schedule
+netlify/functions/ signup-submitted.mts mirrors Forms into Postgres; nudge.mts and signup-reminder.mts post to Discord on a schedule
 scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, Discord nudge, data erasure, demo seeder
 public/         static assets; __forms.html registers the sign-up form with Netlify
 tests/e2e/      Playwright specs
@@ -136,6 +137,16 @@ export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";  // an exa
   midnight in New York, September being EDT (UTC-4). Outside daylight saving,
   EST is UTC-5 and the equivalent is `T05:00:00Z`.
 
+`SIGNUPS_CLOSE_AT` takes the same two forms and is read by the same
+`instantOf`, so the opening gate and the closing countdown cannot drift apart
+about what a configured date means. It is an instant today for a reason worth
+remembering: as a bare `"2026-09-17"` sign-ups shut at midnight **UTC**, which
+is 8pm Eastern on the *16th*, while `/signup` displayed "sign-ups close on 17
+September". Anyone signing up that evening was refused by a page that had just
+told them otherwise. `formatDeadline` now renders the closing moment as a time
+("midnight on 17 September 2026") rather than a bare date, because a date alone
+is genuinely ambiguous at a boundary.
+
 Either way `/` is rendered per request, so **the switch itself needs no
 redeploy** — it happens on its own. **Setting or changing the value is a code
 change and does need one**, so deploy it before the day, not on it.
@@ -152,7 +163,9 @@ if you want sign-ups gated on the same date too.
 ### 1. Schedule & Configuration
 
 - **Sign-ups open:** 1 September 2026 at midnight US Eastern (`SIGNUPS_OPEN_AT = "2026-09-01T04:00:00Z"` in `src/lib/event.ts` — see step 0).
-- **Sign-ups close:** 17 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-17"` in `src/lib/event.ts`).
+- **Sign-ups close:** midnight US Eastern as the 8th begins (`SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z"`), so the last full day is the 7th. **Seven days exactly**, midnight to midnight.
+- **Card workshop closes:** end of 21 September (`WORKSHOP_CLOSE_AT = "2026-09-22T04:00:00Z"`). **Advisory, not enforced** — the exchange still unlocks only when everybody has picked for everybody. This is the date the site and the Discord nudge point at; nothing refuses a pick after it.
+- **Building period:** 22 September until the exchange date.
 - **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`). Every sign-up ranks all three; the organiser console tallies the vote (see step 7).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
 
@@ -595,6 +608,65 @@ Filling in somebody’s Discord **does not** re-trigger a nudge: the quiet-perio
 digest tracks names and counts, not how they are addressed. Admin is not
 progress.
 
+#### Sign-up reminders
+
+The same webhook also carries reminders during the sign-up window, from
+`netlify/functions/signup-reminder.mts`. It runs daily and speaks **five
+times**:
+
+| Milestone | Fires |
+| --- | --- |
+| `opening` | The first run after sign-ups open — **`@here`** |
+| `days-5` | 5 days left |
+| `days-3` | 3 days left |
+| `days-1` | The final day — "last chance" wording, **`@here`** |
+
+It runs at **08:00 US Eastern** (`0 12 * * *` — cron is UTC, and September is
+EDT), so the opening announcement lands at a civilised hour rather than at
+midnight when the site actually flips over.
+
+**Milestone-driven, not periodic.** The window is seven days; a daily post
+would be muted by day three, and a muted channel is worse than a quiet one on
+the day it finally matters. Outside the window it says nothing at all — a
+reminder to sign up for something that is not open, or is over, is worse than
+silence. Thresholds must stay *below* the window length: one at or above it
+either never fires or collides with the opening announcement, and there is a
+test pinning that.
+
+**The two Discord messages notify people differently, on purpose.** The
+sign-up reminder is addressed to everyone — anybody might still join — so it
+uses `@here`. The outstanding-picks nudge is addressed to the specific people
+holding the exchange up, so it **name-tags them individually** (`<@id>`, see
+*Real @-pings*) and never alerts the channel. Pinging everyone about three
+people's outstanding picks would train the group to mute the bot before the
+messages that concern them arrive. There are tests on both sides.
+
+**`@here` is opt-in per message.** `postToDiscord` allow-lists mentions rather
+than trusting the text, and `everyone` — the parse rule that enables both
+`@here` and `@everyone` — is passed only for the announcement and the last
+call. The midweek nudges go out unpinged: four channel-wide alerts in seven
+days is how a bot gets muted, and a muted bot is silent on the last day too.
+To change which milestones ping, edit `alertsChannel`.
+
+Each milestone posts **exactly once**, tracked by key in `signup-reminder.json`
+(its own blob key, so the two schedules cannot overwrite each other's state).
+The key is recorded only after a successful send, so a failed post does not
+consume the milestone. A cron that misses a day reports where things actually
+stand rather than replaying a stale mark: at nine days left it is still the
+"ten days" post.
+
+The message carries the deadline, a link to `/signup`, and how many **distinct
+people** have signed up — by name, case-insensitively, since a resubmission to
+fix a typo is a second row for the same person. If the database cannot be read
+it posts without the count rather than staying silent; the deadline is the
+point of the message.
+
+Preview before a cron sends it to a channel full of friends:
+
+```bash
+NETLIFY_DB_URL=<url> npm run remind -- --dry-run
+```
+
 ### 9. Erasing Personal Data
 
 The sign-up form collects real names and email addresses, and by the time an
@@ -833,4 +905,4 @@ npx --yes netlify-cli deploy --build --prod
   Explicit credentials are unaffected: the operator's CLI always reaches the real store.
 
 - **Atomic Writes & Backups:** `writeEvent` snapshots the current state to a timestamped backup before writing changes (via atomic temp-file rename on local disk or timestamped key in Blobs). There is no rotation and no cleanup — which is deliberate as a safety net, and is exactly why `deleteEventData` exists: every snapshot is a complete copy of the roster, so erasing `event.json` alone would erase nothing. See *Erasing Personal Data*.
-- **Other keys in the same store:** `nudge.json` holds the last Discord nudge's fingerprint. It is written only after a successful post, and it is deleted by the full wipe along with everything else, because its digest lists participants by name.
+- **Other keys in the same store:** `nudge.json` holds the last Discord nudge's fingerprint, and `signup-reminder.json` records which sign-up milestones have been posted. It is written only after a successful post, and it is deleted by the full wipe along with everything else, because its digest lists participants by name.

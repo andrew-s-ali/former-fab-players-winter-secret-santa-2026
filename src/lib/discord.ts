@@ -72,7 +72,10 @@ export function webhookFromEnv(
 export async function postToDiscord(
   webhookUrl: string,
   content: string,
-  { username = "Secret Santa" }: { username?: string } = {}
+  {
+    username = "Secret Santa",
+    alertChannel = false,
+  }: { username?: string; alertChannel?: boolean } = {}
 ): Promise<void> {
   const response = await fetch(webhookUrl, {
     method: "POST",
@@ -80,10 +83,14 @@ export async function postToDiscord(
     body: JSON.stringify({
       content,
       username,
-      // Nothing here should ever ping a role or @everyone; the message is
-      // plain names today, but this makes that true regardless of what a
-      // future mention resolver puts in the text.
-      allowed_mentions: { parse: ["users"] },
+      // Mentions are allow-listed rather than left to whatever ends up in the
+      // text. `users` is always permitted, so an `<@id>` ping works; `everyone`
+      // — which is what enables `@here` as well as `@everyone` — is opt-in per
+      // message, because it notifies people who never asked to hear from this
+      // bot and is the one thing that turns a useful channel into a muted one.
+      allowed_mentions: {
+        parse: alertChannel ? ["users", "everyone"] : ["users"],
+      },
     }),
   });
 

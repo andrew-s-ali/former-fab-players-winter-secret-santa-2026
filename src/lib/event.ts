@@ -38,8 +38,29 @@ export function eventTitle(): string {
  */
 export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";
 
-/** Sign-ups close at the end of this day. */
-export const SIGNUPS_CLOSE_AT = "2026-09-17";
+/**
+ * When sign-ups close: midnight Eastern as the 8th begins, so the last full
+ * day to sign up is the 7th. Seven days from opening, exactly.
+ *
+ * Same two forms as `SIGNUPS_OPEN_AT`, and an instant for the same reason: as
+ * a bare `"2026-09-08"` this would close at midnight **UTC**, which is 8pm
+ * Eastern on the 7th — while `/signup` told people they had until the 8th.
+ */
+export const SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z";
+
+/**
+ * When picking commanders for other people stops being expected.
+ *
+ * **Advisory, not enforced.** The exchange still unlocks only when everybody
+ * has picked for everybody — that rule is the point, and the group would
+ * rather chase each other than have a deadline quietly decide the pools. This
+ * date is what the site tells people to aim for and what the Discord nudge
+ * counts down to; nothing refuses a pick after it.
+ *
+ * Midnight Eastern as the 22nd begins, i.e. the **end of the 21st**, so the
+ * 21st is a full working day and the building period runs from the 22nd.
+ */
+export const WORKSHOP_CLOSE_AT = "2026-09-22T04:00:00Z";
 
 /** The exchange will be one of these; the group has not chosen yet. */
 export const EXCHANGE_CANDIDATES = ["2026-12-05", "2026-12-12", "2026-12-19"] as const;

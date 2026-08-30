@@ -70,6 +70,25 @@ describe("postToDiscord", () => {
     expect(body.allowed_mentions).toEqual({ parse: ["users"] });
   });
 
+  it("permits @here only when the caller asks for it", async () => {
+    // `everyone` is what enables both @here and @everyone. Without it Discord
+    // renders "@here" as plain text and notifies nobody, which is the right
+    // default for a bot posting several times a week.
+    const fetchMock = vi.fn(
+      async (_url: string, _init: RequestInit) => new Response(null, { status: 204 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await postToDiscord(VALID, "@here hello", { alertChannel: true });
+    await postToDiscord(VALID, "quiet hello");
+
+    const parsed = fetchMock.mock.calls.map(
+      ([, init]) => JSON.parse(String(init.body)).allowed_mentions.parse
+    );
+    expect(parsed[0]).toEqual(["users", "everyone"]);
+    expect(parsed[1]).toEqual(["users"]);
+  });
+
   it("explains a deleted webhook rather than reporting a bare 404", async () => {
     vi.stubGlobal("fetch", async () => new Response(null, { status: 404 }));
 

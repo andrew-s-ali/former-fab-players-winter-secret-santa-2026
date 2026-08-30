@@ -401,8 +401,18 @@ describe("signupsOpen", () => {
   it("agrees with the home page countdown rather than using its own date rule", () => {
     // The form and the countdown must never disagree about the same instant;
     // both derive from countdownPhase, so this pins the boundary they share.
-    expect(signupsOpen(new Date("2026-09-16T23:59:00Z"))).toBe(true);
-    expect(signupsOpen(new Date("2026-09-17T00:00:01Z"))).toBe(false);
+    expect(signupsOpen(new Date("2026-09-07T23:59:00Z"))).toBe(true);
+    expect(signupsOpen(new Date("2026-09-08T04:00:01Z"))).toBe(false);
+  });
+
+  it("closes at midnight Eastern, not midnight UTC", () => {
+    // The bug this pins: as a bare date, sign-ups shut at 8pm Eastern the
+    // evening before, while the page still said they were open. Somebody
+    // signing up that evening was refused by a page that had just told them
+    // otherwise.
+    expect(signupsOpen(new Date("2026-09-08T00:00:01Z"))).toBe(true);
+    expect(signupsOpen(new Date("2026-09-08T03:59:00Z"))).toBe(true);
+    expect(signupsOpen(new Date("2026-09-08T04:00:00Z"))).toBe(false);
   });
 });
 

@@ -22,6 +22,7 @@
     "reveal": "node --experimental-strip-types scripts/reveal.ts",
     "forget": "node --experimental-strip-types scripts/forget.ts",
     "nudge": "node --experimental-strip-types scripts/nudge.ts",
+    "remind": "node --experimental-strip-types scripts/remind.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "dependencies": {
