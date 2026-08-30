@@ -58,6 +58,8 @@ npm run dev                       # http://localhost:3000
 | `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
 | `npm run update-participant`  | Edit one participant's vetoes/wish without redrawing                        |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
+| `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
+| `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
 | `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock); fetches the real pool so demo pool cards are real |
 
 CI runs lint → typecheck → unit → E2E on every push and pull request.
@@ -410,6 +412,144 @@ Preview has nothing to unlock and cannot reach the real event. See *Store
 Resolution* below. Password-protecting previews in the Netlify UI is still worth
 doing, but it guards a different thing: it stops strangers reading a preview, not
 an organiser acting on the wrong browser tab.
+
+### 8. Chasing Outstanding Picks (Discord)
+
+The exchange cannot start until every participant has picked one commander for
+every other participant. That is deliberate — this is a group of friends who
+can bug each other — but it makes one slow person invisible unless somebody
+goes looking at the console. A scheduled function posts who is holding things
+up into Discord.
+
+**Netlify has no email service of its own.** Form notifications only reach the
+address you configure, and Identity's transactional emails only reach Identity
+users (that is you, not the participants). A Discord incoming webhook needs no
+provider, no domain verification and no API key — the webhook URL *is* the
+credential.
+
+**Setup:**
+
+1. In Discord: **Server Settings > Integrations > Webhooks > New Webhook**,
+   pick the channel, **Copy Webhook URL**.
+2. In Netlify: **Project configuration > Environment variables**, add
+   `DISCORD_WEBHOOK_URL`, scope **Functions**. Variables set in `netlify.toml`
+   are *not* available to functions, and values are frozen per deploy — so
+   redeploy after adding it.
+3. Preview what it will say before it says it:
+
+   ```bash
+   NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> NETLIFY_DB_URL=<url> \
+     npm run nudge -- --dry-run
+   ```
+
+**It is quiet on purpose.** A bot that posts every day gets muted, and a muted
+bot is worse than none on the day it matters. So:
+
+- Nothing is posted at all once everybody has picked.
+- Progress is news: it posts as soon as the picture changes.
+- No progress is not news: it waits `QUIET_DAYS` (3) before repeating itself.
+
+The last post's fingerprint is kept in `nudge.json` beside the event data. It
+is written **only after a successful send**, so a failed post does not go quiet
+for three days having said nothing.
+
+**What it says**, and does not:
+
+```
+🎁 **Secret Santa — commander picks**
+
+9 of 12 picks are in. Waiting on 1 person:
+• **Dara** — 3 picks
+
+Everyone picks one commander for every other player — …
+```
+
+Names and counts, nothing else. Assignments are not an input to `nudgeStatus`
+at all, and reveal tokens are not either — that is structural rather than a
+rule to remember, and there are tests asserting neither appears in a message.
+`allowed_mentions` is pinned so a message can never ping `@everyone` or a role.
+
+**The schedule** is `0 23 * * *` in `netlify/functions/nudge.mts` — 23:00 UTC,
+which is 6pm US Eastern in winter, when this event runs. Cron is always UTC, so
+it drifts an hour if it ever runs through the summer. Scheduled functions only
+fire on **published production deploys**, never on Deploy Previews or branch
+deploys, and there is no local schedule — invoke it once with
+`netlify functions:invoke nudge`, or use `npm run nudge -- --dry-run`, which
+runs the same code path.
+
+**From the console.** `/admin` has a *Who to chase* section listing everyone by
+how many picks they still owe — the pools below it show the same shortfall per
+*pool*, which is the wrong axis for chasing anybody, since one slow person
+appears under every other participant. It has a **Post a nudge to Discord**
+button (which ignores the quiet period, because somebody asked explicitly) and
+a mailto fallback addressed to just those people, Bcc'd.
+
+**Real @-pings** would need a Discord user id per participant, which the
+sign-up form does not collect. `nudgeMessage` takes a `mention` resolver for
+exactly that — swapping in one that returns `<@123…>` is the whole change on
+this side.
+
+### 9. Erasing personal data
+
+The sign-up form collects real names and email addresses, and by the time an
+event has run they are in **five** places — three of which nothing else in this
+project ever touches again:
+
+| Where | What is in it |
+| --- | --- |
+| Netlify Forms | The original submission. Outlives everything here: deleting our copy does nothing to Netlify's. |
+| `signups` (Postgres) | The mirrored row. |
+| `event.json` (Blobs) | The drawn participant record, with the private token. |
+| **`event.backup-*.json` (Blobs)** | A complete copy of all of the above, **one per edit**. `writeEvent` snapshots before every write and never cleans up. |
+| `deck_builds.notes` (Postgres) | Free text a builder wrote about a named person. |
+| `nudge.json` (Blobs) | The last Discord nudge's fingerprint, which lists participants by name. |
+
+`card_selections` and `secret_card_sets` are the exception — random ids and card
+names, which identify nobody once the event record they map back to is gone.
+
+`npm run forget` is the one command that knows that list. It **prints a plan and
+changes nothing** unless you pass `--yes`; none of this is reversible and some of
+it is the only remaining copy.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> NETLIFY_DB_URL=<url> \
+  npm run forget -- "Ada Lovelace"
+```
+
+Three modes:
+
+- **Before the draw** — `npm run forget -- "<name>" --yes` deletes their sign-up
+  row and their form submission. They are simply never included.
+- **After the draw** — a plain delete is *refused*, and says who it would strand.
+  The ring is a single cycle, so dropping one person leaves their giver with
+  nobody to build for while their cards sit in everyone else's pools. Use
+  `--redact --yes` instead: it blanks the email, theme veto and theme wish, and
+  deletes the sign-up row, the form submission and their private notes, while
+  keeping the name, token, assignment and pool cards that other people's pages
+  are built from. The console then shows *"address erased at their request"* in
+  place of the mailto link. If the name has to go too, the only honest answer is
+  a full wipe once the exchange has finished.
+- **After the event** — `npm run forget -- --everyone --yes` empties every table
+  and deletes `event.json`, `nudge.json` **and every backup snapshot**. Every private link
+  stops working. Tables are emptied rather than deleted by id, so a withdrawn
+  sign-up or a row left by a redraw goes too.
+
+Two things worth knowing:
+
+- **The spam list counts.** Akismet holds real sign-ups back often enough that
+  this project has a whole reconciliation step for it, and a held-back
+  submission has the same name and email as a verified one. `forget` reads both
+  lists.
+- **Without `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` it warns loudly and
+  skips Forms**, telling you to delete the submission by hand. That is the copy
+  that outlives all the others, so erasing everything else and calling it done
+  would be erasing nothing.
+
+`event.json` is deleted **last**, after every other step. It is the only thing
+mapping a random participant id back to a person, so if a later step failed with
+it already gone, the rows it was meant to reach could no longer be identified.
+Losing the map last means a partial failure is always fixed by running the
+command again — there is a test that reorders it and fails.
 
 ## Development & Architecture notes
 

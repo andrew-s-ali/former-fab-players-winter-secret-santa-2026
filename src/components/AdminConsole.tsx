@@ -1,11 +1,38 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setRevealAction, updateParticipantAction, type ActionResult } from "@/app/admin/actions";
+import {
+  nudgeAction,
+  setRevealAction,
+  updateParticipantAction,
+  type ActionResult,
+} from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
 import type { EventSummary, ParticipantPool } from "@/lib/admin";
+import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
 import { COLOR_CHOICES } from "@/lib/signup";
+
+/**
+ * A Bcc'd mail to the people who still owe picks, and nobody else.
+ *
+ * Built from the roster rather than from the nudge status because the status
+ * carries names and the addresses live on the summary; a redacted participant
+ * has no address and simply drops out.
+ */
+function mailtoStragglers(summary: EventSummary, nudge: NudgeStatus): string {
+  const owing = new Set(nudge.outstanding.map((entry) => entry.name));
+  const addresses = summary.participants
+    .filter((p) => owing.has(p.name) && p.email !== "")
+    .map((p) => encodeURIComponent(p.email));
+  const subject = encodeURIComponent("Secret Santa: your commander picks");
+  const body = encodeURIComponent(
+    "Quick nudge — the exchange can't start until everyone has picked one " +
+      "commander for every other player. Your private link is the one you " +
+      "were emailed."
+  );
+  return `mailto:?bcc=${addresses.join(",")}&subject=${subject}&body=${body}`;
+}
 
 const FIELD_CLASS =
   "w-full rounded-lg border border-slate-300/40 bg-transparent px-3 py-2 text-sm";
@@ -31,10 +58,13 @@ export function AdminConsole({
   summary,
   pools,
   poolsError,
+  nudge = null,
 }: {
   summary: EventSummary;
   pools: ParticipantPool[];
   poolsError: string | null;
+  /** Null when there is no draw yet, or the selections could not be read. */
+  nudge?: NudgeStatus | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
@@ -128,9 +158,16 @@ export function AdminConsole({
             {summary.participants.map((p) => (
               <li className="py-2" key={p.name}>
                 <strong>{p.name}</strong>{" "}
-                <a className="underline opacity-80" href={`mailto:${p.email}`}>
-                  {p.email}
-                </a>
+                {p.email ? (
+                  <a className="underline opacity-80" href={`mailto:${p.email}`}>
+                    {p.email}
+                  </a>
+                ) : (
+                  // Blanked by `npm run forget -- <name> --redact`. Saying so
+                  // beats a mailto: link to nowhere, and beats leaving the
+                  // organiser to wonder whether the address was ever collected.
+                  <span className="opacity-60">address erased at their request</span>
+                )}
                 <span className="block opacity-70">
                   avoids {p.colorVeto ?? "no colour"}
                   {p.themeVeto ? `, not ${p.themeVeto}` : ""}
@@ -146,6 +183,7 @@ export function AdminConsole({
             <a
               className="underline"
               href={`mailto:?bcc=${summary.participants
+                .filter((p) => p.email !== "")
                 .map((p) => encodeURIComponent(p.email))
                 .join(",")}`}
             >
@@ -156,6 +194,60 @@ export function AdminConsole({
           </p>
         ) : null}
       </section>
+
+      {nudge && nudge.participantCount > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">Who to chase</h2>
+          <p className="text-sm opacity-80">
+            {nudge.picksIn} of {nudge.picksRequired} picks are in. The pools
+            below show the same shortfall per <em>pool</em>, which is the wrong
+            way round for chasing anybody — one slow person appears under every
+            other participant. This counts per person.
+          </p>
+
+          {nudge.complete ? (
+            <p className="rounded-xl border border-emerald-500/40 px-4 py-3 text-sm">
+              Everybody has picked. Nothing to chase, and the exchange is
+              unlocked.
+            </p>
+          ) : (
+            <>
+              <ul className="divide-y divide-slate-300/20 text-sm">
+                {nudge.outstanding.map((entry) => (
+                  <li className="flex justify-between py-2" key={entry.name}>
+                    <strong>{entry.name}</strong>
+                    <span className="opacity-70">
+                      {entry.owed} pick{entry.owed === 1 ? "" : "s"} to go
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <button
+                  className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50 dark:hover:bg-slate-800"
+                  disabled={pending}
+                  onClick={() => dispatch(() => nudgeAction())}
+                  type="button"
+                >
+                  {pending ? "Posting…" : "Post a nudge to Discord"}
+                </button>
+                {/*
+                  The mail fallback, for a group that does not use Discord or a
+                  webhook that is not configured yet. Bcc, so nobody sees the
+                  others, and only the people who still owe picks.
+                */}
+                <a
+                  className="text-sm underline"
+                  href={mailtoStragglers(summary, nudge)}
+                >
+                  Or email just these people
+                </a>
+              </div>
+            </>
+          )}
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Pools</h2>

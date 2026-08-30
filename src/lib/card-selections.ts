@@ -285,3 +285,21 @@ export async function readAllSelections(
 ): Promise<SavedSelection[]> {
   return loadRelevantSelections(participants);
 }
+
+/**
+ * Empties `card_selections` and `secret_card_sets`.
+ *
+ * Only ever called by the post-event wipe. These two tables hold random ids
+ * and card names — nothing that identifies anybody once `event.json` is gone —
+ * but leaving them behind would leave the shape of the event behind with them,
+ * and a wipe that keeps souvenirs is not a wipe.
+ */
+export async function deleteAllSelections(): Promise<{
+  selections: number;
+  secretSets: number;
+}> {
+  const db = getDb();
+  const selections = await db.delete(cardSelections).returning();
+  const secretSets = await db.delete(secretCardSets).returning();
+  return { selections: selections.length, secretSets: secretSets.length };
+}

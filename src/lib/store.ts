@@ -1,8 +1,10 @@
 import { readFile } from "node:fs/promises";
+import type { NudgeState } from "./nudge";
 import type { EventData } from "./participants";
 
 const STORE_NAME = "secret-santa";
 const BLOB_KEY = "event.json";
+const NUDGE_KEY = "nudge.json";
 
 const EMPTY: EventData = { participants: [], revealedAt: null };
 
@@ -159,6 +161,111 @@ export async function readEvent(): Promise<EventData> {
     }
     throw error;
   }
+}
+
+/**
+ * What the last Discord nudge said, or null if none has been sent.
+ *
+ * Kept beside the event rather than in Postgres because it is operational
+ * trivia about a side channel: losing it costs one duplicate post, and the
+ * scheduled function that reads it already has Blobs credentials whether or
+ * not the database is reachable.
+ */
+export async function readNudgeState(): Promise<NudgeState | null> {
+  const mode = resolveMode();
+
+  if (mode.kind !== "local") {
+    const store = await openStore(mode);
+    return (await store.get(NUDGE_KEY, { type: "json" })) as NudgeState | null;
+  }
+
+  try {
+    return JSON.parse(
+      await readFile(/* turbopackIgnore: true */ await nudgeStatePath(), "utf8")
+    ) as NudgeState;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+export async function writeNudgeState(state: NudgeState): Promise<void> {
+  const mode = resolveMode();
+
+  if (mode.kind !== "local") {
+    const store = await openStore(mode);
+    await store.setJSON(NUDGE_KEY, state);
+    return;
+  }
+
+  const { mkdir, writeFile } = await import("node:fs/promises");
+  const { dirname } = await import("node:path");
+  const path = await nudgeStatePath();
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, JSON.stringify(state, null, 2));
+}
+
+/** Beside the local event file, whatever that file is called. */
+async function nudgeStatePath(): Promise<string> {
+  const { dirname, join } = await import("node:path");
+  return join(dirname(localPath()), NUDGE_KEY);
+}
+
+/**
+ * Deletes the event data and every backup snapshot of it.
+ *
+ * The backups are the reason this exists rather than a one-line `delete`.
+ * `writeEvent` snapshots before every write and never cleans up, so an event
+ * that has been edited a handful of times has several complete copies of
+ * everyone's name, address and private token sitting beside it. Deleting
+ * `event.json` on its own would look like erasure and be nothing of the sort.
+ *
+ * Returns the keys it removed, so the caller can print what actually went
+ * rather than claiming success. There is no undo — the backups are part of
+ * what this deletes.
+ */
+export async function deleteEventData(): Promise<string[]> {
+  const mode = resolveMode();
+  // nudge.json is in here because its digest lists participants by name.
+  const isEventKey = (key: string) =>
+    key === BLOB_KEY || key === NUDGE_KEY || /^event\.backup-.*\.json$/.test(key);
+
+  if (mode.kind !== "local") {
+    const store = await openStore(mode);
+    const { blobs } = await store.list();
+    const keys = blobs.map((blob) => blob.key).filter(isEventKey).sort();
+    for (const key of keys) {
+      await store.delete(key);
+    }
+    return keys;
+  }
+
+  const { readdir, rm } = await import("node:fs/promises");
+  const { basename, dirname, join } = await import("node:path");
+  const path = localPath();
+  const dir = dirname(path);
+
+  let entries: string[];
+  try {
+    entries = await readdir(dir);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+
+  // The live file is whatever EVENT_DATA_PATH points at, which need not be
+  // named event.json; the backups beside it always follow the pattern.
+  const names = entries
+    .filter((entry) => entry === basename(path) || isEventKey(entry))
+    .sort();
+  for (const name of names) {
+    await rm(join(dir, name), { force: true });
+  }
+  return names;
 }
 
 /**

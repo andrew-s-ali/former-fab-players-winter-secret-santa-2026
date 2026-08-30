@@ -20,6 +20,8 @@
     "draw": "node --experimental-strip-types scripts/draw.ts",
     "update-participant": "node --experimental-strip-types scripts/update-participant.ts",
     "reveal": "node --experimental-strip-types scripts/reveal.ts",
+    "forget": "node --experimental-strip-types scripts/forget.ts",
+    "nudge": "node --experimental-strip-types scripts/nudge.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "dependencies": {
