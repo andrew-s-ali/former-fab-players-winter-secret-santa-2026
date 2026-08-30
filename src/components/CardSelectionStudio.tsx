@@ -12,6 +12,8 @@ import { PartnerPicker } from "@/components/PartnerPicker";
 import { PickCards, PickName } from "@/components/PickCards";
 import { useCommanderOptions } from "@/components/use-commander-options";
 import type { ColorCode, CommanderOption } from "@/lib/commanders";
+import { WORKSHOP_CLOSE_AT } from "@/lib/event";
+import { formatDeadline } from "@/lib/launch";
 import { canTakePartner, pickCards, type CommanderPick } from "@/lib/pairing";
 
 type Target = {
@@ -119,6 +121,18 @@ export function CardSelectionStudio({
             <h2 className="mt-2 text-2xl font-semibold">Choose before the draw unlocks</h2>
             <p className="mt-2 max-w-xl text-sm opacity-75">
               Save one commander for every other participant. Your own two cards came in with your sign-up. When everyone has finished, all choices lock and your secret assignment opens.
+            </p>
+            {/*
+              A target, not a gate. Nothing refuses a pick after this date —
+              the exchange still waits for the last person — but the deadline
+              is what everyone is being chased toward, so it belongs where the
+              picking happens rather than only in the reminder.
+            */}
+            <p className="mt-2 text-sm opacity-75">
+              Aim to be done by{" "}
+              <strong>{formatDeadline(WORKSHOP_CLOSE_AT)}</strong>. Building
+              starts the day after, and nobody&rsquo;s deck can start until the
+              last pick is in.
             </p>
           </div>
           <p className="rounded-full border border-sky-200/20 px-4 py-2 text-sm">

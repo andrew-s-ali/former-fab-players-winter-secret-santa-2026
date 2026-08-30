@@ -1,5 +1,7 @@
 import { requiredSelectionCount, type SavedSelection } from "#lib/card-pool";
 import { mentionFor } from "#lib/discord";
+import { WORKSHOP_CLOSE_AT } from "#lib/event";
+import { formatDeadline } from "#lib/launch";
 import type { EventData } from "#lib/participants";
 
 /**
@@ -126,7 +128,7 @@ export function nudgeMessage(
   }
 
   const header =
-    `🎁 **Secret Santa — commander picks**\n\n` +
+    `🎁 **Winter 2026 Exchange — commander picks**\n\n` +
     `${status.picksIn} of ${status.picksRequired} picks are in. ` +
     `Waiting on ${status.outstanding.length} ` +
     `${status.outstanding.length === 1 ? "person" : "people"}:\n`;
@@ -134,7 +136,8 @@ export function nudgeMessage(
   const footer =
     `\n\nEveryone picks one commander for every other player — that is what the ` +
     `shortlists are drawn from, so the exchange cannot start until the last ` +
-    `one is in. Your private link is the one you were emailed.`;
+    `one is in. Target: ${formatDeadline(WORKSHOP_CLOSE_AT)}. ` +
+    `Your private link is the one you were emailed.`;
 
   const line = (entry: Outstanding) =>
     `• ${mention(entry)} — ${entry.owed} ${entry.owed === 1 ? "pick" : "picks"}`;

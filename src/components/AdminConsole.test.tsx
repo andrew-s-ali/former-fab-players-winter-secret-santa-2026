@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AdminConsole } from "./AdminConsole";
 import type { EventSummary } from "@/lib/admin";
+import type { ExchangeVote } from "@/lib/admin";
 import type { NudgeStatus } from "@/lib/nudge";
 
 vi.mock("@/app/admin/actions", () => ({
@@ -176,5 +178,134 @@ describe("AdminConsole, showing who can actually be pinged", () => {
 
     expect(screen.getByRole("textbox", { name: /discord/i })).toBeInTheDocument();
     expect(screen.getByText(/Developer Mode/)).toBeInTheDocument();
+  });
+});
+
+describe("AdminConsole, the exchange-date vote", () => {
+  const vote: ExchangeVote = {
+    answered: 3,
+    unanswered: ["Gus"],
+    tallies: [
+      { date: "2026-12-12", firsts: 2, points: 8, averageRank: 1.33 },
+      { date: "2026-12-05", firsts: 1, points: 6, averageRank: 2 },
+      { date: "2026-12-19", firsts: 0, points: 4, averageRank: 2.67 },
+    ],
+    winner: "2026-12-12",
+  };
+
+  it("shows both first choices and points, since the two can disagree", () => {
+    render(
+      <AdminConsole
+        exchangeVote={vote}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByRole("columnheader", { name: /1st choices/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /points/i })).toBeInTheDocument();
+    expect(screen.getByText("12 December 2026")).toBeInTheDocument();
+    expect(screen.getByText(/12 December 2026 is ahead/)).toBeInTheDocument();
+  });
+
+  it("names who did not rank, and says they count toward nothing", () => {
+    render(
+      <AdminConsole
+        exchangeVote={vote}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByText(/Did not rank: Gus/)).toBeInTheDocument();
+  });
+
+  it("says plainly when nothing is ahead, rather than picking a date", () => {
+    render(
+      <AdminConsole
+        exchangeVote={{ ...vote, winner: null }}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByText(/No date is clearly ahead/)).toBeInTheDocument();
+  });
+
+  it("hides the section entirely before a draw", () => {
+    render(
+      <AdminConsole
+        exchangeVote={null}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([])}
+      />
+    );
+
+    expect(screen.queryByText(/Exchange date/)).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminConsole, the Discord box", () => {
+  function box() {
+    render(
+      <AdminConsole nudge={null} pools={[]} poolsError={null} summary={summary([])} />
+    );
+    return screen.getByRole("textbox", { name: /discord/i });
+  }
+
+  it("says how to find the numeric id before anything is typed", () => {
+    box();
+
+    expect(screen.getByText(/Developer Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/Copy User ID/)).toBeInTheDocument();
+    // A concrete example, so the shape is recognisable.
+    expect(screen.getByText(/185432109876543210/)).toBeInTheDocument();
+  });
+
+  it("confirms a user id will ping", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "185432109876543210");
+
+    expect(screen.getByText(/this will ping them/i)).toBeInTheDocument();
+  });
+
+  it("warns that a handle will not notify anybody", async () => {
+    // The mistake is invisible afterwards: a handle saves cleanly, looks right
+    // in the roster, and silently fails on the day it matters.
+    const user = userEvent.setup();
+    await user.type(box(), "ada_lovelace");
+
+    const warning = screen.getByRole("alert");
+    expect(warning).toHaveTextContent(/is a handle, not an id/i);
+    expect(warning).toHaveTextContent(/will not notify them/i);
+  });
+
+  it("accepts a pasted mention and shows the id it will store", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "<@185432109876543210>");
+
+    expect(screen.getByText(/User id 185432109876543210/)).toBeInTheDocument();
+  });
+
+  it("explains what none does", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "none");
+
+    expect(screen.getByText(/Clears their Discord/i)).toBeInTheDocument();
+  });
+
+  it("rejects something that is neither, before it can be saved", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "<@&123456789012345678>");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/not a Discord handle/i);
   });
 });

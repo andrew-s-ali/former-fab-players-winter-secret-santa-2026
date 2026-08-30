@@ -73,7 +73,12 @@
           "partner": null
         }
       ],
-      "discord": "185432109876543210"
+      "discord": "185432109876543210",
+      "exchangeRanking": [
+        "2026-12-12",
+        "2026-12-05",
+        "2026-12-19"
+      ]
     },
     {
       "id": "ecc9db57-b86d-408c-99eb-2fa44ac363ac",
@@ -131,7 +136,12 @@
           "partner": null
         }
       ],
-      "discord": "411223344556677889"
+      "discord": "411223344556677889",
+      "exchangeRanking": [
+        "2026-12-12",
+        "2026-12-19",
+        "2026-12-05"
+      ]
     },
     {
       "id": "636ba653-9dad-474f-951c-9300d5a148a7",
@@ -206,7 +216,12 @@
           "partner": null
         }
       ],
-      "discord": "cleo.patra"
+      "discord": "cleo.patra",
+      "exchangeRanking": [
+        "2026-12-05",
+        "2026-12-12",
+        "2026-12-19"
+      ]
     },
     {
       "id": "99b3dbb0-1500-46a9-bf9a-492d6f9ece84",
@@ -263,7 +278,12 @@
           "partner": null
         }
       ],
-      "discord": null
+      "discord": null,
+      "exchangeRanking": [
+        "2026-12-12",
+        "2026-12-05",
+        "2026-12-19"
+      ]
     },
     {
       "id": "bde87dd7-549c-463b-b0c4-16fdb0da18e6",
@@ -338,7 +358,12 @@
           "partner": null
         }
       ],
-      "discord": "732198765432109876"
+      "discord": "732198765432109876",
+      "exchangeRanking": [
+        "2026-12-19",
+        "2026-12-12",
+        "2026-12-05"
+      ]
     },
     {
       "id": "9ff3d1dc-8c90-402c-9eaa-246c3245f0c4",
@@ -395,7 +420,12 @@
           "partner": null
         }
       ],
-      "discord": null
+      "discord": null,
+      "exchangeRanking": [
+        "2026-12-12",
+        "2026-12-19",
+        "2026-12-05"
+      ]
     },
     {
       "id": "756318d3-411f-4ac2-8219-732a87152358",
@@ -470,7 +500,8 @@
           "partner": null
         }
       ],
-      "discord": "gus_the_third"
+      "discord": "gus_the_third",
+      "exchangeRanking": null
     },
     {
       "id": "ef69023d-ea2f-49f2-98fe-a060748c2906",
@@ -529,7 +560,12 @@
           "partner": null
         }
       ],
-      "discord": "908877665544332211"
+      "discord": "908877665544332211",
+      "exchangeRanking": [
+        "2026-12-05",
+        "2026-12-12",
+        "2026-12-19"
+      ]
     }
   ],
   "revealedAt": "2026-08-30T00:12:06.753Z",

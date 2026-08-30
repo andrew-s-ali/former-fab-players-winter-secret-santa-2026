@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EDITABLE_FIELDS,
+  tallyExchangeDates,
   applyParticipantEdits,
   buildPools,
   findParticipantByName,
@@ -42,6 +43,7 @@ function participant(overrides: Partial<Participant> = {}): Participant {
     themeVeto: "mill",
     themeWish: "elves",
     discord: null,
+    exchangeRanking: null,
     selfCards: [soloPick(commander("Blue Pick", ["U"])), soloPick(commander("White Pick", ["W"]))],
     ...overrides,
   };
@@ -316,5 +318,97 @@ describe("editing a participant's Discord", () => {
 
     expect(before.discord).toBe("old_handle");
     expect(EDITABLE_FIELDS).toContain("discord");
+  });
+});
+
+describe("tallyExchangeDates", () => {
+  const DEC5 = "2026-12-05";
+  const DEC12 = "2026-12-12";
+  const DEC19 = "2026-12-19";
+
+  function voters(rankings: (string[] | null)[]): EventData {
+    return {
+      revealedAt: null,
+      participants: rankings.map((exchangeRanking, index) =>
+        participant({
+          id: `p${index}`,
+          name: `Person ${index}`,
+          recipientId: `p${(index + 1) % rankings.length}`,
+          exchangeRanking,
+        })
+      ),
+    };
+  }
+
+  it("counts first choices and Borda points side by side", () => {
+    const vote = tallyExchangeDates(
+      voters([
+        [DEC12, DEC5, DEC19],
+        [DEC12, DEC19, DEC5],
+        [DEC5, DEC12, DEC19],
+      ])
+    );
+
+    const dec12 = vote.tallies.find((t) => t.date === DEC12)!;
+    expect(dec12.firsts).toBe(2);
+    expect(dec12.points).toBe(3 + 3 + 2);
+    expect(vote.winner).toBe(DEC12);
+    expect(vote.answered).toBe(3);
+  });
+
+  it("orders the table best first", () => {
+    const vote = tallyExchangeDates(
+      voters([
+        [DEC19, DEC12, DEC5],
+        [DEC19, DEC12, DEC5],
+      ])
+    );
+
+    expect(vote.tallies.map((t) => t.date)).toEqual([DEC19, DEC12, DEC5]);
+  });
+
+  it("reports the average position", () => {
+    const vote = tallyExchangeDates(
+      voters([
+        [DEC5, DEC12, DEC19],
+        [DEC12, DEC5, DEC19],
+      ])
+    );
+
+    // First and second: (1 + 2) / 2.
+    expect(vote.tallies.find((t) => t.date === DEC5)!.averageRank).toBe(1.5);
+    expect(vote.tallies.find((t) => t.date === DEC19)!.averageRank).toBe(3);
+  });
+
+  it("declares no winner when the top two cannot be separated", () => {
+    const vote = tallyExchangeDates(
+      voters([
+        [DEC5, DEC12, DEC19],
+        [DEC12, DEC5, DEC19],
+      ])
+    );
+
+    expect(vote.winner).toBeNull();
+  });
+
+  it("gives an abstention no weight at all, and names who abstained", () => {
+    // Counting a blank as a vote for the middle date would let the people who
+    // did not answer decide it.
+    const withAbstention = tallyExchangeDates(
+      voters([[DEC19, DEC12, DEC5], null, null])
+    );
+    const without = tallyExchangeDates(voters([[DEC19, DEC12, DEC5]]));
+
+    expect(withAbstention.tallies).toEqual(without.tallies);
+    expect(withAbstention.answered).toBe(1);
+    expect(withAbstention.unanswered).toEqual(["Person 1", "Person 2"]);
+  });
+
+  it("is a well-formed empty result when nobody has answered", () => {
+    const vote = tallyExchangeDates(voters([null, null]));
+
+    expect(vote.answered).toBe(0);
+    expect(vote.winner).toBeNull();
+    expect(vote.tallies.every((t) => t.points === 0 && t.averageRank === null)).toBe(true);
   });
 });

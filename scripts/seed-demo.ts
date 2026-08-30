@@ -25,14 +25,14 @@ import { mintToken } from "#lib/tokens";
  * The people are invented, so committing their tokens protects nothing.
  */
 const PEOPLE = [
-  { name: "Ada Lovelace", discord: "185432109876543210", email: "ada.lovelace@example.invalid", colorVeto: "R" as const, themeVeto: "mill", themeWish: "elves and tokens" },
-  { name: "Bob Ross", discord: "411223344556677889", email: "bob.ross@example.invalid", colorVeto: null, themeVeto: null, themeWish: null },
-  { name: "Cleo Patra", discord: "cleo.patra", email: "cleo.patra@example.invalid", colorVeto: "G" as const, themeVeto: "stax", themeWish: "artifacts, the more the better" },
-  { name: "Dev Patel-Nakamura-Rodriguez", discord: null, email: "dev.patel.nakamura.rodriguez@example.invalid", colorVeto: "U" as const, themeVeto: null, themeWish: "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it" },
-  { name: "Eli 🎄", discord: "732198765432109876", email: "eli@example.invalid", colorVeto: null, themeVeto: "combo", themeWish: "lifegain" },
-  { name: "Fay Wray", discord: null, email: "fay.wray@example.invalid", colorVeto: "B" as const, themeVeto: null, themeWish: null },
-  { name: "Gus", discord: "gus_the_third", email: "gus@example.invalid", colorVeto: null, themeVeto: null, themeWish: "go wide" },
-  { name: "Hana", discord: "908877665544332211", email: "hana@example.invalid", colorVeto: "W" as const, themeVeto: "tribal", themeWish: "spellslinger" },
+  { name: "Ada Lovelace", exchangeRanking: ["2026-12-12", "2026-12-05", "2026-12-19"], discord: "185432109876543210", email: "ada.lovelace@example.invalid", colorVeto: "R" as const, themeVeto: "mill", themeWish: "elves and tokens" },
+  { name: "Bob Ross", exchangeRanking: ["2026-12-12", "2026-12-19", "2026-12-05"], discord: "411223344556677889", email: "bob.ross@example.invalid", colorVeto: null, themeVeto: null, themeWish: null },
+  { name: "Cleo Patra", exchangeRanking: ["2026-12-05", "2026-12-12", "2026-12-19"], discord: "cleo.patra", email: "cleo.patra@example.invalid", colorVeto: "G" as const, themeVeto: "stax", themeWish: "artifacts, the more the better" },
+  { name: "Dev Patel-Nakamura-Rodriguez", exchangeRanking: ["2026-12-12", "2026-12-05", "2026-12-19"], discord: null, email: "dev.patel.nakamura.rodriguez@example.invalid", colorVeto: "U" as const, themeVeto: null, themeWish: "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it" },
+  { name: "Eli 🎄", exchangeRanking: ["2026-12-19", "2026-12-12", "2026-12-05"], discord: "732198765432109876", email: "eli@example.invalid", colorVeto: null, themeVeto: "combo", themeWish: "lifegain" },
+  { name: "Fay Wray", exchangeRanking: ["2026-12-12", "2026-12-19", "2026-12-05"], discord: null, email: "fay.wray@example.invalid", colorVeto: "B" as const, themeVeto: null, themeWish: null },
+  { name: "Gus", exchangeRanking: null, discord: "gus_the_third", email: "gus@example.invalid", colorVeto: null, themeVeto: null, themeWish: "go wide" },
+  { name: "Hana", exchangeRanking: ["2026-12-05", "2026-12-12", "2026-12-19"], discord: "908877665544332211", email: "hana@example.invalid", colorVeto: "W" as const, themeVeto: "tribal", themeWish: "spellslinger" },
 ];
 
 /**
@@ -185,6 +185,7 @@ async function main() {
     themeVeto: person.themeVeto,
     themeWish: person.themeWish,
     discord: person.discord,
+    exchangeRanking: person.exchangeRanking,
     selfCards: pickSelfCards(pool, person.colorVeto, index % 2 === 0),
   }));
 

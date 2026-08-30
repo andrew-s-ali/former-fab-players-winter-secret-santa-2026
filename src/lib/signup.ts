@@ -53,6 +53,21 @@ export type ParticipantInput = {
    * form. `resolveSelfCards` does that check at draw time instead.
    */
   selfCards: [SignupPick, SignupPick];
+  /**
+   * The candidate exchange dates in this person's order of preference, best
+   * first — always a permutation of `EXCHANGE_CANDIDATES`.
+   *
+   * An ordering rather than a rank per date, because the ordering is the
+   * answer: tallying, comparing and displaying all want "what did they put
+   * first", and a rank-per-date shape can represent nonsense (two firsts, no
+   * second) that this one cannot.
+   *
+   * **Null means the question was not answered**, not "no preference". The
+   * form requires it, but the form went live before the question existed and
+   * the CSV fallback may not carry the columns at all, so a sign-up without
+   * one still has to be drawable.
+   */
+  exchangeRanking: string[] | null;
 };
 
 /** How many commanders each person contributes to their own pool. */
@@ -97,7 +112,25 @@ export const SIGNUP_FIELDS = {
   selfCard1Partner: "selfCard1Partner",
   selfCard2: "selfCard2",
   selfCard2Partner: "selfCard2Partner",
+  /**
+   * One field per candidate date, holding the rank that person gave it.
+   *
+   * Numbered by the date's position in `EXCHANGE_CANDIDATES`, not by the date
+   * itself, so moving a candidate does not rename a registered Netlify form
+   * field — which would silently drop every submission until `__forms.html`
+   * was updated to match.
+   */
+  exchangeRank1: "exchangeRank1",
+  exchangeRank2: "exchangeRank2",
+  exchangeRank3: "exchangeRank3",
 } as const;
+
+/** The rank field for each candidate, in `EXCHANGE_CANDIDATES` order. */
+export const EXCHANGE_RANK_FIELDS = [
+  SIGNUP_FIELDS.exchangeRank1,
+  SIGNUP_FIELDS.exchangeRank2,
+  SIGNUP_FIELDS.exchangeRank3,
+] as const;
 
 /**
  * The self-pick fields in slot order, so callers never hard-code them.
@@ -185,7 +218,47 @@ export function normalizeSignup(
     themeVeto: blankToNull(fields[SIGNUP_FIELDS.themeVeto]),
     themeWish: blankToNull(fields[SIGNUP_FIELDS.themeWish]),
     selfCards: parseSelfCards(fields, name, label),
+    exchangeRanking: parseExchangeRanking(fields, name, label),
   };
+}
+
+/**
+ * Reads the preferred order of the candidate exchange dates.
+ *
+ * Returns null when nothing was answered at all — see
+ * `ParticipantInput.exchangeRanking`. Anything *partly* answered is an error
+ * rather than a silent null: it means the form or the CSV disagrees with this
+ * code about the fields, and quietly discarding half an answer would leave the
+ * organiser tallying a vote that some people appear not to have cast.
+ */
+export function parseExchangeRanking(
+  fields: Record<string, string | undefined>,
+  who: string,
+  label: string
+): string[] | null {
+  const raw = EXCHANGE_RANK_FIELDS.map((field) => (fields[field] ?? "").trim());
+  if (raw.every((value) => value === "")) {
+    return null;
+  }
+
+  const expected = EXCHANGE_CANDIDATES.length;
+  const ranks = raw.map((value) => Number(value));
+  const valid = ranks.every(
+    (rank) => Number.isInteger(rank) && rank >= 1 && rank <= expected
+  );
+  if (!valid || new Set(ranks).size !== expected) {
+    throw new Error(
+      `${label} ("${who}") has an incomplete exchange-date ranking: ` +
+        `got [${raw.map((value) => value === "" ? "(blank)" : value).join(", ")}] ` +
+        `for ${EXCHANGE_CANDIDATES.join(", ")}. ` +
+        `Rank every date exactly once, using 1 to ${expected}.`
+    );
+  }
+
+  // Rank per date in, preference order out.
+  return EXCHANGE_CANDIDATES.map((date, index) => ({ date, rank: ranks[index] }))
+    .sort((left, right) => left.rank - right.rank)
+    .map((entry) => entry.date);
 }
 
 /**

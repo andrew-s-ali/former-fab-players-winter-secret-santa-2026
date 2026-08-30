@@ -54,6 +54,14 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** Ranks the three exchange dates 1-2-3, which the form requires. */
+async function rankDates(user: ReturnType<typeof userEvent.setup>) {
+  const selects = screen.getAllByRole("combobox", { name: /December/ });
+  for (const [index, select] of selects.entries()) {
+    await user.selectOptions(select, String(index + 1));
+  }
+}
+
 describe("SignupForm", () => {
   it("offers every legal commander before anything is typed", async () => {
     const user = userEvent.setup();
@@ -91,7 +99,7 @@ describe("SignupForm", () => {
     expect(screen.getByText("Anara, Wolvid Familiar")).toBeInTheDocument();
   });
 
-  it("will not submit until two commanders are chosen", async () => {
+  it("will not submit until two commanders are chosen and the dates are ranked", async () => {
     const user = userEvent.setup();
     render(<SignupForm />);
 
@@ -101,7 +109,27 @@ describe("SignupForm", () => {
     expect(screen.getByRole("button", { name: "Sign me up" })).toBeDisabled();
 
     await pick(user, "Selvala, Explorer Returned");
+    // Both commanders in, but the dates are still unranked.
+    expect(screen.getByRole("button", { name: "Sign me up" })).toBeDisabled();
+
+    await rankDates(user);
     expect(screen.getByRole("button", { name: "Sign me up" })).toBeEnabled();
+  });
+
+  it("refuses a ranking that uses the same number twice", async () => {
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await pick(user, "Anara, Wolvid Familiar");
+    await pick(user, "Selvala, Explorer Returned");
+
+    const selects = screen.getAllByRole("combobox", { name: /December/ });
+    await user.selectOptions(selects[0], "1");
+    await user.selectOptions(selects[1], "1");
+    await user.selectOptions(selects[2], "3");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/only be used once/i);
+    expect(screen.getByRole("button", { name: "Sign me up" })).toBeDisabled();
   });
 
   it("sends both picks as card names, alongside the rest of the form", async () => {
@@ -113,6 +141,12 @@ describe("SignupForm", () => {
     await user.type(screen.getByLabelText(/Your email/), "ada@example.com");
     await pick(user, "Anara, Wolvid Familiar");
     await pick(user, "Selvala, Explorer Returned");
+    const selects = screen.getAllByRole("combobox", { name: /December/ });
+    // Deliberately not 1-2-3, so the ranks are read per date rather than
+    // assumed from the order the fields appear in.
+    await user.selectOptions(selects[0], "3");
+    await user.selectOptions(selects[1], "1");
+    await user.selectOptions(selects[2], "2");
     await user.click(screen.getByRole("button", { name: "Sign me up" }));
 
     await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
@@ -122,6 +156,9 @@ describe("SignupForm", () => {
     expect(fields.get("email")).toBe("ada@example.com");
     expect(fields.get("selfCard1")).toBe("Anara, Wolvid Familiar");
     expect(fields.get("selfCard2")).toBe("Selvala, Explorer Returned");
+    expect(fields.get("exchangeRank1")).toBe("3");
+    expect(fields.get("exchangeRank2")).toBe("1");
+    expect(fields.get("exchangeRank3")).toBe("2");
     // Without this Netlify does not attribute the submission and drops it.
     expect(fields.get("form-name")).toBe("santa-signup");
   });
@@ -139,6 +176,9 @@ describe("SignupForm", () => {
     expect(names).not.toContain("Anara, Wolvid Familiar");
   });
 
+  // The picker's visibility follows the commander picks alone. It was briefly
+  // tied to overall form completeness, which put it back on screen for anyone
+  // who had chosen both commanders but not yet ranked the dates.
   it("hides the picker once two are chosen, and shows it again after a removal", async () => {
     const user = userEvent.setup();
     render(<SignupForm />);

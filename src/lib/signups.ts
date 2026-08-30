@@ -40,6 +40,9 @@ export function signupContentId(
     input.themeWish,
     // Both halves, so changing only a partner is a new submission.
     cards.map((pick) => [pick.commander.id, pick.partner?.id ?? null]),
+    // Included so that resubmitting *only* to change the date preference is a
+    // new row rather than a collision silently dropped as a retry.
+    input.exchangeRanking,
   ]);
   return createHash("sha256").update(payload).digest("hex").slice(0, 32);
 }
@@ -66,6 +69,7 @@ export async function recordSignup(
       themeVeto: input.themeVeto,
       themeWish: input.themeWish,
       selfCards: cards,
+      exchangeRanking: input.exchangeRanking,
     })
     .onConflictDoNothing({ target: signups.id })
     .returning({ id: signups.id });
@@ -94,6 +98,7 @@ export async function readSignups(): Promise<StoredSignup[]> {
         colorVeto: row.colorVeto ?? null,
         themeVeto: row.themeVeto,
         themeWish: row.themeWish,
+        exchangeRanking: row.exchangeRanking ?? null,
         // Names are kept for error messages and the CSV-shaped contract;
         // `cards` is the resolved form the draw actually stores.
         selfCards: [

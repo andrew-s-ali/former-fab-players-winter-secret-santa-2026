@@ -36,6 +36,7 @@ function eventOf(names: string[]): EventData {
     themeVeto: null,
     themeWish: null,
     discord: null,
+    exchangeRanking: null,
     selfCards: testSelfCards(name.toLowerCase()),
   }));
   return { participants, revealedAt: null };
@@ -67,12 +68,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+type Sent = { content: string; parse: string[] };
+
 function stubDiscord(status = 204) {
-  const sent: string[] = [];
+  const sent: Sent[] = [];
   vi.stubGlobal(
     "fetch",
     vi.fn(async (_url: string, init: RequestInit) => {
-      sent.push(JSON.parse(String(init.body)).content);
+      const body = JSON.parse(String(init.body));
+      sent.push({ content: body.content, parse: body.allowed_mentions.parse });
       return new Response(null, { status });
     })
   );
@@ -87,7 +91,7 @@ describe("runNudge", () => {
 
     expect(result.posted).toBe(true);
     expect(sent).toHaveLength(1);
-    expect(sent[0]).toContain("**Ada**");
+    expect(sent[0].content).toContain("**Ada**");
     expect(nudgeState).not.toBeNull();
   });
 
@@ -111,7 +115,7 @@ describe("runNudge", () => {
     const result = await runNudge({ now: new Date("2026-02-10T13:00:00Z") });
 
     expect(result.posted).toBe(true);
-    expect(sent[0]).not.toContain("**Ada**");
+    expect(sent[0].content).not.toContain("**Ada**");
   });
 
   it("says nothing at all once everybody has finished", async () => {
@@ -190,5 +194,34 @@ describe("runNudge", () => {
 
     expect(result.posted).toBe(false);
     expect(sent).toEqual([]);
+  });
+});
+
+describe("runNudge, how it notifies people", () => {
+  it("pings the individuals who owe picks, by name tag", async () => {
+    event = eventOf(["Ada", "Brin", "Cleo", "Dara"]);
+    event.participants[0].discord = "185432109876543210";
+    const sent = stubDiscord();
+
+    await runNudge();
+
+    expect(sent[0].content).toContain("<@185432109876543210>");
+    // `users` is what makes an <@id> mention actually notify somebody.
+    expect(sent[0].parse).toContain("users");
+  });
+
+  it("never alerts the whole channel", async () => {
+    // @here belongs to the sign-up reminders, which go to everyone because
+    // anyone might still join. This one is addressed to the specific people
+    // holding the exchange up, and pinging the channel for it would train the
+    // group to mute the bot before the messages that concern them arrive.
+    const sent = stubDiscord();
+
+    await runNudge();
+
+    expect(sent[0].parse).toEqual(["users"]);
+    expect(sent[0].parse).not.toContain("everyone");
+    expect(sent[0].content).not.toContain("@here");
+    expect(sent[0].content).not.toContain("@everyone");
   });
 });

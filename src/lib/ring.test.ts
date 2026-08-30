@@ -14,6 +14,7 @@ const person = (id: string, name: string, recipientId: string): Participant => (
   themeVeto: null,
   themeWish: null,
   discord: null,
+  exchangeRanking: null,
 });
 
 // A single cycle: p1 → p2 → p3 → p1

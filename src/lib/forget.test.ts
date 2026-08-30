@@ -22,6 +22,7 @@ function participant(name: string, recipientId: string): Participant {
     themeVeto: "mill",
     themeWish: "elves",
     discord: "185432109876543210",
+    exchangeRanking: null,
     selfCards: testSelfCards(name.toLowerCase()),
   };
 }

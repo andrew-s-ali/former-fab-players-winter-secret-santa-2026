@@ -8,8 +8,9 @@ import {
   type ActionResult,
 } from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
-import type { EventSummary, ParticipantPool } from "@/lib/admin";
-import { willPing } from "@/lib/discord";
+import type { EventSummary, ExchangeVote, ParticipantPool } from "@/lib/admin";
+import { DiscordError, parseDiscordRef, willPing } from "@/lib/discord";
+import { formatEventDate } from "@/lib/launch";
 import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
 import { COLOR_CHOICES } from "@/lib/signup";
@@ -43,6 +44,21 @@ function mailtoStragglers(summary: EventSummary, nudge: NudgeStatus): string {
  * group never sees it. "Handle only" is not a warning; plenty of people will
  * never hand over an id, and the message falls back to their name.
  */
+function DiscordHint({ raw }: { raw: string }) {
+  const { tone, text } = discordHint(raw);
+  const className =
+    tone === "good"
+      ? "text-emerald-400/90"
+      : tone === "warn"
+        ? "text-amber-400"
+        : "opacity-70";
+  return (
+    <span className={`block text-xs ${className}`} role={tone === "warn" ? "alert" : undefined}>
+      {text}
+    </span>
+  );
+}
+
 function DiscordTag({ discord }: { discord: string | null }) {
   if (!discord) {
     return <span className="block text-xs opacity-50">no Discord set</span>;
@@ -56,6 +72,47 @@ function DiscordTag({ discord }: { discord: string | null }) {
       Discord @{discord} — handle only, will not ping
     </span>
   );
+}
+
+/**
+ * What the organiser has typed into the Discord box, judged as they type.
+ *
+ * A static "use the numeric id" note is easy to skim past, and the mistake it
+ * warns about is invisible afterwards: a handle saves cleanly, looks right in
+ * the roster, and simply fails to notify anybody on the day it matters. This
+ * says which of the two you have while you can still change it.
+ */
+function discordHint(raw: string): { tone: "help" | "good" | "warn"; text: string } {
+  const value = raw.trim();
+  if (value === "") {
+    return {
+      tone: "help",
+      text:
+        "Paste the numeric user id — that is the only form that pings. In " +
+        "Discord: Settings > Advanced > Developer Mode on, then right-click " +
+        "the person > Copy User ID. Looks like 185432109876543210.",
+    };
+  }
+  if (value.toLowerCase() === "none") {
+    return { tone: "help", text: "Clears their Discord — the nudge will use their name." };
+  }
+  try {
+    const ref = parseDiscordRef(value);
+    return ref.kind === "id"
+      ? { tone: "good", text: `User id ${ref.id} — this will ping them.` }
+      : {
+          tone: "warn",
+          text:
+            `"${ref.name}" is a handle, not an id. It saves and shows in the ` +
+            "roster, but Discord will not notify them. For a real ping use " +
+            "Developer Mode > right-click > Copy User ID.",
+        };
+  } catch (error) {
+    return {
+      tone: "warn",
+      text: error instanceof DiscordError ? error.message : "That is not a Discord id or handle.",
+    };
+  }
 }
 
 const FIELD_CLASS =
@@ -83,16 +140,20 @@ export function AdminConsole({
   pools,
   poolsError,
   nudge = null,
+  exchangeVote = null,
 }: {
   summary: EventSummary;
   pools: ParticipantPool[];
   poolsError: string | null;
   /** Null when there is no draw yet, or the selections could not be read. */
   nudge?: NudgeStatus | null;
+  /** The exchange-date vote. Null before a draw has run. */
+  exchangeVote?: ExchangeVote | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
   const [confirmingReveal, setConfirmingReveal] = useState(false);
+  const [discordDraft, setDiscordDraft] = useState("");
 
   function dispatch(work: () => Promise<ActionResult>) {
     startTransition(async () => {
@@ -280,6 +341,66 @@ export function AdminConsole({
         </section>
       ) : null}
 
+      {exchangeVote && exchangeVote.tallies.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">Exchange date</h2>
+          <p className="text-sm opacity-80">
+            {exchangeVote.answered} of {summary.participantCount} ranked the
+            dates.{" "}
+            {exchangeVote.winner
+              ? `${formatEventDate(exchangeVote.winner)} is ahead.`
+              : "No date is clearly ahead."}{" "}
+            Set <code>EXCHANGE_AT</code> in <code>src/lib/event.ts</code> to
+            lock it in and switch the home page countdown.
+          </p>
+
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left opacity-60">
+                <th className="py-1 font-medium">Date</th>
+                <th className="py-1 text-right font-medium">1st choices</th>
+                <th className="py-1 text-right font-medium">Points</th>
+                <th className="py-1 text-right font-medium">Avg. rank</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-300/20">
+              {exchangeVote.tallies.map((tally) => (
+                <tr key={tally.date}>
+                  <td className="py-2">
+                    {formatEventDate(tally.date)}
+                    {tally.date === exchangeVote.winner ? (
+                      <span className="ml-2 text-xs text-emerald-400/90">ahead</span>
+                    ) : null}
+                  </td>
+                  <td className="py-2 text-right">{tally.firsts}</td>
+                  <td className="py-2 text-right">{tally.points}</td>
+                  <td className="py-2 text-right">
+                    {tally.averageRank === null
+                      ? "—"
+                      : tally.averageRank.toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <p className="text-xs opacity-70">
+            Points are 3 for a first place, 2 for a second, 1 for a third. It is
+            shown next to first choices because the two can disagree: a date
+            nobody loves but everybody can make will beat one that half the
+            group ranks first and half ranks last. Which you want is a
+            judgement, so both are here.
+          </p>
+
+          {exchangeVote.unanswered.length > 0 ? (
+            <p className="text-xs opacity-70">
+              Did not rank: {exchangeVote.unanswered.join(", ")} — they signed
+              up before the question was added, and count toward nothing above.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Pools</h2>
         <p className="text-sm opacity-80">
@@ -415,20 +536,18 @@ export function AdminConsole({
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium">Discord</span>
+            <span className="text-sm font-medium">
+              Discord <span className="opacity-70">— numeric user id</span>
+            </span>
             <input
               className={FIELD_CLASS}
               name="discord"
-              placeholder="user id (pings) or handle — leave empty to keep"
+              onChange={(event) => setDiscordDraft(event.target.value)}
+              placeholder="185432109876543210 — leave empty to keep"
               type="text"
+              value={discordDraft}
             />
-            <span className="block text-xs opacity-70">
-              Only a numeric <strong>user id</strong> produces a real ping.
-              Turn on Discord&rsquo;s Settings &gt; Advanced &gt; Developer
-              Mode, then right-click the person and{" "}
-              <em>Copy User ID</em>. A handle is stored and shown, but notifies
-              nobody. Type <code>none</code> to clear.
-            </span>
+            <DiscordHint raw={discordDraft} />
           </label>
 
           <label className="block space-y-1">

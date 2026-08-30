@@ -26,6 +26,7 @@ describe("DemoIndexPage", () => {
         themeVeto: null,
         themeWish: "Tokens",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "demo-2",
@@ -38,6 +39,7 @@ describe("DemoIndexPage", () => {
         themeVeto: null,
         themeWish: null,
         discord: null,
+        exchangeRanking: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",

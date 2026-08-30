@@ -29,6 +29,12 @@ export type Participant = {
    */
   discord: string | null;
   /**
+   * The candidate exchange dates in preference order, best first, carried
+   * over from their sign-up. Null when they signed up before the question
+   * existed — see `ParticipantInput.exchangeRanking`.
+   */
+  exchangeRanking: string[] | null;
+  /**
    * The two commander choices this person seeded their own pool with at
    * sign-up. Either may be a partner pair, which counts as one choice.
    *

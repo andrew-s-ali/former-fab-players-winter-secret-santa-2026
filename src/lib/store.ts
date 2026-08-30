@@ -1,10 +1,12 @@
 import { readFile } from "node:fs/promises";
 import type { NudgeState } from "./nudge";
+import type { ReminderState } from "./signup-reminder";
 import type { EventData, Participant } from "./participants";
 
 const STORE_NAME = "secret-santa";
 const BLOB_KEY = "event.json";
 const NUDGE_KEY = "nudge.json";
+const REMINDER_KEY = "signup-reminder.json";
 
 const EMPTY: EventData = { participants: [], revealedAt: null };
 
@@ -22,12 +24,17 @@ function withDefaults(data: EventData | null): EventData {
 /**
  * Fields added to a participant after an event was already drawn.
  *
- * A blob written before `discord` existed has no such key, and `undefined`
+ * A blob written before `discord` or `exchangeRanking` existed has no such
+ * key, and `undefined`
  * where the type promises `string | null` is the kind of difference that
  * surfaces as one odd render months later. Normalised on the way in instead.
  */
 function withParticipantDefaults(participant: Participant): Participant {
-  return { ...participant, discord: participant.discord ?? null };
+  return {
+    ...participant,
+    discord: participant.discord ?? null,
+    exchangeRanking: participant.exchangeRanking ?? null,
+  };
 }
 
 type BlobsMode =
@@ -186,17 +193,45 @@ export async function readEvent(): Promise<EventData> {
  * not the database is reachable.
  */
 export async function readNudgeState(): Promise<NudgeState | null> {
+  return readSibling<NudgeState>(NUDGE_KEY);
+}
+
+export async function writeNudgeState(state: NudgeState): Promise<void> {
+  await writeSibling(NUDGE_KEY, state);
+}
+
+/** Beside the local event file, whatever that file is called. */
+async function siblingPath(key: string): Promise<string> {
+  const { dirname, join } = await import("node:path");
+  return join(dirname(localPath()), key);
+}
+
+/**
+ * Which sign-up reminders have already been posted.
+ *
+ * Kept beside the event for the same reason as `nudge.json`, and under its own
+ * key so the two schedules cannot overwrite each other's state.
+ */
+export async function readReminderState(): Promise<ReminderState | null> {
+  return readSibling<ReminderState>(REMINDER_KEY);
+}
+
+export async function writeReminderState(state: ReminderState): Promise<void> {
+  await writeSibling(REMINDER_KEY, state);
+}
+
+async function readSibling<T>(key: string): Promise<T | null> {
   const mode = resolveMode();
 
   if (mode.kind !== "local") {
     const store = await openStore(mode);
-    return (await store.get(NUDGE_KEY, { type: "json" })) as NudgeState | null;
+    return (await store.get(key, { type: "json" })) as T | null;
   }
 
   try {
     return JSON.parse(
-      await readFile(/* turbopackIgnore: true */ await nudgeStatePath(), "utf8")
-    ) as NudgeState;
+      await readFile(/* turbopackIgnore: true */ await siblingPath(key), "utf8")
+    ) as T;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return null;
@@ -205,26 +240,20 @@ export async function readNudgeState(): Promise<NudgeState | null> {
   }
 }
 
-export async function writeNudgeState(state: NudgeState): Promise<void> {
+async function writeSibling(key: string, value: unknown): Promise<void> {
   const mode = resolveMode();
 
   if (mode.kind !== "local") {
     const store = await openStore(mode);
-    await store.setJSON(NUDGE_KEY, state);
+    await store.setJSON(key, value);
     return;
   }
 
   const { mkdir, writeFile } = await import("node:fs/promises");
   const { dirname } = await import("node:path");
-  const path = await nudgeStatePath();
+  const path = await siblingPath(key);
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, JSON.stringify(state, null, 2));
-}
-
-/** Beside the local event file, whatever that file is called. */
-async function nudgeStatePath(): Promise<string> {
-  const { dirname, join } = await import("node:path");
-  return join(dirname(localPath()), NUDGE_KEY);
+  await writeFile(path, JSON.stringify(value, null, 2));
 }
 
 /**
@@ -242,9 +271,14 @@ async function nudgeStatePath(): Promise<string> {
  */
 export async function deleteEventData(): Promise<string[]> {
   const mode = resolveMode();
-  // nudge.json is in here because its digest lists participants by name.
+  // nudge.json is in here because its digest lists participants by name; the
+  // reminder state holds no personal data but is event state all the same, and
+  // a wipe that keeps souvenirs is not a wipe.
   const isEventKey = (key: string) =>
-    key === BLOB_KEY || key === NUDGE_KEY || /^event\.backup-.*\.json$/.test(key);
+    key === BLOB_KEY ||
+    key === NUDGE_KEY ||
+    key === REMINDER_KEY ||
+    /^event\.backup-.*\.json$/.test(key);
 
   if (mode.kind !== "local") {
     const store = await openStore(mode);

@@ -4,8 +4,9 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
 ## Status
 
-Feature-complete, and currently **pre-launch**: the home page is a splash page
-until the organiser opens registration (see *Before launch* below). Behind it,
+Feature-complete, and **launching at midnight US Eastern on 1 September 2026**:
+until then the home page is a splash page counting down (see *Before launch*
+below). Behind it,
 the site takes sign-ups through Netlify Forms, provides a filterable commander
 browser, takes each person's own two pool commanders — either of which may be a
 **partner pair** — on the sign-up form itself, runs the draw from those sign-ups
@@ -14,8 +15,8 @@ participant, serves each participant a locked three-card shortlist with a
 one-time hidden-card trade, and features a stepped public reveal-day ring, a
 two-phase countdown, a festive winter palette with reduced-motion snowfall,
 private per-link scratchpads and decklist links, enlarged card previews on
-hover, interactive deck prompts, demo preview routes, an Identity-gated
-organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
+hover, interactive deck prompts, a ranked vote on the exchange date, demo
+preview routes, an Identity-gated organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
 **deletion path** for every copy of someone's personal data. 539 unit tests, 28
 Playwright E2E tests, and lint/typecheck/build are all clean.
 
@@ -64,6 +65,7 @@ npm run dev                       # http://localhost:3000
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
 | `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
+| `npm run remind`              | Post the sign-up reminder for the current milestone (`-- --dry-run` to preview, `-- --force` to repost a spent one) |
 | `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock); fetches the real pool so demo pool cards are real |
 
 CI runs lint → typecheck → unit → E2E on every push and pull request.
@@ -77,7 +79,7 @@ src/components/ React components (SplashPage, EventHome, CommanderBrowser, Revea
 src/lib/        framework-free logic; unit-tested (draw, ring, pairing, pool rules, filtering, countdown, launch gate, Scryfall, store, nudge, erasure planning)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
 src/test-support/ commander fixtures shared by the test suite (never imported by app code)
-netlify/functions/ signup-submitted.mts mirrors Forms into Postgres; nudge.mts posts outstanding picks to Discord on a schedule
+netlify/functions/ signup-submitted.mts mirrors Forms into Postgres; nudge.mts and signup-reminder.mts post to Discord on a schedule
 scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, Discord nudge, data erasure, demo seeder
 public/         static assets; __forms.html registers the sign-up form with Netlify
 tests/e2e/      Playwright specs
@@ -118,18 +120,38 @@ no ban list, no sign-up link and no links onward at all**: it introduces the
 event, and everything else waits. That means the URL can be shared, bookmarked
 and posted well ahead of time.
 
-To open the event, set the date in `src/lib/event.ts`:
+The switch-over is set in `src/lib/event.ts`, and takes one of two forms:
 
 ```ts
-export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-01";            // 00:00 UTC
+export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";  // an exact instant
 ```
 
-- `null` (the default) keeps the splash up indefinitely and says "sign-ups open
-  soon" rather than counting down. It is also the fail-safe: a missing date
-  never opens the event by accident.
-- A date swaps the splash for the real home page — rules, ban list, sign-up
-  link, commander browser — at the start of that day, UTC. `/` is rendered per
-  request, so **the switch needs no redeploy**; it happens on the day.
+- `null` keeps the splash up indefinitely and says "sign-ups open soon" rather
+  than counting down. It is the fail-safe: a missing date never opens the event
+  by accident.
+- A **bare date** opens at the start of that day **in UTC**. Watch this if the
+  group is not on UTC: `"2026-09-01"` goes live at 8pm Eastern on 31 August.
+- A **full ISO instant** opens at exactly that moment, which is how to hit
+  local midnight. The value in the repo today is `"2026-09-01T04:00:00Z"` —
+  midnight in New York, September being EDT (UTC-4). Outside daylight saving,
+  EST is UTC-5 and the equivalent is `T05:00:00Z`.
+
+`SIGNUPS_CLOSE_AT` takes the same two forms and is read by the same
+`instantOf`, so the opening gate and the closing countdown cannot drift apart
+about what a configured date means. It is an instant today for a reason worth
+remembering: as a bare `"2026-09-17"` sign-ups shut at midnight **UTC**, which
+is 8pm Eastern on the *16th*, while `/signup` displayed "sign-ups close on 17
+September". Anyone signing up that evening was refused by a page that had just
+told them otherwise. `formatDeadline` renders a deadline by naming the **last day anybody can
+act** — "the end of Monday, 7 September 2026" — rather than the boundary date.
+A date alone is ambiguous at a boundary, and so is the obvious fix: "midnight
+on 8 September" is correct and half the room still hears "the night of the
+8th". The weekday is there because that is what people plan against.
+
+Either way `/` is rendered per request, so **the switch itself needs no
+redeploy** — it happens on its own. **Setting or changing the value is a code
+change and does need one**, so deploy it before the day, not on it.
 
 The rest of the site is *not* behind this gate. `/signup`, `/commanders` and
 `/demo` all keep working for anyone with a direct link, and `/signup` accepts
@@ -142,9 +164,11 @@ if you want sign-ups gated on the same date too.
 
 ### 1. Schedule & Configuration
 
-- **Sign-ups open:** not announced (`SIGNUPS_OPEN_AT = null` in `src/lib/event.ts` — see step 0).
-- **Sign-ups close:** 17 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-17"` in `src/lib/event.ts`).
-- **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`).
+- **Sign-ups open:** 1 September 2026 at midnight US Eastern (`SIGNUPS_OPEN_AT = "2026-09-01T04:00:00Z"` in `src/lib/event.ts` — see step 0).
+- **Sign-ups close:** midnight US Eastern as the 8th begins (`SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z"`), so the last full day is the 7th. **Seven days exactly**, midnight to midnight.
+- **Card workshop closes:** end of 21 September (`WORKSHOP_CLOSE_AT = "2026-09-22T04:00:00Z"`). **Advisory, not enforced** — the exchange still unlocks only when everybody has picked for everybody. This is the date the site and the Discord nudge point at; nothing refuses a pick after it.
+- **Building period:** 22 September until the exchange date.
+- **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`). Every sign-up ranks all three; the organiser console tallies the vote (see step 7).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
 
 ### 2. Collect Sign-ups
@@ -153,7 +177,8 @@ Sign-ups come in through **Netlify Forms** at `/signup`. Nothing is exported or
 copied by hand — `npm run draw` reads the submissions directly.
 
 A sign-up carries a name, an **email address**, an optional colour veto, two
-optional theme answers, and **two commanders, which are required**.
+optional theme answers, **two commanders**, and a **ranking of the three
+candidate exchange dates** — the last two both required.
 
 The two commanders are the start of that person's own pool: everyone else adds
 one more card to it after the draw, and whoever ends up building their deck is
@@ -180,6 +205,30 @@ a half-filled form.
 
 Card picks are submitted **by name** rather than by Scryfall id, so the Netlify
 Forms dashboard and the CSV fallback both stay readable.
+
+**Ranking the exchange date.** Each sign-up puts 1, 2 and 3 against the three
+`EXCHANGE_CANDIDATES`. It is a select per date rather than a drag-to-reorder
+list: the submission goes through Netlify Forms as three flat fields, and a
+reorderable list needs a starting order — which everyone who did not care would
+submit unchanged, quietly loading the result toward whichever date happened to
+be first. Starting blank means an answer is always something the person chose.
+
+The fields are named by the date's **position** in `EXCHANGE_CANDIDATES`
+(`exchangeRank1`…`exchangeRank3`), not by the date, so moving a candidate does
+not rename a registered Netlify field — which would silently drop every
+submission until `public/__forms.html` was updated to match.
+
+Stored as an **ordering**, best first, rather than a rank per date: the
+ordering is the answer, and a rank-per-date shape can represent nonsense (two
+firsts, no second) that an ordering cannot.
+
+`null` means **the question was not answered**, not "no preference". The form
+requires it, but the form was already live when the question was added and the
+CSV fallback may not carry the columns — so `signups.exchange_ranking` is
+nullable and those sign-ups stay drawable. A *partly* answered ranking is an
+error rather than a silent null: it means the form and the importer disagree
+about the fields, and discarding half an answer would leave the organiser
+tallying a vote some people appear not to have cast.
 
 #### From Forms into the database
 
@@ -233,8 +282,10 @@ or a rescue if something goes wrong with the live form:
 1. Export the responses as CSV.
 2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts` — including the
    two card columns (`First commander for your pool`, `Second commander for
-   your pool`). If they don't, the draw fails immediately and lists the headers
-   it actually found.
+   your pool`) and the three date-rank columns (`Exchange date rank: 5
+   December`, and so on). If they don't, the draw fails immediately and lists
+   the headers it actually found. A CSV that omits all three rank columns
+   imports fine; the ranking reads as unanswered.
 
 Both sources funnel through `src/lib/signup.ts`, so validation, colour parsing
 and duplicate handling behave identically either way.
@@ -385,6 +436,16 @@ participant, attributed to whoever chose it, with a count of distinct choices
 and a list of who has not picked yet. Attribution is safe: everybody picks for
 everybody, so who contributed what says nothing about who was assigned whom.
 
+**The exchange-date vote** is tallied here: first choices, Borda points (3 for
+a first place, 2 for a second, 1 for a third) and average rank, best first.
+Both first choices and points are shown because they genuinely disagree — a
+date nobody loves but everybody can make will beat one that half the group
+ranks first and half ranks last, and which of those you want is a judgement.
+An abstention counts toward nothing; treating "did not answer" as a vote for
+the middle date would let the people who did not answer decide it. Once you
+have picked, set `EXCHANGE_AT` in `src/lib/event.ts` to lock it in and switch
+the home page countdown.
+
 Every participant row also carries their **Discord** id or handle, labelled
 *will ping* / *handle only* / *no Discord set*, because the difference is
 invisible otherwise and matters exactly once — when the nudge goes out and half
@@ -524,6 +585,12 @@ the person and **Copy User ID**. Paste it into the *Discord* box on `/admin`
 (or use `npm run update-participant -- "<name>" --discord=<id>`). A pasted
 mention works too — `<@123…>` is stored as the bare id.
 
+**The box checks what you type, as you type it**, because the mistake is
+invisible afterwards: a handle saves cleanly, looks right in the roster, and
+simply fails to notify anybody on the day it matters. An id reports *"this will
+ping them"*; a handle warns that it will not; `none` says what clearing does;
+and anything that is neither is refused before it can be saved.
+
 It is **not collected at sign-up**: the organiser fills it in on the console
 once they know who is playing, so the sign-up form stays short and nobody has
 to turn on Developer Mode to enter the exchange.
@@ -548,6 +615,115 @@ the second lock.)
 Filling in somebody’s Discord **does not** re-trigger a nudge: the quiet-period
 digest tracks names and counts, not how they are addressed. Admin is not
 progress.
+
+#### Editing what the bot says
+
+All the wording lives in two pure functions, neither of which touches Discord
+or a database:
+
+| Message | Function | File |
+| --- | --- | --- |
+| Sign-up reminders (all four) | `reminderMessage` | `src/lib/signup-reminder.ts` |
+| Which milestones `@here` | `alertsChannel` | `src/lib/signup-reminder.ts` |
+| When each milestone fires | `REMINDER_THRESHOLDS` | `src/lib/signup-reminder.ts` |
+| Outstanding-picks nudge | `nudgeMessage` | `src/lib/nudge.ts` |
+| How a person is addressed | `mentionFor` | `src/lib/discord.ts` |
+
+Preview any change without sending: `npm run remind -- --now=<iso> --dry-run`
+and `npm run nudge -- --dry-run`.
+
+Some tests assert on exact phrases, so rewording will fail them — that is the
+point, since the phrases they pin are the ones that carry meaning ("be the
+first", "no adding people later", `@here` on the right milestones). Update the
+test alongside the copy rather than loosening it.
+
+#### Sign-up reminders
+
+The same webhook also carries reminders during the sign-up window, from
+`netlify/functions/signup-reminder.mts`. It runs daily and speaks **five
+times**:
+
+| Milestone | Fires |
+| --- | --- |
+| `opening` | The first run after sign-ups open — **`@here`** |
+| `days-5` | 5 days left |
+| `days-3` | 3 days left |
+| `days-1` | The final day — "last chance" wording, **`@here`** |
+
+It runs at **08:00 US Eastern** (`0 12 * * *` — cron is UTC, and September is
+EDT), so the opening announcement lands at a civilised hour rather than at
+midnight when the site actually flips over.
+
+**Milestone-driven, not periodic.** The window is seven days; a daily post
+would be muted by day three, and a muted channel is worse than a quiet one on
+the day it finally matters. Outside the window it says nothing at all — a
+reminder to sign up for something that is not open, or is over, is worse than
+silence. Thresholds must stay *below* the window length: one at or above it
+either never fires or collides with the opening announcement, and there is a
+test pinning that.
+
+**The two Discord messages notify people differently, on purpose.** The
+sign-up reminder is addressed to everyone — anybody might still join — so it
+uses `@here`. The outstanding-picks nudge is addressed to the specific people
+holding the exchange up, so it **name-tags them individually** (`<@id>`, see
+*Real @-pings*) and never alerts the channel. Pinging everyone about three
+people's outstanding picks would train the group to mute the bot before the
+messages that concern them arrive. There are tests on both sides.
+
+**`@here` is opt-in per message.** `postToDiscord` allow-lists mentions rather
+than trusting the text, and `everyone` — the parse rule that enables both
+`@here` and `@everyone` — is passed only for the announcement and the last
+call. The midweek nudges go out unpinged: four channel-wide alerts in seven
+days is how a bot gets muted, and a muted bot is silent on the last day too.
+To change which milestones ping, edit `alertsChannel`.
+
+Each milestone posts **exactly once**, tracked by key in `signup-reminder.json`
+(its own blob key, so the two schedules cannot overwrite each other's state).
+The key is recorded only after a successful send, so a failed post does not
+consume the milestone. A cron that misses a day reports where things actually
+stand rather than replaying a stale mark: at nine days left it is still the
+"ten days" post.
+
+The message carries the deadline, a link to the **home page** (not `/signup` —
+on opening day the home page stops being a splash and becomes the rules, the
+ban list and the sign-up link, so it answers "what is this?" as well as "where
+do I join?"), and how many **distinct people** have signed up — by name, case-insensitively, since a resubmission to
+fix a typo is a second row for the same person. If the database cannot be read
+it posts without the count rather than staying silent; the deadline is the
+point of the message.
+
+Preview before a cron sends it to a channel full of friends:
+
+```bash
+NETLIFY_DB_URL=<url> npm run remind -- --dry-run
+```
+
+Outside the sign-up window there is no milestone and so nothing to send — not
+even with `--force` — which would leave no way to prove the webhook works until
+the morning it matters. `--now` pretends it is a different moment:
+
+```bash
+npm run remind -- --now=2026-09-01T12:00:00Z --dry-run
+```
+
+Drop `--dry-run` to post a real one. Point `DISCORD_WEBHOOK_URL` at a scratch
+channel first unless you want the announcement arriving early.
+
+**After deploying, nothing else is required.** Scheduled functions are declared
+by their `config.schedule` export and registered at deploy — there is no switch
+to flip in the UI. Both crons are armed and silent until their moment: the
+sign-up reminder returns no milestone before 1 September, and the pick nudge
+reports "no draw has run yet". Two things are worth checking, because both fail
+quietly:
+
+- **`DISCORD_WEBHOOK_URL` must be scoped to Functions**, and **variable values
+  are frozen per deploy** — one added after the last deploy is invisible until
+  the next one. Without it the reminder reports that it has nowhere to post
+  rather than failing, so the only symptom is silence.
+- **Deploy before 08:00 Eastern on 1 September.** The cron fires once a day; a
+  deploy later than that means the opening announcement goes out on the 2nd
+  instead. It is still correct when it lands — the milestone has not been
+  consumed — just a day late.
 
 ### 9. Erasing Personal Data
 
@@ -787,4 +963,4 @@ npx --yes netlify-cli deploy --build --prod
   Explicit credentials are unaffected: the operator's CLI always reaches the real store.
 
 - **Atomic Writes & Backups:** `writeEvent` snapshots the current state to a timestamped backup before writing changes (via atomic temp-file rename on local disk or timestamped key in Blobs). There is no rotation and no cleanup — which is deliberate as a safety net, and is exactly why `deleteEventData` exists: every snapshot is a complete copy of the roster, so erasing `event.json` alone would erase nothing. See *Erasing Personal Data*.
-- **Other keys in the same store:** `nudge.json` holds the last Discord nudge's fingerprint. It is written only after a successful post, and it is deleted by the full wipe along with everything else, because its digest lists participants by name.
+- **Other keys in the same store:** `nudge.json` holds the last Discord nudge's fingerprint, and `signup-reminder.json` records which sign-up milestones have been posted. It is written only after a successful post, and it is deleted by the full wipe along with everything else, because its digest lists participants by name.

@@ -35,6 +35,7 @@ function input(name: string): ParticipantInput {
       { commander: "One", partner: null },
       { commander: "Two", partner: null },
     ],
+    exchangeRanking: null,
   };
 }
 
@@ -49,6 +50,7 @@ const people: Participant[] = ["ada", "brin", "cleo", "dara"].map((id, index, al
   themeVeto: null,
   themeWish: null,
   discord: null,
+  exchangeRanking: null,
   selfCards: testSelfCards(id),
 }));
 

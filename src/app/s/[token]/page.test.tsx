@@ -29,6 +29,7 @@ describe("RevealPage (/s/[token])", () => {
         themeVeto: "Infect",
         themeWish: "Dragons",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "p-2",
@@ -41,6 +42,7 @@ describe("RevealPage (/s/[token])", () => {
         themeVeto: null,
         themeWish: "Artifacts",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "p-3",
@@ -53,6 +55,7 @@ describe("RevealPage (/s/[token])", () => {
         themeVeto: null,
         themeWish: null,
         discord: null,
+        exchangeRanking: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",

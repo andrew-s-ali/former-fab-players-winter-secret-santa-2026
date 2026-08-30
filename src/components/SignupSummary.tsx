@@ -1,4 +1,5 @@
 import type { ColorCode } from "@/lib/commanders";
+import { formatEventDate } from "@/lib/launch";
 import { PickCards, PickName } from "@/components/PickCards";
 import { pickId, type CommanderPick } from "@/lib/pairing";
 
@@ -28,11 +29,14 @@ export function SignupSummary({
   colorVeto,
   themeVeto,
   themeWish,
+  exchangeRanking = null,
 }: {
   cards: CommanderPick[];
   colorVeto: ColorCode | null;
   themeVeto: string | null;
   themeWish: string | null;
+  /** Their preferred exchange dates, best first; null if they never said. */
+  exchangeRanking?: string[] | null;
 }) {
   return (
     <details className="rounded-xl border border-slate-300/25">
@@ -75,6 +79,20 @@ export function SignupSummary({
           <div>
             <dt className="font-semibold">Theme you asked for</dt>
             <dd>{themeWish ?? NONE}</dd>
+          </div>
+          <div>
+            <dt className="font-semibold">Exchange dates, your order</dt>
+            <dd>
+              {exchangeRanking && exchangeRanking.length > 0 ? (
+                <ol className="list-inside list-decimal">
+                  {exchangeRanking.map((date) => (
+                    <li key={date}>{formatEventDate(date)}</li>
+                  ))}
+                </ol>
+              ) : (
+                NONE
+              )}
+            </dd>
           </div>
         </dl>
 

@@ -13,6 +13,31 @@ test("the sign-up form renders the fields the importer expects", async ({ page }
   // typed — but the importer still reads them by these names.
   await expect(page.locator('input[name="selfCard1"]')).toHaveCount(1);
   await expect(page.locator('input[name="selfCard2"]')).toHaveCount(1);
+
+  // One rank per candidate exchange date. These names are registered in
+  // public/__forms.html; if the two ever disagree, Netlify drops the whole
+  // submission without an error and the browser still shows success.
+  for (const field of ["exchangeRank1", "exchangeRank2", "exchangeRank3"]) {
+    await expect(page.locator(`select[name="${field}"]`)).toBeVisible();
+  }
+});
+
+test("the form cannot be sent until the exchange dates are ranked", async ({ page }) => {
+  await page.goto("/signup");
+
+  const ranks = page.locator('select[name^="exchangeRank"]');
+  await expect(ranks).toHaveCount(3);
+  for (let index = 0; index < 3; index += 1) {
+    await expect(ranks.nth(index)).toHaveValue("");
+  }
+
+  // Reusing a number is caught in the browser as well as at import.
+  await ranks.nth(0).selectOption("1");
+  await ranks.nth(1).selectOption("1");
+  // Matched by text, not by role: Next.js renders its own route announcer as
+  // role="alert", so the role alone is ambiguous here.
+  await expect(page.getByText(/only be used once/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign me up" })).toBeDisabled();
 });
 
 test("the form cannot be sent before two commanders are chosen", async ({ page }) => {

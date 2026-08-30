@@ -43,6 +43,17 @@ export const signups = pgTable("signups", {
    */
   selfCards: jsonb("self_cards").$type<[CommanderPick, CommanderPick]>().notNull(),
   /**
+   * The candidate exchange dates in this person's order of preference, best
+   * first.
+   *
+   * **Nullable, although the form requires it.** The form was already live and
+   * accepting submissions when this question was added, so rows exist that
+   * predate it; a NOT NULL column would have meant either refusing those
+   * people or inventing a preference for them. Null reads as "did not answer",
+   * which is what the organiser's tally shows.
+   */
+  exchangeRanking: jsonb("exchange_ranking").$type<string[]>(),
+  /**
    * When the row was written, which is when Netlify delivered the event —
    * within seconds of the submission. The event carries no timestamp of its
    * own, and this is only ever used to order resubmissions.
