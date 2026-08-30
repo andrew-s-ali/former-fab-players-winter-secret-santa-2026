@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AdminConsole } from "./AdminConsole";
 import type { EventSummary } from "@/lib/admin";
@@ -249,5 +250,62 @@ describe("AdminConsole, the exchange-date vote", () => {
     );
 
     expect(screen.queryByText(/Exchange date/)).not.toBeInTheDocument();
+  });
+});
+
+describe("AdminConsole, the Discord box", () => {
+  function box() {
+    render(
+      <AdminConsole nudge={null} pools={[]} poolsError={null} summary={summary([])} />
+    );
+    return screen.getByRole("textbox", { name: /discord/i });
+  }
+
+  it("says how to find the numeric id before anything is typed", () => {
+    box();
+
+    expect(screen.getByText(/Developer Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/Copy User ID/)).toBeInTheDocument();
+    // A concrete example, so the shape is recognisable.
+    expect(screen.getByText(/185432109876543210/)).toBeInTheDocument();
+  });
+
+  it("confirms a user id will ping", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "185432109876543210");
+
+    expect(screen.getByText(/this will ping them/i)).toBeInTheDocument();
+  });
+
+  it("warns that a handle will not notify anybody", async () => {
+    // The mistake is invisible afterwards: a handle saves cleanly, looks right
+    // in the roster, and silently fails on the day it matters.
+    const user = userEvent.setup();
+    await user.type(box(), "ada_lovelace");
+
+    const warning = screen.getByRole("alert");
+    expect(warning).toHaveTextContent(/is a handle, not an id/i);
+    expect(warning).toHaveTextContent(/will not notify them/i);
+  });
+
+  it("accepts a pasted mention and shows the id it will store", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "<@185432109876543210>");
+
+    expect(screen.getByText(/User id 185432109876543210/)).toBeInTheDocument();
+  });
+
+  it("explains what none does", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "none");
+
+    expect(screen.getByText(/Clears their Discord/i)).toBeInTheDocument();
+  });
+
+  it("rejects something that is neither, before it can be saved", async () => {
+    const user = userEvent.setup();
+    await user.type(box(), "<@&123456789012345678>");
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/not a Discord handle/i);
   });
 });

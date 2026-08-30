@@ -583,6 +583,12 @@ the person and **Copy User ID**. Paste it into the *Discord* box on `/admin`
 (or use `npm run update-participant -- "<name>" --discord=<id>`). A pasted
 mention works too — `<@123…>` is stored as the bare id.
 
+**The box checks what you type, as you type it**, because the mistake is
+invisible afterwards: a handle saves cleanly, looks right in the roster, and
+simply fails to notify anybody on the day it matters. An id reports *"this will
+ping them"*; a handle warns that it will not; `none` says what clearing does;
+and anything that is neither is refused before it can be saved.
+
 It is **not collected at sign-up**: the organiser fills it in on the console
 once they know who is playing, so the sign-up form stays short and nobody has
 to turn on Developer Mode to enter the exchange.

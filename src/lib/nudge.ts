@@ -128,7 +128,7 @@ export function nudgeMessage(
   }
 
   const header =
-    `🎁 **Secret Santa — commander picks**\n\n` +
+    `🎁 **Winter 2026 Exchange — commander picks**\n\n` +
     `${status.picksIn} of ${status.picksRequired} picks are in. ` +
     `Waiting on ${status.outstanding.length} ` +
     `${status.outstanding.length === 1 ? "person" : "people"}:\n`;

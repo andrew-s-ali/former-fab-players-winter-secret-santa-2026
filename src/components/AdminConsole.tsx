@@ -9,7 +9,7 @@ import {
 } from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
 import type { EventSummary, ExchangeVote, ParticipantPool } from "@/lib/admin";
-import { willPing } from "@/lib/discord";
+import { DiscordError, parseDiscordRef, willPing } from "@/lib/discord";
 import { formatEventDate } from "@/lib/launch";
 import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
@@ -44,6 +44,21 @@ function mailtoStragglers(summary: EventSummary, nudge: NudgeStatus): string {
  * group never sees it. "Handle only" is not a warning; plenty of people will
  * never hand over an id, and the message falls back to their name.
  */
+function DiscordHint({ raw }: { raw: string }) {
+  const { tone, text } = discordHint(raw);
+  const className =
+    tone === "good"
+      ? "text-emerald-400/90"
+      : tone === "warn"
+        ? "text-amber-400"
+        : "opacity-70";
+  return (
+    <span className={`block text-xs ${className}`} role={tone === "warn" ? "alert" : undefined}>
+      {text}
+    </span>
+  );
+}
+
 function DiscordTag({ discord }: { discord: string | null }) {
   if (!discord) {
     return <span className="block text-xs opacity-50">no Discord set</span>;
@@ -57,6 +72,47 @@ function DiscordTag({ discord }: { discord: string | null }) {
       Discord @{discord} — handle only, will not ping
     </span>
   );
+}
+
+/**
+ * What the organiser has typed into the Discord box, judged as they type.
+ *
+ * A static "use the numeric id" note is easy to skim past, and the mistake it
+ * warns about is invisible afterwards: a handle saves cleanly, looks right in
+ * the roster, and simply fails to notify anybody on the day it matters. This
+ * says which of the two you have while you can still change it.
+ */
+function discordHint(raw: string): { tone: "help" | "good" | "warn"; text: string } {
+  const value = raw.trim();
+  if (value === "") {
+    return {
+      tone: "help",
+      text:
+        "Paste the numeric user id — that is the only form that pings. In " +
+        "Discord: Settings > Advanced > Developer Mode on, then right-click " +
+        "the person > Copy User ID. Looks like 185432109876543210.",
+    };
+  }
+  if (value.toLowerCase() === "none") {
+    return { tone: "help", text: "Clears their Discord — the nudge will use their name." };
+  }
+  try {
+    const ref = parseDiscordRef(value);
+    return ref.kind === "id"
+      ? { tone: "good", text: `User id ${ref.id} — this will ping them.` }
+      : {
+          tone: "warn",
+          text:
+            `"${ref.name}" is a handle, not an id. It saves and shows in the ` +
+            "roster, but Discord will not notify them. For a real ping use " +
+            "Developer Mode > right-click > Copy User ID.",
+        };
+  } catch (error) {
+    return {
+      tone: "warn",
+      text: error instanceof DiscordError ? error.message : "That is not a Discord id or handle.",
+    };
+  }
 }
 
 const FIELD_CLASS =
@@ -97,6 +153,7 @@ export function AdminConsole({
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
   const [confirmingReveal, setConfirmingReveal] = useState(false);
+  const [discordDraft, setDiscordDraft] = useState("");
 
   function dispatch(work: () => Promise<ActionResult>) {
     startTransition(async () => {
@@ -479,20 +536,18 @@ export function AdminConsole({
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium">Discord</span>
+            <span className="text-sm font-medium">
+              Discord <span className="opacity-70">— numeric user id</span>
+            </span>
             <input
               className={FIELD_CLASS}
               name="discord"
-              placeholder="user id (pings) or handle — leave empty to keep"
+              onChange={(event) => setDiscordDraft(event.target.value)}
+              placeholder="185432109876543210 — leave empty to keep"
               type="text"
+              value={discordDraft}
             />
-            <span className="block text-xs opacity-70">
-              Only a numeric <strong>user id</strong> produces a real ping.
-              Turn on Discord&rsquo;s Settings &gt; Advanced &gt; Developer
-              Mode, then right-click the person and{" "}
-              <em>Copy User ID</em>. A handle is stored and shown, but notifies
-              nobody. Type <code>none</code> to clear.
-            </span>
+            <DiscordHint raw={discordDraft} />
           </label>
 
           <label className="block space-y-1">

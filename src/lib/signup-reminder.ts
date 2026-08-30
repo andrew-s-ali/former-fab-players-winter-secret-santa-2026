@@ -118,22 +118,31 @@ export function reminderMessage(
 
   if (reminder.kind === "opening") {
     return (
-      `@here 🎁 **Secret Santa sign-ups are open.**\n\n` +
-      `Pick two commanders for your own pool, say which December date suits ` +
-      `you, and you are in. Closes ${deadline} (US Eastern).${soFar}${signUp}`
+      `@here 🎁 **Welcome to the Winter 2026 Exchange**\n\n` +
+      // Mind the spaces at these joins: adjacent template strings concatenate
+      // with nothing between them, so a line ending mid-sentence needs its own
+      // trailing space or the words run together.
+      `Following having feedback from _most_ members I have kept a similar ` +
+      `style of selecting format, but also have a these this time.\n\n` +
+      `The theme is **Uncommon Legendaries Only**\n\n` +
+      `Find more _updated_ rules on the site, and let's use this site as our ` +
+      `event portal. ` +
+      // `deadline` already reads "midnight on 8 September 2026", so "closes"
+      // rather than "closes on".
+      `Signups closes ${deadline} (US Eastern).${soFar}${signUp}`
     );
   }
 
   if (reminder.kind === "final") {
     return (
-      `@here ⏳ **Last chance — Secret Santa sign-ups close ${deadline}.**\n\n` +
+      `@here ⏳ **Last chance — Winter 2026 Exchange sign-ups close ${deadline}.**\n\n` +
       `After that the draw runs and the pool is fixed, so there is no adding ` +
       `people later.${soFar}${signUp}`
     );
   }
 
   return (
-    `🎁 **${reminder.daysLeft} days left to sign up for Secret Santa.**\n\n` +
+    `🎁 **${reminder.daysLeft} days left to sign up for the Winter 2026 Exchange.**\n\n` +
     `Closes ${deadline} (US Eastern).${soFar}${signUp}`
   );
 }

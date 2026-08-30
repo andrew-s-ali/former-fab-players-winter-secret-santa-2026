@@ -71,7 +71,7 @@ describe("runSignupReminder", () => {
     const result = await runSignupReminder({ now: OPENING });
 
     expect(result.posted).toBe(true);
-    expect(sent[0]).toContain("sign-ups are open");
+    expect(sent[0]).toContain("@here");
     expect(state?.postedKeys).toEqual(["opening"]);
   });
 
@@ -125,7 +125,7 @@ describe("runSignupReminder", () => {
     const result = await runSignupReminder({ now: OPENING });
 
     expect(result.posted).toBe(true);
-    expect(sent[0]).toContain("sign-ups are open");
+    expect(sent[0]).toContain("@here");
     expect(sent[0]).not.toContain("signed up so far");
   });
 
@@ -154,7 +154,7 @@ describe("runSignupReminder", () => {
 
     const result = await runSignupReminder({ now: OPENING, dryRun: true });
 
-    expect(result.message).toContain("sign-ups are open");
+    expect(result.message).toContain("@here");
     expect(result.posted).toBe(false);
     expect(sent).toEqual([]);
     expect(state).toBeNull();
