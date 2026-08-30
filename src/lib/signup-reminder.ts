@@ -129,7 +129,7 @@ export function reminderMessage(
       `on what this means and let's use this site as our event portal. ` +
       // `deadline` already reads "midnight on 8 September 2026", so "closes"
       // rather than "closes on".
-      `Signups closes at ${deadline} (US Eastern).${soFar}${signUp}`
+      `Sign-ups close at ${deadline} (US Eastern).${soFar}${signUp}`
     );
   }
 
