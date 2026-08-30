@@ -7,6 +7,8 @@ import { PartnerPicker } from "@/components/PartnerPicker";
 import { PickCards, PickName } from "@/components/PickCards";
 import { useCommanderOptions } from "@/components/use-commander-options";
 import type { CommanderOption } from "@/lib/commanders";
+import { EXCHANGE_CANDIDATES } from "@/lib/event";
+import { formatEventDate } from "@/lib/launch";
 import {
   canBePrimary,
   canTakePartner,
@@ -22,6 +24,7 @@ import {
   COLOR_CODES,
   HONEYPOT_FIELD,
   SELF_CARD_COUNT,
+  EXCHANGE_RANK_FIELDS,
   SELF_CARD_FIELDS,
   SIGNUP_ACTION,
   SIGNUP_FIELDS,
@@ -38,6 +41,78 @@ type Pick = PickOf<CommanderOption>;
 
 /** The hidden field names, in slot order. */
 const SELF_CARD_INPUTS = SELF_CARD_FIELDS;
+
+/**
+ * Ranking the candidate exchange dates.
+ *
+ * A select per date rather than a drag-to-reorder list: this submits through
+ * Netlify Forms as three flat fields, and a reorderable list would need a
+ * starting order — which everyone who did not care would then submit unchanged,
+ * quietly loading the result toward whichever date happened to be first.
+ * Starting blank means an answer is always something the person actually
+ * chose.
+ *
+ * Duplicates are caught here and again in `parseExchangeRanking`, because a
+ * form is a suggestion and the importer is the rule.
+ */
+function ExchangeRanking({
+  ranks,
+  onChange,
+}: {
+  ranks: string[];
+  onChange: (index: number, value: string) => void;
+}) {
+  const chosen = ranks.filter((rank) => rank !== "");
+  const duplicated = new Set(
+    chosen.filter((rank, index) => chosen.indexOf(rank) !== index)
+  );
+
+  return (
+    <fieldset className="space-y-3 rounded-xl border border-slate-300/25 p-4">
+      <legend className="px-1 text-sm font-medium">
+        Which date suits you? <span className="opacity-70">(rank all three)</span>
+      </legend>
+      <p className="text-xs opacity-70">
+        The exchange is on one of these. Put <strong>1</strong> against the one
+        you most want and <strong>{EXCHANGE_CANDIDATES.length}</strong> against
+        the one that suits you least — the organiser picks the date the group
+        can best make.
+      </p>
+
+      <ul className="space-y-2">
+        {EXCHANGE_CANDIDATES.map((date, index) => (
+          <li className="flex items-center justify-between gap-3" key={date}>
+            <label className="flex flex-1 items-center justify-between gap-3">
+              <span className="text-sm">{formatEventDate(date)}</span>
+              <select
+                className="rounded-lg border border-slate-300/40 bg-transparent px-3 py-2 text-sm"
+                name={EXCHANGE_RANK_FIELDS[index]}
+                onChange={(event) => onChange(index, event.target.value)}
+                value={ranks[index]}
+              >
+                <option value="">—</option>
+                {EXCHANGE_CANDIDATES.map((_, rank) => (
+                  <option key={rank} value={String(rank + 1)}>
+                    {rank + 1}
+                    {rank === 0 ? " (first choice)" : ""}
+                    {rank === EXCHANGE_CANDIDATES.length - 1 ? " (last choice)" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </li>
+        ))}
+      </ul>
+
+      {duplicated.size > 0 ? (
+        <p className="text-sm text-amber-500" role="alert">
+          Each number can only be used once — {[...duplicated].join(" and ")}{" "}
+          {duplicated.size === 1 ? "is" : "are"} used twice.
+        </p>
+      ) : null}
+    </fieldset>
+  );
+}
 
 function PickedCard({ pick, remove }: { pick: Pick; remove: () => void }) {
   return (
@@ -85,10 +160,26 @@ export function SignupForm() {
   const [notice, setNotice] = useState<string | null>(null);
   /** A commander chosen but not yet committed, while a partner is offered. */
   const [pendingPrimary, setPendingPrimary] = useState<CommanderOption | null>(null);
+  const [ranks, setRanks] = useState<string[]>(() =>
+    EXCHANGE_CANDIDATES.map(() => "")
+  );
   const { options, failed: optionsError } = useCommanderOptions();
 
   const vetoCode = COLOR_CODES[colorVeto] ?? null;
-  const complete = picks.length === SELF_CARD_COUNT;
+  /**
+   * Two separate questions, deliberately not one flag.
+   *
+   * `picksComplete` decides whether the commander picker is still on screen;
+   * `complete` decides whether the form can be sent. Folding the date ranking
+   * into a single flag put the picker back on screen for anyone who had chosen
+   * both commanders but not yet ranked the dates.
+   */
+  const picksComplete = picks.length === SELF_CARD_COUNT;
+  // A rank per candidate date, blank until chosen. Valid means every date has
+  // a rank and no rank is repeated.
+  const rankedDates =
+    new Set(ranks).size === EXCHANGE_CANDIDATES.length && !ranks.includes("");
+  const complete = picksComplete && rankedDates;
 
   // Every card already spoken for, either half of either pick.
   const usedIds = new Set(picks.flatMap((pick) => pickCards(pick).map((c) => c.id)));
@@ -334,7 +425,7 @@ export function SignupForm() {
           </div>
         ) : null}
 
-        {complete ? null : (
+        {picksComplete ? null : (
           <>
             {optionsError ? (
               <p className="text-sm text-red-500" role="alert">
@@ -391,6 +482,15 @@ export function SignupForm() {
         )}
       </fieldset>
 
+      <ExchangeRanking
+        onChange={(index, value) =>
+          setRanks((current) =>
+            current.map((rank, position) => (position === index ? value : rank))
+          )
+        }
+        ranks={ranks}
+      />
+
       <label className="block space-y-1">
         <span className="text-sm font-medium">A theme you&rsquo;d like</span>
         <textarea className={FIELD_CLASS} name={SIGNUP_FIELDS.themeWish} rows={2} />
@@ -415,8 +515,11 @@ export function SignupForm() {
 
       {!complete ? (
         <p className="text-sm opacity-70">
-          Choose {SELF_CARD_COUNT - picks.length} more commander
-          {SELF_CARD_COUNT - picks.length === 1 ? "" : "s"} to finish signing up.
+          {picks.length < SELF_CARD_COUNT
+            ? `Choose ${SELF_CARD_COUNT - picks.length} more commander` +
+              `${SELF_CARD_COUNT - picks.length === 1 ? "" : "s"}`
+            : "Rank all three exchange dates"}{" "}
+          to finish signing up.
         </p>
       ) : null}
 

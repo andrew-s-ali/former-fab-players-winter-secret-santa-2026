@@ -37,6 +37,7 @@ function entry(name: string, submittedAt: string): SignupEntry {
         { commander: "First", partner: null },
         { commander: "Second", partner: null },
       ],
+      exchangeRanking: null,
     },
     submittedAt,
   };
@@ -77,6 +78,7 @@ function input(overrides: Partial<ParticipantInput> = {}): ParticipantInput {
       { commander: "Green One", partner: null },
       { commander: "Blue One", partner: null },
     ],
+    exchangeRanking: null,
     ...overrides,
   };
 }
@@ -134,6 +136,7 @@ describe("normalizeSignup", () => {
         { commander: "Llanowar Elf", partner: null },
         { commander: "Deep Gnome", partner: null },
       ],
+      exchangeRanking: null,
     });
   });
 
@@ -145,6 +148,7 @@ describe("normalizeSignup", () => {
       themeVeto: null,
       themeWish: null,
       selfCards: PICKED,
+      exchangeRanking: null,
     });
   });
 
@@ -249,6 +253,7 @@ describe("resolveSelfCards", () => {
             { commander: "green one", partner: null },
             { commander: "BLUE ONE", partner: null },
           ],
+          exchangeRanking: null,
         }),
         pool
       )
@@ -266,6 +271,7 @@ describe("resolveSelfCards", () => {
             { commander: "Green One", partner: null },
             { commander: "Made Up", partner: null },
           ],
+          exchangeRanking: null,
         }),
         pool
       )
@@ -283,6 +289,7 @@ describe("resolveSelfCards", () => {
             { commander: "Green One", partner: null },
             { commander: "Blue One", partner: null },
           ],
+          exchangeRanking: null,
         }),
         pool
       )
@@ -297,6 +304,7 @@ describe("resolveSelfCards", () => {
             { commander: "Zada, Hedron Grinder", partner: null },
             { commander: "Blue One", partner: null },
           ],
+          exchangeRanking: null,
         }),
         pool
       )
@@ -432,5 +440,66 @@ describe("public/__forms.html", () => {
   it("marks itself for Netlify's deploy-time scan", () => {
     expect(skeleton).toContain('data-netlify="true"');
     expect(skeleton).toContain(`netlify-honeypot="${HONEYPOT_FIELD}"`);
+  });
+});
+
+describe("parseExchangeRanking", () => {
+  const RANKS = {
+    exchangeRank1: "2",
+    exchangeRank2: "1",
+    exchangeRank3: "3",
+  };
+
+  it("turns a rank per date into preference order, best first", () => {
+    expect(
+      normalizeSignup({ name: "Ada", ...REQUIRED, ...PICKS, ...RANKS }, "test")
+        .exchangeRanking
+    ).toEqual(["2026-12-12", "2026-12-05", "2026-12-19"]);
+  });
+
+  it("reads as unanswered when the question is absent entirely", () => {
+    // The form went live before this question existed, and a CSV export may
+    // not carry the columns at all. Those sign-ups still have to be drawable.
+    expect(
+      normalizeSignup({ name: "Ada", ...REQUIRED, ...PICKS }, "test").exchangeRanking
+    ).toBeNull();
+  });
+
+  it("rejects a half-answered ranking rather than silently discarding it", () => {
+    // A partial answer means the form and this code disagree about the fields.
+    // Dropping it would leave the organiser tallying a vote in which some
+    // people appear not to have voted.
+    expect(() =>
+      normalizeSignup(
+        { name: "Ada", ...REQUIRED, ...PICKS, exchangeRank1: "1" },
+        "Row 4 of the CSV"
+      )
+    ).toThrow(/Row 4 of the CSV/);
+  });
+
+  it("rejects the same rank used twice", () => {
+    expect(() =>
+      normalizeSignup(
+        { name: "Ada", ...REQUIRED, ...PICKS, ...RANKS, exchangeRank2: "2" },
+        "test"
+      )
+    ).toThrow(/exactly once/);
+  });
+
+  it("rejects ranks outside the range, and non-numbers", () => {
+    for (const bad of [{ exchangeRank1: "0" }, { exchangeRank1: "4" }, { exchangeRank1: "first" }]) {
+      expect(() =>
+        normalizeSignup({ name: "Ada", ...REQUIRED, ...PICKS, ...RANKS, ...bad }, "test")
+      ).toThrow(/ranking/);
+    }
+  });
+
+  it("names the person, so the organiser knows who to go back to", () => {
+    expect(() =>
+      normalizeSignup(
+        { name: "Ada", ...REQUIRED, ...PICKS, exchangeRank1: "1" },
+        "test"
+      )
+    ).toThrow(/Ada/);
   });
 });

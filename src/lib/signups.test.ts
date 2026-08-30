@@ -20,6 +20,7 @@ function input(overrides: Partial<ParticipantInput> = {}): ParticipantInput {
       { commander: "Card one", partner: null },
       { commander: "Card two", partner: null },
     ],
+    exchangeRanking: null,
     ...overrides,
   };
 }
@@ -39,6 +40,7 @@ describe("signupContentId", () => {
             { commander: "CARD ONE", partner: null },
             { commander: "card two", partner: null },
           ],
+          exchangeRanking: null,
         }),
         cards
       )

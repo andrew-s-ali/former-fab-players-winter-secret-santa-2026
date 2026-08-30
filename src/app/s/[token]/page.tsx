@@ -30,6 +30,7 @@ function OwnSignup({ giver }: { giver: Participant }) {
       colorVeto={giver.colorVeto}
       themeVeto={giver.themeVeto}
       themeWish={giver.themeWish}
+      exchangeRanking={giver.exchangeRanking}
     />
   );
 }

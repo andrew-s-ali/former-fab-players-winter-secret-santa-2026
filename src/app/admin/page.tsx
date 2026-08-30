@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getUser } from "@netlify/identity";
 import { AdminConsole } from "@/components/AdminConsole";
-import { buildPools, summarizeEvent, type ParticipantPool } from "@/lib/admin";
+import {
+  buildPools,
+  summarizeEvent,
+  tallyExchangeDates,
+  type ParticipantPool,
+} from "@/lib/admin";
 import { nudgeStatus, type NudgeStatus } from "@/lib/nudge";
 import { readAllSelections } from "@/lib/card-selections";
 import { isOrganizer } from "@/lib/organizer";
@@ -104,6 +109,7 @@ export default async function AdminPage() {
       </div>
 
       <AdminConsole
+        exchangeVote={tallyExchangeDates(event)}
         nudge={nudge}
         pools={pools}
         poolsError={poolsError}

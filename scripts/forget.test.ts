@@ -77,6 +77,7 @@ function drawnEvent(): EventData {
       themeVeto: "mill",
       themeWish: "elves",
       discord: null,
+      exchangeRanking: null,
       selfCards: testSelfCards(id),
     })),
   };
@@ -170,6 +171,7 @@ async function signup(name: string) {
         { commander: cards[0].commander.name, partner: null },
         { commander: cards[1].commander.name, partner: null },
       ],
+      exchangeRanking: null,
     },
     cards
   );

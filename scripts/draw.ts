@@ -298,6 +298,7 @@ async function main() {
     // Not collected at sign-up: the organiser fills it in on the console once
     // they know who is playing. See `Participant.discord`.
     discord: null,
+    exchangeRanking: person.input.exchangeRanking,
     selfCards: person.cards,
   }));
 

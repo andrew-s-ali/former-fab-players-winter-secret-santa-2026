@@ -44,6 +44,7 @@ describe("parseCsv", () => {
         themeVeto: null,
         themeWish: null,
         selfCards: PICKED,
+        exchangeRanking: null,
       },
     ]);
   });
@@ -70,6 +71,7 @@ describe("toParticipantInputs", () => {
         themeVeto: "Mill",
         themeWish: "Elves",
         selfCards: PICKED,
+        exchangeRanking: null,
       },
     ]);
   });
@@ -94,6 +96,7 @@ describe("toParticipantInputs", () => {
         themeVeto: null,
         themeWish: null,
         selfCards: PICKED,
+        exchangeRanking: null,
       },
     ]);
   });

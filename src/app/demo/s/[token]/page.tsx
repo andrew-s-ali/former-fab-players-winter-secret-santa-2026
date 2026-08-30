@@ -112,6 +112,7 @@ export default async function DemoTokenPage({
           colorVeto={giver.colorVeto}
           themeVeto={giver.themeVeto}
           themeWish={giver.themeWish}
+        exchangeRanking={giver.exchangeRanking}
         />
 
         <DemoCardWorkshop
@@ -148,6 +149,7 @@ export default async function DemoTokenPage({
         colorVeto={giver.colorVeto}
         themeVeto={giver.themeVeto}
         themeWish={giver.themeWish}
+        exchangeRanking={giver.exchangeRanking}
       />
 
       <section className="space-y-6 rounded-2xl border border-sky-200/20 bg-sky-950/20 p-5 sm:p-6">

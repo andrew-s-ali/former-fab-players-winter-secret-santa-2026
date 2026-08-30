@@ -24,6 +24,7 @@ function input(overrides: Partial<ParticipantInput> = {}): ParticipantInput {
       { commander: "One", partner: null },
       { commander: "Two", partner: null },
     ],
+    exchangeRanking: null,
     ...overrides,
   };
 }

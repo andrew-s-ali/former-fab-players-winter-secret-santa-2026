@@ -1,0 +1,1 @@
+ALTER TABLE "signups" ADD COLUMN "exchange_ranking" jsonb;

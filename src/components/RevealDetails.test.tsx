@@ -14,6 +14,7 @@ const recipient = {
   themeVeto: "mill",
   themeWish: "something with elves",
   discord: null,
+  exchangeRanking: null,
 };
 
 describe("RevealDetails", () => {

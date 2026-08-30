@@ -31,6 +31,11 @@ const COLUMN_MAP = {
   [SIGNUP_FIELDS.selfCard1Partner]: "Partner for the first commander",
   [SIGNUP_FIELDS.selfCard2]: "Second commander for your pool",
   [SIGNUP_FIELDS.selfCard2Partner]: "Partner for the second commander",
+  // Ranks, one per candidate date, matching EXCHANGE_RANK_FIELDS. A CSV that
+  // omits all three imports fine — the ranking reads as unanswered.
+  [SIGNUP_FIELDS.exchangeRank1]: "Exchange date rank: 5 December",
+  [SIGNUP_FIELDS.exchangeRank2]: "Exchange date rank: 12 December",
+  [SIGNUP_FIELDS.exchangeRank3]: "Exchange date rank: 19 December",
 } as const;
 
 export { COLOR_CODES } from "#lib/signup";

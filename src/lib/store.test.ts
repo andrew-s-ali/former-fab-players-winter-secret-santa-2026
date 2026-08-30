@@ -49,6 +49,7 @@ describe("readEvent (local file)", () => {
             themeVeto: "mill",
             themeWish: "elves",
             discord: null,
+            exchangeRanking: null,
           },
         ],
       })
@@ -113,6 +114,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: null,
@@ -133,6 +135,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: null,
@@ -195,15 +198,17 @@ describe("readEvent on Netlify (explicit credentials)", () => {
   });
 
   it("calls getStore with an explicit siteID/token object, not a bare string", async () => {
-    // Simulates older stored data that predates both revealedAt and the
-    // per-participant discord field; withDefaults() must fill both in on the
-    // way out, so nothing downstream ever sees `undefined` where the type
-    // promises `string | null`.
+    // Simulates older stored data that predates revealedAt and the
+    // per-participant fields added since; withDefaults() must fill them in on
+    // the way out, so nothing downstream ever sees `undefined` where the type
+    // promises a nullable value.
     const event = { participants: [{ id: "p1", name: "Ada" }] };
     blobs.get.mockResolvedValue(event);
 
     await expect(readEvent()).resolves.toEqual({
-      participants: [{ id: "p1", name: "Ada", discord: null }],
+      participants: [
+        { id: "p1", name: "Ada", discord: null, exchangeRanking: null },
+      ],
       revealedAt: null,
     });
     expect(blobs.getStore).toHaveBeenCalledWith({
@@ -246,6 +251,7 @@ describe("readEvent on Netlify (explicit credentials)", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: null,
@@ -394,6 +400,7 @@ describe("deleteEventData (local file)", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: null,

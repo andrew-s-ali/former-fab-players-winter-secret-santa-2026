@@ -25,6 +25,7 @@ function eventOf(
     themeVeto: null,
     themeWish: null,
     discord: discord[name] ?? null,
+    exchangeRanking: null,
     selfCards: testSelfCards(name.toLowerCase()),
   }));
   return { participants, revealedAt: null };

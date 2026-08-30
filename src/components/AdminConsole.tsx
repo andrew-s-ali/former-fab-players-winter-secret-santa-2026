@@ -8,8 +8,9 @@ import {
   type ActionResult,
 } from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
-import type { EventSummary, ParticipantPool } from "@/lib/admin";
+import type { EventSummary, ExchangeVote, ParticipantPool } from "@/lib/admin";
 import { willPing } from "@/lib/discord";
+import { formatEventDate } from "@/lib/launch";
 import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
 import { COLOR_CHOICES } from "@/lib/signup";
@@ -83,12 +84,15 @@ export function AdminConsole({
   pools,
   poolsError,
   nudge = null,
+  exchangeVote = null,
 }: {
   summary: EventSummary;
   pools: ParticipantPool[];
   poolsError: string | null;
   /** Null when there is no draw yet, or the selections could not be read. */
   nudge?: NudgeStatus | null;
+  /** The exchange-date vote. Null before a draw has run. */
+  exchangeVote?: ExchangeVote | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
@@ -277,6 +281,66 @@ export function AdminConsole({
               </div>
             </>
           )}
+        </section>
+      ) : null}
+
+      {exchangeVote && exchangeVote.tallies.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">Exchange date</h2>
+          <p className="text-sm opacity-80">
+            {exchangeVote.answered} of {summary.participantCount} ranked the
+            dates.{" "}
+            {exchangeVote.winner
+              ? `${formatEventDate(exchangeVote.winner)} is ahead.`
+              : "No date is clearly ahead."}{" "}
+            Set <code>EXCHANGE_AT</code> in <code>src/lib/event.ts</code> to
+            lock it in and switch the home page countdown.
+          </p>
+
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left opacity-60">
+                <th className="py-1 font-medium">Date</th>
+                <th className="py-1 text-right font-medium">1st choices</th>
+                <th className="py-1 text-right font-medium">Points</th>
+                <th className="py-1 text-right font-medium">Avg. rank</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-300/20">
+              {exchangeVote.tallies.map((tally) => (
+                <tr key={tally.date}>
+                  <td className="py-2">
+                    {formatEventDate(tally.date)}
+                    {tally.date === exchangeVote.winner ? (
+                      <span className="ml-2 text-xs text-emerald-400/90">ahead</span>
+                    ) : null}
+                  </td>
+                  <td className="py-2 text-right">{tally.firsts}</td>
+                  <td className="py-2 text-right">{tally.points}</td>
+                  <td className="py-2 text-right">
+                    {tally.averageRank === null
+                      ? "—"
+                      : tally.averageRank.toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <p className="text-xs opacity-70">
+            Points are 3 for a first place, 2 for a second, 1 for a third. It is
+            shown next to first choices because the two can disagree: a date
+            nobody loves but everybody can make will beat one that half the
+            group ranks first and half ranks last. Which you want is a
+            judgement, so both are here.
+          </p>
+
+          {exchangeVote.unanswered.length > 0 ? (
+            <p className="text-xs opacity-70">
+              Did not rank: {exchangeVote.unanswered.join(", ")} — they signed
+              up before the question was added, and count toward nothing above.
+            </p>
+          ) : null}
         </section>
       ) : null}
 

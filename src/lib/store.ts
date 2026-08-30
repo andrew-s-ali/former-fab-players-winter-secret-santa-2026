@@ -22,12 +22,17 @@ function withDefaults(data: EventData | null): EventData {
 /**
  * Fields added to a participant after an event was already drawn.
  *
- * A blob written before `discord` existed has no such key, and `undefined`
+ * A blob written before `discord` or `exchangeRanking` existed has no such
+ * key, and `undefined`
  * where the type promises `string | null` is the kind of difference that
  * surfaces as one odd render months later. Normalised on the way in instead.
  */
 function withParticipantDefaults(participant: Participant): Participant {
-  return { ...participant, discord: participant.discord ?? null };
+  return {
+    ...participant,
+    discord: participant.discord ?? null,
+    exchangeRanking: participant.exchangeRanking ?? null,
+  };
 }
 
 type BlobsMode =

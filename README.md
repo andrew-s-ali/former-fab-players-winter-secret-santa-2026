@@ -15,8 +15,8 @@ participant, serves each participant a locked three-card shortlist with a
 one-time hidden-card trade, and features a stepped public reveal-day ring, a
 two-phase countdown, a festive winter palette with reduced-motion snowfall,
 private per-link scratchpads and decklist links, enlarged card previews on
-hover, interactive deck prompts, demo preview routes, an Identity-gated
-organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
+hover, interactive deck prompts, a ranked vote on the exchange date, demo
+preview routes, an Identity-gated organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
 **deletion path** for every copy of someone's personal data. 539 unit tests, 28
 Playwright E2E tests, and lint/typecheck/build are all clean.
 
@@ -153,7 +153,7 @@ if you want sign-ups gated on the same date too.
 
 - **Sign-ups open:** 1 September 2026 at midnight US Eastern (`SIGNUPS_OPEN_AT = "2026-09-01T04:00:00Z"` in `src/lib/event.ts` — see step 0).
 - **Sign-ups close:** 17 September 2026 (`SIGNUPS_CLOSE_AT = "2026-09-17"` in `src/lib/event.ts`).
-- **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`).
+- **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`). Every sign-up ranks all three; the organiser console tallies the vote (see step 7).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
 
 ### 2. Collect Sign-ups
@@ -162,7 +162,8 @@ Sign-ups come in through **Netlify Forms** at `/signup`. Nothing is exported or
 copied by hand — `npm run draw` reads the submissions directly.
 
 A sign-up carries a name, an **email address**, an optional colour veto, two
-optional theme answers, and **two commanders, which are required**.
+optional theme answers, **two commanders**, and a **ranking of the three
+candidate exchange dates** — the last two both required.
 
 The two commanders are the start of that person's own pool: everyone else adds
 one more card to it after the draw, and whoever ends up building their deck is
@@ -189,6 +190,30 @@ a half-filled form.
 
 Card picks are submitted **by name** rather than by Scryfall id, so the Netlify
 Forms dashboard and the CSV fallback both stay readable.
+
+**Ranking the exchange date.** Each sign-up puts 1, 2 and 3 against the three
+`EXCHANGE_CANDIDATES`. It is a select per date rather than a drag-to-reorder
+list: the submission goes through Netlify Forms as three flat fields, and a
+reorderable list needs a starting order — which everyone who did not care would
+submit unchanged, quietly loading the result toward whichever date happened to
+be first. Starting blank means an answer is always something the person chose.
+
+The fields are named by the date's **position** in `EXCHANGE_CANDIDATES`
+(`exchangeRank1`…`exchangeRank3`), not by the date, so moving a candidate does
+not rename a registered Netlify field — which would silently drop every
+submission until `public/__forms.html` was updated to match.
+
+Stored as an **ordering**, best first, rather than a rank per date: the
+ordering is the answer, and a rank-per-date shape can represent nonsense (two
+firsts, no second) that an ordering cannot.
+
+`null` means **the question was not answered**, not "no preference". The form
+requires it, but the form was already live when the question was added and the
+CSV fallback may not carry the columns — so `signups.exchange_ranking` is
+nullable and those sign-ups stay drawable. A *partly* answered ranking is an
+error rather than a silent null: it means the form and the importer disagree
+about the fields, and discarding half an answer would leave the organiser
+tallying a vote some people appear not to have cast.
 
 #### From Forms into the database
 
@@ -242,8 +267,10 @@ or a rescue if something goes wrong with the live form:
 1. Export the responses as CSV.
 2. Confirm the headers match `COLUMN_MAP` in `scripts/csv.ts` — including the
    two card columns (`First commander for your pool`, `Second commander for
-   your pool`). If they don't, the draw fails immediately and lists the headers
-   it actually found.
+   your pool`) and the three date-rank columns (`Exchange date rank: 5
+   December`, and so on). If they don't, the draw fails immediately and lists
+   the headers it actually found. A CSV that omits all three rank columns
+   imports fine; the ranking reads as unanswered.
 
 Both sources funnel through `src/lib/signup.ts`, so validation, colour parsing
 and duplicate handling behave identically either way.
@@ -393,6 +420,16 @@ participant's pool** — their own two sign-up choices plus one from each other
 participant, attributed to whoever chose it, with a count of distinct choices
 and a list of who has not picked yet. Attribution is safe: everybody picks for
 everybody, so who contributed what says nothing about who was assigned whom.
+
+**The exchange-date vote** is tallied here: first choices, Borda points (3 for
+a first place, 2 for a second, 1 for a third) and average rank, best first.
+Both first choices and points are shown because they genuinely disagree — a
+date nobody loves but everybody can make will beat one that half the group
+ranks first and half ranks last, and which of those you want is a judgement.
+An abstention counts toward nothing; treating "did not answer" as a vote for
+the middle date would let the people who did not answer decide it. Once you
+have picked, set `EXCHANGE_AT` in `src/lib/event.ts` to lock it in and switch
+the home page countdown.
 
 Every participant row also carries their **Discord** id or handle, labelled
 *will ping* / *handle only* / *no Discord set*, because the difference is

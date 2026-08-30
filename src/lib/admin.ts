@@ -3,6 +3,7 @@ import type { ColorCode } from "./commanders";
 import { pickColorIdentity, pickId, pickName, type CommanderPick } from "#lib/pairing";
 import type { EventData, Participant } from "./participants";
 import { formatDiscordRef, parseDiscordRef } from "#lib/discord";
+import { EXCHANGE_CANDIDATES } from "#lib/event";
 import { COLOR_CODES, parseEmail } from "#lib/signup";
 
 /**
@@ -294,5 +295,89 @@ export async function setReveal(
     message: undo
       ? "Locked. /reveal now 404s."
       : `Unlocked at ${event.revealedAt}. /reveal is now public.`,
+  };
+}
+
+/** One candidate date's standing in the vote. */
+export type DateTally = {
+  date: string;
+  /** How many people put it first. */
+  firsts: number;
+  /**
+   * Borda points: 3 for a first place, 2 for a second, 1 for a third.
+   *
+   * Reported alongside `firsts` rather than instead of it because the two
+   * genuinely disagree — a date nobody loves but everybody can make will beat
+   * one that half the group ranks first and half ranks last. Which of those
+   * the organiser wants is a judgement, so both are on the page.
+   */
+  points: number;
+  /** Mean position, best first. Null when nobody ranked it. */
+  averageRank: number | null;
+};
+
+export type ExchangeVote = {
+  /** How many participants ranked the dates. */
+  answered: number;
+  /** Who has not, by name — they signed up before the question existed. */
+  unanswered: string[];
+  /** Best first: most points, then most firsts, then chronological. */
+  tallies: DateTally[];
+  /** The clear leader, or null if the top two cannot be separated. */
+  winner: string | null;
+};
+
+/**
+ * Counts the exchange-date vote.
+ *
+ * Pure over `EventData`, so the console's numbers are testable without a
+ * database and the same function can be run from a script.
+ *
+ * A participant with no ranking contributes nothing at all rather than a
+ * neutral score. Treating "did not answer" as a vote for the middle date would
+ * quietly let the people who abstained decide it.
+ */
+export function tallyExchangeDates(event: EventData): ExchangeVote {
+  const rankings = event.participants
+    .map((participant) => participant.exchangeRanking)
+    .filter((ranking): ranking is string[] => Array.isArray(ranking));
+
+  const size = EXCHANGE_CANDIDATES.length;
+  const tallies: DateTally[] = EXCHANGE_CANDIDATES.map((date) => {
+    const positions = rankings
+      .map((ranking) => ranking.indexOf(date))
+      .filter((index) => index >= 0);
+
+    return {
+      date,
+      firsts: positions.filter((index) => index === 0).length,
+      points: positions.reduce((sum, index) => sum + (size - index), 0),
+      averageRank:
+        positions.length === 0
+          ? null
+          : positions.reduce((sum, index) => sum + index + 1, 0) / positions.length,
+    };
+  }).sort(
+    (left, right) =>
+      right.points - left.points ||
+      right.firsts - left.firsts ||
+      left.date.localeCompare(right.date)
+  );
+
+  const [best, second] = tallies;
+  const separated =
+    rankings.length > 0 &&
+    best !== undefined &&
+    (second === undefined ||
+      best.points !== second.points ||
+      best.firsts !== second.firsts);
+
+  return {
+    answered: rankings.length,
+    unanswered: event.participants
+      .filter((participant) => !Array.isArray(participant.exchangeRanking))
+      .map((participant) => participant.name),
+    tallies,
+    winner: separated ? best.date : null,
   };
 }

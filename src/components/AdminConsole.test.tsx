@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AdminConsole } from "./AdminConsole";
 import type { EventSummary } from "@/lib/admin";
+import type { ExchangeVote } from "@/lib/admin";
 import type { NudgeStatus } from "@/lib/nudge";
 
 vi.mock("@/app/admin/actions", () => ({
@@ -176,5 +177,77 @@ describe("AdminConsole, showing who can actually be pinged", () => {
 
     expect(screen.getByRole("textbox", { name: /discord/i })).toBeInTheDocument();
     expect(screen.getByText(/Developer Mode/)).toBeInTheDocument();
+  });
+});
+
+describe("AdminConsole, the exchange-date vote", () => {
+  const vote: ExchangeVote = {
+    answered: 3,
+    unanswered: ["Gus"],
+    tallies: [
+      { date: "2026-12-12", firsts: 2, points: 8, averageRank: 1.33 },
+      { date: "2026-12-05", firsts: 1, points: 6, averageRank: 2 },
+      { date: "2026-12-19", firsts: 0, points: 4, averageRank: 2.67 },
+    ],
+    winner: "2026-12-12",
+  };
+
+  it("shows both first choices and points, since the two can disagree", () => {
+    render(
+      <AdminConsole
+        exchangeVote={vote}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByRole("columnheader", { name: /1st choices/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /points/i })).toBeInTheDocument();
+    expect(screen.getByText("12 December 2026")).toBeInTheDocument();
+    expect(screen.getByText(/12 December 2026 is ahead/)).toBeInTheDocument();
+  });
+
+  it("names who did not rank, and says they count toward nothing", () => {
+    render(
+      <AdminConsole
+        exchangeVote={vote}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByText(/Did not rank: Gus/)).toBeInTheDocument();
+  });
+
+  it("says plainly when nothing is ahead, rather than picking a date", () => {
+    render(
+      <AdminConsole
+        exchangeVote={{ ...vote, winner: null }}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([person("Ada", "ada@example.com")])}
+      />
+    );
+
+    expect(screen.getByText(/No date is clearly ahead/)).toBeInTheDocument();
+  });
+
+  it("hides the section entirely before a draw", () => {
+    render(
+      <AdminConsole
+        exchangeVote={null}
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([])}
+      />
+    );
+
+    expect(screen.queryByText(/Exchange date/)).not.toBeInTheDocument();
   });
 });

@@ -39,6 +39,7 @@ describe("RevealDayPage", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
         {
           id: "2",
@@ -51,6 +52,7 @@ describe("RevealDayPage", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: null,
@@ -84,6 +86,7 @@ describe("RevealDayPage", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
         {
           id: "2",
@@ -96,6 +99,7 @@ describe("RevealDayPage", () => {
           themeVeto: null,
           themeWish: null,
           discord: null,
+          exchangeRanking: null,
         },
       ],
       revealedAt: "2026-12-25T00:00:00.000Z",

@@ -23,6 +23,7 @@ function sampleEvent(revealedAt: string | null = null): EventData {
         themeVeto: "mill",
         themeWish: "elves",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "p2",
@@ -35,6 +36,7 @@ function sampleEvent(revealedAt: string | null = null): EventData {
         themeVeto: null,
         themeWish: null,
         discord: null,
+        exchangeRanking: null,
       },
     ],
     revealedAt,

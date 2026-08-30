@@ -36,6 +36,7 @@ function eventOf(names: string[]): EventData {
     themeVeto: null,
     themeWish: null,
     discord: null,
+    exchangeRanking: null,
     selfCards: testSelfCards(name.toLowerCase()),
   }));
   return { participants, revealedAt: null };

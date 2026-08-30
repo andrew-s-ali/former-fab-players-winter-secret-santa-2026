@@ -35,6 +35,7 @@ describe("DemoTokenPage", () => {
         themeVeto: "Infect",
         themeWish: "Dragons",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "demo-2",
@@ -47,6 +48,7 @@ describe("DemoTokenPage", () => {
         themeVeto: null,
         themeWish: "Artifacts",
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "demo-3",
@@ -59,6 +61,7 @@ describe("DemoTokenPage", () => {
         themeVeto: null,
         themeWish: null,
         discord: null,
+        exchangeRanking: null,
       },
       {
         id: "demo-4",
@@ -71,6 +74,7 @@ describe("DemoTokenPage", () => {
         themeVeto: null,
         themeWish: null,
         discord: null,
+        exchangeRanking: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",
