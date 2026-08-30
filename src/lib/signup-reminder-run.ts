@@ -1,5 +1,5 @@
 import { postToDiscord, webhookFromEnv } from "#lib/discord";
-import { SIGNUPS_CLOSE_AT, SIGNUPS_OPEN_AT } from "#lib/event";
+import { SIGNUPS_CLOSE_AT, SIGNUPS_OPEN_AT, SITE_URL } from "#lib/event";
 import {
   alertsChannel,
   currentReminder,
@@ -84,8 +84,9 @@ export async function runSignupReminder({
   const message = reminderMessage(reminder, {
     signupCount: await countSignups(),
     closesAt: SIGNUPS_CLOSE_AT,
-    // Netlify sets URL to the site's primary address on a production deploy.
-    url: process.env.URL ?? process.env.SITE_URL ?? null,
+    // Netlify sets URL to the site's primary address on a production deploy;
+    // SITE_URL is the fallback for the CLI and dry runs, which run off-platform.
+    url: process.env.URL ?? process.env.SITE_URL ?? SITE_URL,
   });
 
   const reason = due

@@ -10,6 +10,17 @@ export const EVENT = {
   year: 2026,
 } as const;
 
+/**
+ * The event's public address.
+ *
+ * Netlify injects `URL` on a production deploy and that wins, so this is the
+ * fallback — but it is a real value rather than a placeholder, because the CLI
+ * and any dry run happen off-platform where `URL` is unset, and a preview that
+ * silently drops the link is a poor rehearsal for a message whose whole job is
+ * to carry one.
+ */
+export const SITE_URL = "https://former-fab-players-winter-exchange-26.netlify.app";
+
 /** Display title, e.g. "Former Fab Players Winter Secret Santa 2026". */
 export function eventTitle(): string {
   return `${EVENT.name} ${EVENT.year}`;

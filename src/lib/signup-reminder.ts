@@ -104,7 +104,10 @@ export function reminderMessage(
   }: { signupCount: number | null; closesAt: string; url?: string | null }
 ): string {
   const deadline = formatDeadline(closesAt);
-  const signUp = url ? `\nSign up: ${url}/signup` : "";
+  // The home page, not /signup. It stops being a splash on opening day and
+  // becomes the rules, the ban list and the sign-up link — so it is the one
+  // address that answers "what is this?" as well as "where do I join?".
+  const signUp = url ? `\nRules and sign-up: ${url}` : "";
 
   const soFar =
     signupCount === null

@@ -608,6 +608,27 @@ Filling in somebody’s Discord **does not** re-trigger a nudge: the quiet-perio
 digest tracks names and counts, not how they are addressed. Admin is not
 progress.
 
+#### Editing what the bot says
+
+All the wording lives in two pure functions, neither of which touches Discord
+or a database:
+
+| Message | Function | File |
+| --- | --- | --- |
+| Sign-up reminders (all four) | `reminderMessage` | `src/lib/signup-reminder.ts` |
+| Which milestones `@here` | `alertsChannel` | `src/lib/signup-reminder.ts` |
+| When each milestone fires | `REMINDER_THRESHOLDS` | `src/lib/signup-reminder.ts` |
+| Outstanding-picks nudge | `nudgeMessage` | `src/lib/nudge.ts` |
+| How a person is addressed | `mentionFor` | `src/lib/discord.ts` |
+
+Preview any change without sending: `npm run remind -- --now=<iso> --dry-run`
+and `npm run nudge -- --dry-run`.
+
+Some tests assert on exact phrases, so rewording will fail them — that is the
+point, since the phrases they pin are the ones that carry meaning ("be the
+first", "no adding people later", `@here` on the right milestones). Update the
+test alongside the copy rather than loosening it.
+
 #### Sign-up reminders
 
 The same webhook also carries reminders during the sign-up window, from
@@ -655,8 +676,10 @@ consume the milestone. A cron that misses a day reports where things actually
 stand rather than replaying a stale mark: at nine days left it is still the
 "ten days" post.
 
-The message carries the deadline, a link to `/signup`, and how many **distinct
-people** have signed up — by name, case-insensitively, since a resubmission to
+The message carries the deadline, a link to the **home page** (not `/signup` —
+on opening day the home page stops being a splash and becomes the rules, the
+ban list and the sign-up link, so it answers "what is this?" as well as "where
+do I join?"), and how many **distinct people** have signed up — by name, case-insensitively, since a resubmission to
 fix a typo is a second row for the same person. If the database cannot be read
 it posts without the count rather than staying silent; the deadline is the
 point of the message.

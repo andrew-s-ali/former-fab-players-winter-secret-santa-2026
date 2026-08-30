@@ -106,16 +106,20 @@ describe("reminderMessage", () => {
     );
   });
 
-  it("links to the sign-up page", () => {
-    expect(reminderMessage(opening, { ...base, signupCount: 3 })).toContain(
-      "https://santa.example.com/signup"
-    );
+  it("links the home page, not /signup", () => {
+    // On opening day the home page stops being a splash and becomes the rules,
+    // the ban list and the sign-up link — so it answers "what is this?" as
+    // well as "where do I join?".
+    const message = reminderMessage(opening, { ...base, signupCount: 3 });
+
+    expect(message).toContain("https://santa.example.com");
+    expect(message).not.toContain("/signup");
   });
 
   it("omits the link when no site URL is known", () => {
     expect(
       reminderMessage(opening, { ...base, url: null, signupCount: 3 })
-    ).not.toContain("Sign up:");
+    ).not.toContain("Rules and sign-up:");
   });
 
   it("counts people, and says so in the singular", () => {
