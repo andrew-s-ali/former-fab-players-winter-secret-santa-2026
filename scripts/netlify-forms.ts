@@ -111,3 +111,38 @@ export function toSignupEntries(submissions: FormSubmission[]): SignupEntry[] {
       submittedAt: submission.created_at,
     }));
 }
+
+/**
+ * Permanently deletes one form submission.
+ *
+ * This is the copy that outlives everything else — deleting our mirrored row
+ * and the blob does nothing to Netlify's, and the submission holds the name
+ * and email in full. There is no undo and no trash: the API returns 204 and
+ * the record is gone.
+ *
+ * A 404 is treated as success. Re-running an erasure after a partial failure
+ * is exactly what somebody would do, and it should not fail on the submissions
+ * that already went.
+ */
+export async function deleteSubmission(id: string, token: string): Promise<void> {
+  const response = await fetch(`${API}/submissions/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(token),
+  });
+
+  if (response.status === 404) {
+    return;
+  }
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      `Netlify API rejected the token (${response.status}) deleting submission ${id}. ` +
+        "NETLIFY_AUTH_TOKEN must be a personal access token for an account with " +
+        "access to this site."
+    );
+  }
+  if (!response.ok) {
+    throw new Error(
+      `Could not delete submission ${id}: ${response.status} ${response.statusText}`
+    );
+  }
+}

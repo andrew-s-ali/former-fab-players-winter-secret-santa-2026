@@ -20,6 +20,8 @@
     "draw": "node --experimental-strip-types scripts/draw.ts",
     "update-participant": "node --experimental-strip-types scripts/update-participant.ts",
     "reveal": "node --experimental-strip-types scripts/reveal.ts",
+    "forget": "node --experimental-strip-types scripts/forget.ts",
+    "nudge": "node --experimental-strip-types scripts/nudge.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "dependencies": {
@@ -32,6 +34,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "@netlify/functions": "^6.0.0",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",

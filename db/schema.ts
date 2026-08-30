@@ -1,4 +1,5 @@
-import { integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { check, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 import type { ColorCode } from "../src/lib/commanders";
 import type { CommanderPick } from "../src/lib/pairing";
 
@@ -75,12 +76,19 @@ export const deckBuilds = pgTable("deck_builds", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/**
+ * One commander choice per person, for each other person.
+ *
+ * A participant's own two choices are not here — they come from sign-up and
+ * live on the participant record. That is enforced by the check constraint
+ * rather than by application code alone, because a self row would silently
+ * add a card to somebody's own pool.
+ */
 export const cardSelections = pgTable(
   "card_selections",
   {
     selectorId: text("selector_id").notNull(),
     recipientId: text("recipient_id").notNull(),
-    slot: integer().notNull(),
     /**
      * One commander choice — a commander and optionally its partner. The
      * column keeps its original name; the shape inside it gained a partner
@@ -90,7 +98,10 @@ export const cardSelections = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.selectorId, table.recipientId, table.slot] })]
+  (table) => [
+    primaryKey({ columns: [table.selectorId, table.recipientId] }),
+    check("card_selections_not_self", sql`${table.selectorId} <> ${table.recipientId}`),
+  ]
 );
 
 export const secretCardSets = pgTable("secret_card_sets", {

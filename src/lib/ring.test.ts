@@ -13,6 +13,7 @@ const person = (id: string, name: string, recipientId: string): Participant => (
   colorVeto: null,
   themeVeto: null,
   themeWish: null,
+  discord: null,
 });
 
 // A single cycle: p1 → p2 → p3 → p1

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { getDb } from "#db/index";
 import { deckBuilds } from "#db/schema";
 import {
@@ -70,4 +70,29 @@ async function upsert(
       target: deckBuilds.giverId,
       set: { ...fields, updatedAt: new Date() },
     });
+}
+
+/**
+ * Deletes these builders' workspaces.
+ *
+ * The notes are free text somebody wrote about a named person, which makes
+ * this the one table whose contents cannot be reasoned about — so erasing
+ * somebody erases the whole row rather than trying to judge what in it was
+ * personal.
+ */
+export async function deleteDeckBuilds(giverIds: string[]): Promise<number> {
+  if (giverIds.length === 0) {
+    return 0;
+  }
+  const deleted = await getDb()
+    .delete(deckBuilds)
+    .where(inArray(deckBuilds.giverId, giverIds))
+    .returning({ giverId: deckBuilds.giverId });
+  return deleted.length;
+}
+
+/** Empties the table, including rows for people no longer in the event. */
+export async function deleteAllDeckBuilds(): Promise<number> {
+  const deleted = await getDb().delete(deckBuilds).returning();
+  return deleted.length;
 }

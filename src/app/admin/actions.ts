@@ -7,6 +7,7 @@ import {
   findParticipantByName,
   setReveal,
 } from "@/lib/admin";
+import { runNudge } from "@/lib/nudge-run";
 import { isOrganizer } from "@/lib/organizer";
 import { readEvent, writeEvent } from "@/lib/store";
 
@@ -81,9 +82,26 @@ export async function updateParticipantAction(
       color: field("color"),
       veto: field("veto"),
       wish: field("wish"),
+      discord: field("discord"),
     });
 
     await writeEvent(event);
     return `Updated ${participant.name}.`;
+  });
+}
+
+/**
+ * Posts the outstanding-picks nudge to Discord now.
+ *
+ * `force` because somebody pressing a button has asked for it explicitly, and
+ * the quiet period exists to stop the *cron* repeating itself. It still cannot
+ * post when everybody has finished — there would be nothing in the message.
+ */
+export async function nudgeAction(): Promise<ActionResult> {
+  return run(async () => {
+    const result = await runNudge({ force: true });
+    return result.posted
+      ? `Posted to Discord: waiting on ${result.status.outstanding.length} person(s).`
+      : `Nothing was posted. ${result.reason}`;
   });
 }

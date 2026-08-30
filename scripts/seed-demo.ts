@@ -25,14 +25,14 @@ import { mintToken } from "#lib/tokens";
  * The people are invented, so committing their tokens protects nothing.
  */
 const PEOPLE = [
-  { name: "Ada Lovelace", email: "ada.lovelace@example.invalid", colorVeto: "R" as const, themeVeto: "mill", themeWish: "elves and tokens" },
-  { name: "Bob Ross", email: "bob.ross@example.invalid", colorVeto: null, themeVeto: null, themeWish: null },
-  { name: "Cleo Patra", email: "cleo.patra@example.invalid", colorVeto: "G" as const, themeVeto: "stax", themeWish: "artifacts, the more the better" },
-  { name: "Dev Patel-Nakamura-Rodriguez", email: "dev.patel.nakamura.rodriguez@example.invalid", colorVeto: "U" as const, themeVeto: null, themeWish: "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it" },
-  { name: "Eli 🎄", email: "eli@example.invalid", colorVeto: null, themeVeto: "combo", themeWish: "lifegain" },
-  { name: "Fay Wray", email: "fay.wray@example.invalid", colorVeto: "B" as const, themeVeto: null, themeWish: null },
-  { name: "Gus", email: "gus@example.invalid", colorVeto: null, themeVeto: null, themeWish: "go wide" },
-  { name: "Hana", email: "hana@example.invalid", colorVeto: "W" as const, themeVeto: "tribal", themeWish: "spellslinger" },
+  { name: "Ada Lovelace", discord: "185432109876543210", email: "ada.lovelace@example.invalid", colorVeto: "R" as const, themeVeto: "mill", themeWish: "elves and tokens" },
+  { name: "Bob Ross", discord: "411223344556677889", email: "bob.ross@example.invalid", colorVeto: null, themeVeto: null, themeWish: null },
+  { name: "Cleo Patra", discord: "cleo.patra", email: "cleo.patra@example.invalid", colorVeto: "G" as const, themeVeto: "stax", themeWish: "artifacts, the more the better" },
+  { name: "Dev Patel-Nakamura-Rodriguez", discord: null, email: "dev.patel.nakamura.rodriguez@example.invalid", colorVeto: "U" as const, themeVeto: null, themeWish: "something with a very long explanation attached, because people do write essays in free-text fields and the layout should survive it" },
+  { name: "Eli 🎄", discord: "732198765432109876", email: "eli@example.invalid", colorVeto: null, themeVeto: "combo", themeWish: "lifegain" },
+  { name: "Fay Wray", discord: null, email: "fay.wray@example.invalid", colorVeto: "B" as const, themeVeto: null, themeWish: null },
+  { name: "Gus", discord: "gus_the_third", email: "gus@example.invalid", colorVeto: null, themeVeto: null, themeWish: "go wide" },
+  { name: "Hana", discord: "908877665544332211", email: "hana@example.invalid", colorVeto: "W" as const, themeVeto: "tribal", themeWish: "spellslinger" },
 ];
 
 /**
@@ -139,7 +139,6 @@ function buildSelections(
       return {
         selectorId: selector.id,
         recipientId: recipient.id,
-        slot: 1,
         card: pick,
       };
     });
@@ -185,6 +184,7 @@ async function main() {
     colorVeto: person.colorVeto,
     themeVeto: person.themeVeto,
     themeWish: person.themeWish,
+    discord: person.discord,
     selfCards: pickSelfCards(pool, person.colorVeto, index % 2 === 0),
   }));
 

@@ -1,3 +1,4 @@
+import { canBePrimary, canTakePartner } from "#lib/pairing";
 import { BANNED_COMMANDERS } from "#lib/rules";
 import type { Commander } from "./scryfall/types";
 
@@ -49,8 +50,22 @@ export type CommanderFilters = {
    * whose rules text happens to say "select".
    */
   theme?: string;
-  /** Keep only commanders that can pair with another commander. */
+  /**
+   * Keep only commanders that can take a partner.
+   *
+   * Not the same as "is half of a pairing": a Background pairs, but it is the
+   * second half, never the one you start from.
+   */
   pairsOnly?: boolean;
+  /**
+   * Drop cards that cannot lead a deck on their own — Backgrounds.
+   *
+   * Defaults to true wherever this is used to offer somebody a commander,
+   * which is everywhere. A Background is only ever picked as the partner half,
+   * and offering one as a standalone commander invites a choice the draw will
+   * later refuse.
+   */
+  primaryOnly?: boolean;
 };
 
 const BANNED = new Set<string>(BANNED_COMMANDERS);
@@ -86,7 +101,10 @@ export function legalCommanders(
     if (theme && !card.oracleText.toLowerCase().includes(theme)) {
       return false;
     }
-    if (filters.pairsOnly && !card.canPair) {
+    if (filters.primaryOnly !== false && !canBePrimary(card)) {
+      return false;
+    }
+    if (filters.pairsOnly && !canTakePartner(card)) {
       return false;
     }
     return true;

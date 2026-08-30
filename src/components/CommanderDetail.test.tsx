@@ -53,14 +53,37 @@ describe("CommanderDetail", () => {
     expect(screen.getByText("Legendary Creature — Wolf")).toBeInTheDocument();
   });
 
-  it("marks a commander that can be paired", () => {
-    render(<CommanderDetail card={card} onClose={() => {}} />);
+  // The badge used to say only "can pair", which was true of a Background too
+  // and read as though you could lead a deck with one.
+  it("says what kind of pairing a Partner offers", () => {
+    render(
+      <CommanderDetail card={{ ...card, pairingRole: "partner" }} onClose={() => {}} />
+    );
 
-    expect(screen.getByText(/can pair/i)).toBeInTheDocument();
+    expect(screen.getByText(/pairs with another Partner/i)).toBeInTheDocument();
+  });
+
+  it("says a Background is the second half, not a commander", () => {
+    render(
+      <CommanderDetail card={{ ...card, pairingRole: "background" }} onClose={() => {}} />
+    );
+
+    expect(screen.getByText(/second half of a pair, not a commander/i)).toBeInTheDocument();
+  });
+
+  it("names the Background chooser's pairing", () => {
+    render(
+      <CommanderDetail
+        card={{ ...card, pairingRole: "choose-background" }}
+        onClose={() => {}}
+      />
+    );
+
+    expect(screen.getByText(/pairs with a Background/i)).toBeInTheDocument();
   });
 
   it("omits the pair badge for a card that cannot pair", () => {
-    render(<CommanderDetail card={{ ...card, canPair: false }} onClose={() => {}} />);
+    render(<CommanderDetail card={{ ...card, pairingRole: null }} onClose={() => {}} />);
 
     expect(screen.queryByText(/can pair/i)).not.toBeInTheDocument();
   });

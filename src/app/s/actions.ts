@@ -106,14 +106,12 @@ export async function saveCardAction(
 
 export async function removeCardAction(
   token: string,
-  recipientId: string,
-  slot: number
+  recipientId: string
 ): Promise<CardActionResult> {
   return run(token, async ({ event, participant }) => {
     await removeSelection({
       selector: participant,
       recipientId,
-      slot,
       participants: event.participants,
     });
     return "The saved card was removed.";

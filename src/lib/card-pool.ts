@@ -14,7 +14,6 @@ import type { Participant } from "#lib/participants";
 export type SavedSelection = {
   selectorId: string;
   recipientId: string;
-  slot: number;
   /** One commander choice, which may be a partner pair. */
   card: CommanderPick;
 };
@@ -22,9 +21,11 @@ export type SavedSelection = {
 /**
  * Keeps only the rows this event's pools are built from.
  *
- * Peer picks only. Self-picks live on the participant record (see
- * `Participant.selfCards`) because the draw writes them, and a stale row for
- * someone no longer in the event must not count toward completion.
+ * Peer picks only — self-picks live on the participant record, and a database
+ * constraint refuses a self row. The filter stays because this function is
+ * also handed rows by the demo routes and by tests, neither of which goes
+ * through the database. A stale row for someone no longer in the event must
+ * not count toward completion either.
  */
 export function relevantSelections(
   rows: SavedSelection[],
@@ -35,8 +36,7 @@ export function relevantSelections(
     (row) =>
       ids.has(row.selectorId) &&
       ids.has(row.recipientId) &&
-      row.selectorId !== row.recipientId &&
-      row.slot === 1
+      row.selectorId !== row.recipientId
   );
 }
 

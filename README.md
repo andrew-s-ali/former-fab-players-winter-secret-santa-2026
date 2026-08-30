@@ -6,15 +6,18 @@ A Next.js site for the 2026 winter Secret Santa, deployed on Netlify.
 
 Feature-complete, and currently **pre-launch**: the home page is a splash page
 until the organiser opens registration (see *Before launch* below). Behind it,
-the site takes sign-ups through Netlify Forms, provides a
-filterable commander browser, takes each person's own two pool commanders on the
-sign-up form itself, runs the draw from those sign-ups (or a CSV export),
-collects a private recommendation for every other participant, serves each
-participant a locked three-card shortlist with a one-time hidden-card trade,
-and features a stepped public reveal-day ring, a two-phase countdown, a festive winter
-palette with reduced-motion snowfall, private per-link scratchpads, interactive deck prompts,
-demo preview routes, and an Identity-gated organiser console. 283 unit tests,
-20 Playwright E2E tests, and lint/typecheck/build are all clean.
+the site takes sign-ups through Netlify Forms, provides a filterable commander
+browser, takes each person's own two pool commanders — either of which may be a
+**partner pair** — on the sign-up form itself, runs the draw from those sign-ups
+(or a CSV export), collects a private recommendation for every other
+participant, serves each participant a locked three-card shortlist with a
+one-time hidden-card trade, and features a stepped public reveal-day ring, a
+two-phase countdown, a festive winter palette with reduced-motion snowfall,
+private per-link scratchpads and decklist links, enlarged card previews on
+hover, interactive deck prompts, demo preview routes, an Identity-gated
+organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
+**deletion path** for every copy of someone's personal data. 539 unit tests, 28
+Playwright E2E tests, and lint/typecheck/build are all clean.
 
 See:
 - [Original Design Spec](docs/superpowers/specs/2026-08-16-secret-santa-site-design.md)
@@ -34,6 +37,7 @@ See:
 | Hosting    | Netlify (zero-config Next.js runtime)         |
 | Data       | Netlify Blobs + Netlify Database (Postgres)   |
 | Sign-ups   | Netlify Forms → a `formSubmitted` function → Postgres |
+| Nudges     | Netlify scheduled function → Discord incoming webhook |
 
 ## Getting started
 
@@ -56,8 +60,10 @@ npm run dev                       # http://localhost:3000
 | `npm run test:e2e`            | Playwright; boots the dev server itself                                     |
 | `npm run netlify:dev`         | Netlify Dev, for functions/redirects/env parity                              |
 | `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
-| `npm run update-participant`  | Edit one participant's vetoes/wish without redrawing                        |
+| `npm run update-participant`  | Edit one participant's email, Discord, vetoes or wish without redrawing     |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
+| `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
+| `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
 | `npm run seed:demo`           | Regenerate fake demo data in `src/demo/demo-event.json` (`-- --revealed` to unlock); fetches the real pool so demo pool cards are real |
 
 CI runs lint → typecheck → unit → E2E on every push and pull request.
@@ -68,11 +74,11 @@ CI runs lint → typecheck → unit → E2E on every push and pull request.
 src/app/        routes and layouts (App Router: /, /signup, /commanders, /s/[token], /reveal, /admin/**, /demo/**)
 db/             Drizzle schema for persistent card picks and secret shortlists
 src/components/ React components (SplashPage, EventHome, CommanderBrowser, RevealRing, Countdown, Snowfall, etc.)
-src/lib/        framework-free logic; unit-tested (draw, ring, filtering, countdown, launch gate, Scryfall, store)
+src/lib/        framework-free logic; unit-tested (draw, ring, pairing, pool rules, filtering, countdown, launch gate, Scryfall, store, nudge, erasure planning)
 src/demo/       committed fake event data for /demo routes (never touches real participants)
 src/test-support/ commander fixtures shared by the test suite (never imported by app code)
-netlify/functions/ platform-event functions; signup-submitted.mts mirrors Forms into Postgres
-scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, demo seeder
+netlify/functions/ signup-submitted.mts mirrors Forms into Postgres; nudge.mts posts outstanding picks to Discord on a schedule
+scripts/        operator CLI: sign-up import (Forms + CSV), the draw, participant edits, reveal day toggle, Discord nudge, data erasure, demo seeder
 public/         static assets; __forms.html registers the sign-up form with Netlify
 tests/e2e/      Playwright specs
 ```
@@ -149,17 +155,19 @@ copied by hand — `npm run draw` reads the submissions directly.
 A sign-up carries a name, an **email address**, an optional colour veto, two
 optional theme answers, and **two commanders, which are required**.
 
+The two commanders are the start of that person's own pool: everyone else adds
+one more card to it after the draw, and whoever ends up building their deck is
+shown a shortlist taken from the whole pool.
+
 The address is required, because a roster without one cannot be used to send
 the private links — which is the only reason it is collected. It is personal
 data: it lands in the Netlify Forms store, the `signups` table and the event
 store, and is shown on the Identity-gated organiser console. It is never
-rendered on a page any participant can see. Validation is deliberately
-permissive (`something@something.something`) — a stricter pattern mostly
-succeeds at rejecting real addresses, and a typo that parses is caught by the
-mail bouncing. Those two are the start of that
-person's own pool: everyone else adds one more card to it after the draw, and
-whoever ends up building their deck is shown a shortlist taken from the whole
-pool.
+rendered on a page any participant can see, and `npm run forget` removes every
+copy of it (see *Erasing Personal Data*). Validation is deliberately permissive
+(`something@something.something`) — a stricter pattern mostly succeeds at
+rejecting real addresses, and a typo that parses is caught by the mail
+bouncing.
 
 The two commanders are chosen from a **type-to-filter dropdown of every legal
 commander**, not typed freely, so a submission cannot name a card outside the
@@ -276,6 +284,22 @@ Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - a missing card pick, or the same card picked twice, and
 - a card name that is not in the live pool, is banned, or carries that person's own vetoed colour. The draw fetches the pool and checks every pick **before writing anything**, and reports every bad pick in one go rather than dying on the first — each one means going back to the person who submitted it.
 
+**The draw cross-checks Netlify Forms against the database before it runs.**
+Two things can silently swallow a real sign-up: Akismet flags it into the spam
+list, or `signup-submitted` throws and no row is ever written. Either way the
+submitter sees success and the person is simply absent — the draw succeeds and
+the ring is quietly one short. `scripts/reconcile.ts` compares the two and:
+
+- **stops the draw** when a verified submission has no row, because the draw is
+  the irreversible step and carrying on writes a ring permanently missing
+  someone (`--ignore-unrecorded` overrides);
+- **warns** about anything in the spam list, since whether those are real people
+  is a judgement only the organiser can make;
+- **notes** rows with no verified submission behind them, and draws them anyway.
+
+Without `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` the check cannot run, and the
+draw says so loudly rather than passing in silence.
+
 The draw also refuses to run with fewer than **four** participants. A giver's
 shortlist is four unique cards from their recipient's pool minus their own
 contribution to it, which leaves exactly as many cards as there are
@@ -293,6 +317,8 @@ Once unlocked, each deck builder receives a stable random set of four cards draw
 
 Their private link shows, in order: a collapsed recap of their own sign-up answers (their two cards, colour veto, theme veto and wish); the person they are building for, that person's stated vetoes, and the three-card shortlist; a link to the commander browser; and a box to save the decklist they are assembling. The decklist link lives in the `deck_builds` table keyed by *giver*, so reading that table never reveals who is building for whom.
 
+**One slow person holds up everybody**, by design — the exchange cannot unlock until the last pick is in, and this is a group of friends who can chase each other. See *Chasing Outstanding Picks* below for the tooling that makes it obvious who to chase.
+
 **Where the picks live.** The two sign-up picks are stored on the participant record in Netlify Blobs, written by the draw; the `card_selections` table holds peer picks only. The draw already writes the Blobs store and holds no Postgres credentials, so seeding the table there would add a second, separately-failing write to the one step that must not half-succeed.
 
 ### 5. Participant Edits (Post-Draw)
@@ -309,6 +335,16 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
 Looks the participant up by name (case-insensitive) and edits only the fields you pass — assignments and reveal tokens are never touched, so links already sent keep working. `--color` accepts either a code (`W`/`U`/`B`/`R`/`G`) or a colour name; `--veto`/`--wish` take free text; any of the three accepts `none` to clear that field.
 
 `--email` corrects an address; there is no `none` for it, since it is required.
+
+`--discord` sets how the Discord nudge addresses them — a numeric user id, or a
+handle. Only an id produces a real ping; see *Chasing Outstanding Picks*. It
+accepts a pasted mention (`<@123…>`) and stores the bare id, and refuses input
+that is neither rather than storing something that will silently never ping.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
+  npm run update-participant -- "Ada" --discord=185432109876543210
+```
 
 `--color` is refused if the participant's **own** pool cards carry that colour, and names them: those cards are already in the pool everyone else draws from, and nothing downstream re-checks them. Clearing the veto (`--color=none`) is always allowed.
 
@@ -342,12 +378,22 @@ running the event no longer means pasting a full-scope `NETLIFY_AUTH_TOKEN` onto
 a command line.
 
 **What it shows.** The roster with everyone's email (and a "mail everyone"
-link that puts the addresses in Bcc), each person's stated preferences, and
-**every participant's pool** — their own two sign-up choices plus one from each
-other participant, attributed to whoever chose it, with a count of distinct
-choices and a list of who has not picked yet. Attribution is safe: everybody
-picks for everybody, so who contributed what says nothing about who was
-assigned whom.
+link that puts the addresses in Bcc), each person's stated preferences, a
+**Who to chase** section counting outstanding picks per person, and **every
+participant's pool** — their own two sign-up choices plus one from each other
+participant, attributed to whoever chose it, with a count of distinct choices
+and a list of who has not picked yet. Attribution is safe: everybody picks for
+everybody, so who contributed what says nothing about who was assigned whom.
+
+Every participant row also carries their **Discord** id or handle, labelled
+*will ping* / *handle only* / *no Discord set*, because the difference is
+invisible otherwise and matters exactly once — when the nudge goes out and half
+the group never sees it. The edit form sets it; see *Chasing Outstanding
+Picks*.
+
+An address that has been erased at its owner's request shows as *"address
+erased at their request"* rather than an empty mailto link, and drops out of
+both the mail-everyone and chase-these-people links.
 
 **It does not hide your own pool.** If you are playing, looking at your own
 entry spoils your own shortlist, and nothing stops you — that was a deliberate
@@ -358,9 +404,11 @@ that needs Postgres; if the read fails the section says so and the reveal
 toggle and participant edits keep working, rather than the whole console 500ing
 over reference material.
 
-**It deliberately does not offer the draw.** Re-running it reshuffles everyone
-and invalidates every link already sent, and unlike the other actions there is
-no undo, so it stays on the CLI where running it takes intent.
+**It deliberately does not offer the draw, or erasure.** Re-running the draw
+reshuffles everyone and invalidates every link already sent; erasure is
+irreversible and in some modes destroys the only remaining copy. Neither has an
+undo, so both stay on the CLI where running them takes intent. Everything the
+console does offer is either reversible or additive.
 
 **Setup** (dashboard only — Identity has no configuration API):
 
@@ -394,6 +442,174 @@ Preview has nothing to unlock and cannot reach the real event. See *Store
 Resolution* below. Password-protecting previews in the Netlify UI is still worth
 doing, but it guards a different thing: it stops strangers reading a preview, not
 an organiser acting on the wrong browser tab.
+
+### 8. Chasing Outstanding Picks (Discord)
+
+The exchange cannot start until every participant has picked one commander for
+every other participant. That is deliberate — this is a group of friends who
+can bug each other — but it makes one slow person invisible unless somebody
+goes looking at the console. A scheduled function posts who is holding things
+up into Discord.
+
+**Netlify has no email service of its own.** Form notifications only reach the
+address you configure, and Identity's transactional emails only reach Identity
+users (that is you, not the participants). A Discord incoming webhook needs no
+provider, no domain verification and no API key — the webhook URL *is* the
+credential.
+
+**Setup:**
+
+1. In Discord: **Server Settings > Integrations > Webhooks > New Webhook**,
+   pick the channel, **Copy Webhook URL**.
+2. In Netlify: **Project configuration > Environment variables**, add
+   `DISCORD_WEBHOOK_URL`, scope **Functions**. Variables set in `netlify.toml`
+   are *not* available to functions, and values are frozen per deploy — so
+   redeploy after adding it.
+3. Preview what it will say before it says it:
+
+   ```bash
+   NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> NETLIFY_DB_URL=<url> \
+     npm run nudge -- --dry-run
+   ```
+
+**It is quiet on purpose.** A bot that posts every day gets muted, and a muted
+bot is worse than none on the day it matters. So:
+
+- Nothing is posted at all once everybody has picked.
+- Progress is news: it posts as soon as the picture changes.
+- No progress is not news: it waits `QUIET_DAYS` (3) before repeating itself.
+
+The last post's fingerprint is kept in `nudge.json` beside the event data. It
+is written **only after a successful send**, so a failed post does not go quiet
+for three days having said nothing.
+
+**What it says**, and does not:
+
+```
+🎁 **Secret Santa — commander picks**
+
+9 of 12 picks are in. Waiting on 1 person:
+• **Dara** — 3 picks
+
+Everyone picks one commander for every other player — …
+```
+
+Names and counts, nothing else. Assignments are not an input to `nudgeStatus`
+at all, and reveal tokens are not either — that is structural rather than a
+rule to remember, and there are tests asserting neither appears in a message.
+`allowed_mentions` is pinned so a message can never ping `@everyone` or a role.
+
+**The schedule** is `0 23 * * *` in `netlify/functions/nudge.mts` — 23:00 UTC,
+which is 6pm US Eastern in winter, when this event runs. Cron is always UTC, so
+it drifts an hour if it ever runs through the summer. Scheduled functions only
+fire on **published production deploys**, never on Deploy Previews or branch
+deploys, and there is no local schedule — invoke it once with
+`netlify functions:invoke nudge`, or use `npm run nudge -- --dry-run`, which
+runs the same code path.
+
+**From the console.** `/admin` has a *Who to chase* section listing everyone by
+how many picks they still owe — the pools below it show the same shortfall per
+*pool*, which is the wrong axis for chasing anybody, since one slow person
+appears under every other participant. It has a **Post a nudge to Discord**
+button (which ignores the quiet period, because somebody asked explicitly) and
+a mailto fallback addressed to just those people, Bcc'd.
+
+**Real @-pings.** Each participant has a `discord` field holding a user id or a
+handle. **Only a numeric user id pings** — `@gus` typed into a message is plain
+text: Discord highlights nothing and notifies nobody. A mention has to be
+`<@` + the account’s snowflake id + `>`.
+
+To get one: Discord **Settings > Advanced > Developer Mode**, then right-click
+the person and **Copy User ID**. Paste it into the *Discord* box on `/admin`
+(or use `npm run update-participant -- "<name>" --discord=<id>`). A pasted
+mention works too — `<@123…>` is stored as the bare id.
+
+It is **not collected at sign-up**: the organiser fills it in on the console
+once they know who is playing, so the sign-up form stays short and nobody has
+to turn on Developer Mode to enter the exchange.
+
+Three states, and the console labels each one on both the roster and the chase
+list:
+
+| Stored | In the message | Notifies |
+| --- | --- | --- |
+| `185432109876543210` | `<@185432109876543210>` | Yes — a real ping |
+| `gus_the_third` | **gus_the_third** | No |
+| nothing | **Gus** | No |
+
+A handle falls back to the **bold name, deliberately not `@handle`** — a plain
+`@name` looks exactly like a mention that failed, and invites the reader to
+conclude the bot is broken. Names are markdown-escaped on the way in, so a
+handle with underscores does not italicise the rest of the line, and angle
+brackets are refused outright so a hand-typed value cannot forge a role
+mention. (`allowed_mentions` already blocks role and `@everyone` pings; this is
+the second lock.)
+
+Filling in somebody’s Discord **does not** re-trigger a nudge: the quiet-period
+digest tracks names and counts, not how they are addressed. Admin is not
+progress.
+
+### 9. Erasing Personal Data
+
+The sign-up form collects real names and email addresses, and by the time an
+event has run they are in **five** places — three of which nothing else in this
+project ever touches again:
+
+| Where | What is in it |
+| --- | --- |
+| Netlify Forms | The original submission. Outlives everything here: deleting our copy does nothing to Netlify's. |
+| `signups` (Postgres) | The mirrored row. |
+| `event.json` (Blobs) | The drawn participant record, with the private token and the Discord id or handle. |
+| **`event.backup-*.json` (Blobs)** | A complete copy of all of the above, **one per edit**. `writeEvent` snapshots before every write and never cleans up. |
+| `deck_builds.notes` (Postgres) | Free text a builder wrote about a named person. |
+| `nudge.json` (Blobs) | The last Discord nudge's fingerprint, which lists participants by name. |
+
+`card_selections` and `secret_card_sets` are the exception — random ids and card
+names, which identify nobody once the event record they map back to is gone.
+
+`npm run forget` is the one command that knows that list. It **prints a plan and
+changes nothing** unless you pass `--yes`; none of this is reversible and some of
+it is the only remaining copy.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> NETLIFY_DB_URL=<url> \
+  npm run forget -- "Ada Lovelace"
+```
+
+Three modes:
+
+- **Before the draw** — `npm run forget -- "<name>" --yes` deletes their sign-up
+  row and their form submission. They are simply never included.
+- **After the draw** — a plain delete is *refused*, and says who it would strand.
+  The ring is a single cycle, so dropping one person leaves their giver with
+  nobody to build for while their cards sit in everyone else's pools. Use
+  `--redact --yes` instead: it blanks the email, Discord, theme veto and theme wish, and
+  deletes the sign-up row, the form submission and their private notes, while
+  keeping the name, token, assignment and pool cards that other people's pages
+  are built from. The console then shows *"address erased at their request"* in
+  place of the mailto link. If the name has to go too, the only honest answer is
+  a full wipe once the exchange has finished.
+- **After the event** — `npm run forget -- --everyone --yes` empties every table
+  and deletes `event.json`, `nudge.json` **and every backup snapshot**. Every private link
+  stops working. Tables are emptied rather than deleted by id, so a withdrawn
+  sign-up or a row left by a redraw goes too.
+
+Two things worth knowing:
+
+- **The spam list counts.** Akismet holds real sign-ups back often enough that
+  this project has a whole reconciliation step for it, and a held-back
+  submission has the same name and email as a verified one. `forget` reads both
+  lists.
+- **Without `NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` it warns loudly and
+  skips Forms**, telling you to delete the submission by hand. That is the copy
+  that outlives all the others, so erasing everything else and calling it done
+  would be erasing nothing.
+
+`event.json` is deleted **last**, after every other step. It is the only thing
+mapping a random participant id back to a person, so if a later step failed with
+it already gone, the rows it was meant to reach could no longer be identified.
+Losing the map last means a partial failure is always fixed by running the
+command again — there is a test that reorders it and fails.
 
 ## Development & Architecture notes
 
@@ -430,7 +646,7 @@ an organiser acting on the wrong browser tab.
 
 - **Sign-up commander picker (`CommanderCombobox.tsx`):**
   - Backed by `/api/commanders/names`, which returns the whole legal pool
-    trimmed to `id`, `name`, `colorIdentity` and `imageUrl` — 704 cards, 144 KB
+    trimmed to `id`, `name`, `colorIdentity` and `imageUrl` — 710 cards, ~144 KB
     raw and about 36 KB compressed. The full pool is 480 KB, nearly all of it
     oracle text a dropdown never shows; keeping `imageUrl` costs only ~8 KB
     compressed (the URLs share long prefixes) and buys an instant thumbnail for
@@ -477,7 +693,7 @@ an organiser acting on the wrong browser tab.
   - A "Copy Discord Summary" button formats the complete gift exchange ring into spoiler markdown (`||Giver ➜ Recipient||`) with copy feedback for instant channel announcements.
 - **Scryfall Queries & Caching:**
   - Upstream queries:
-    - Pool: `f:edh is:commander r:u game:paper` (~704 cards). `game:paper` is load-bearing: without it, digital-only MTGO uncommon reprints would wrongly enter the pool.
+    - Pool: `f:edh is:commander r:u game:paper` (710 cards as of August 2026; it grows with each set). `game:paper` is load-bearing: without it, digital-only MTGO uncommon reprints would wrongly enter the pool.
     - Partner-capable: `f:edh is:commander r:u game:paper otag:pair-commander` (~65 cards). Catches Partner, Partner with, "Choose a Background", and Backgrounds.
   - Cached for 24 hours (`revalidate: 86400`) via Next.js fetch cache. Scryfall sees ~6 requests per day total across all users.
   - Every request sends Scryfall's required headers: `User-Agent: FormerFabSecretSanta/1.0` and `Accept: application/json`.
@@ -485,18 +701,48 @@ an organiser acting on the wrong browser tab.
 - **Reveal Ring Algorithm:**
   - `buildRing` (`src/lib/ring.ts`) verifies that the derangement forms a single complete cycle across all participants before constructing the stepped reveal sequence. If non-cycle or disconnected components are found, it fails loudly.
 - **What is and is not covered by the checks:**
-  - The Postgres paths — `src/lib/card-selections.ts`, `src/lib/signups.ts`,
-    `src/lib/deck-builds.ts` and the sign-up function — are **not exercised by
-    `npm test` or the E2E suite**, and never have been. The unit tests cover
-    their pure parts (shortlist selection, the content hash, decklist URL
-    validation); Playwright sets `CARD_SELECTIONS_DISABLED=1`, which routes
-    `/s/[token]` down a branch that touches no database at all. There is no
-    local Postgres in this repo, so the drizzle queries themselves first run on
-    a real deploy. Exercise them on a Deploy Preview, which gets its own
-    database branch, before trusting them in production.
-  - Likewise the `formSubmitted` handler: platform-event functions are invoked
-    by Netlify and cannot be triggered by `netlify dev`. Submit the form on a
-    Deploy Preview and check the function log.
+  - The Postgres paths **are** covered, by `*.integration.test.ts` files that
+    run against [PGlite](https://pglite.dev) — Postgres compiled to
+    WebAssembly, in-process, no container and no connection string. The
+    harness in `src/test-support/database.ts` applies the **real committed
+    migrations**, so a migration that does not apply cleanly fails in `npm test`
+    rather than on deploy. Tests mock `#db/index` onto it, so the code under
+    test is the real code: no injected client, no test-only branch in
+    production.
+  - What that does *not* prove: that the Netlify driver connects, that
+    `NETLIFY_DB_URL` is right, or that migrations run in the deploy pipeline.
+    Those still need a Deploy Preview.
+  - The `formSubmitted` handler is still uncovered: platform-event functions
+    are invoked by Netlify and cannot be triggered by `netlify dev`. Submit the
+    form on a Deploy Preview and check the function log — and note that the
+    draw now cross-checks Netlify Forms against the database precisely because
+    a failure there is otherwise silent (see *Draw and Mint Links*).
+  - **Scheduled functions have the same problem**, and the same answer: there is
+    no local cron, so `netlify/functions/nudge.mts` is a call to `runNudge` and
+    nothing else. `runNudge` is unit-tested, and `npm run nudge -- --dry-run`
+    runs the identical path from a terminal. Everything worth getting wrong —
+    what the message says, when to stay quiet, what must never appear in it —
+    is in `src/lib/nudge.ts`, which is pure.
+  - **Erasure is covered end to end but not against Netlify.** `forget.ts` is
+    pure and unit-tested, the database deletions run against PGlite, and
+    `scripts/forget.test.ts` drives the whole CLI with a stubbed Forms API —
+    including a test that reorders the steps and fails, since deleting
+    `event.json` before the rows it identifies is unrecoverable. What is not
+    proven is that the real Forms DELETE endpoint behaves as documented.
+
+- **Chasing and erasing are both pure cores with thin shells** (`nudge.ts` /
+  `nudge-run.ts`, `forget.ts` / `scripts/forget.ts`):
+  - Same shape as `src/lib/admin.ts`, and for the same reason: the three
+    callers of a nudge are a cron, a Server Action and a CLI, and the cron is
+    the one that cannot be run locally. Putting the decisions in a pure module
+    means the untestable caller is a single function call.
+  - `nudgeStatus` takes an event and the selection rows. **Assignments and
+    reveal tokens are not parameters**, which is the structural version of "a
+    public Discord channel must never see them" — there are tests asserting
+    neither reaches a message, but the type signature is what makes them true.
+  - `forget.ts` only *plans*. What counts as personal data, and what each mode
+    touches, is decided by code that needs no database, no Netlify account and
+    no nerve to run once and find out; the script executes a plan it is handed.
 
 - **Path Imports:**
   - `package.json`'s `"imports"` map (`#lib/*` → `src/lib/*.ts`, `#scripts/*` → `scripts/*.ts`) exists because Node's built-in TypeScript stripping (`node --experimental-strip-types`, used to run the scripts) won't resolve extensionless relative imports, while `tsc` rejects imports with an explicit `.ts` suffix.
@@ -510,6 +756,15 @@ an organiser acting on the wrong browser tab.
 ## Deploying
 
 `netlify.toml` pins the build command (`npm run build`), publish directory (`.next`), and Node version (22). Netlify installs its Next.js runtime automatically — no adapter package needed. Assignment data remains in the Netlify Blobs `secret-santa` store. Card submissions and immutable shortlists use Netlify Database through Drizzle; migrations in `netlify/database/migrations/` are applied automatically during deploy.
+
+**Runtime environment variables** (set in the Netlify UI, not `netlify.toml` — variables declared there are not visible to functions, and values are frozen per deploy, so redeploy after changing one):
+
+| Variable | Scope | Needed for |
+| --- | --- | --- |
+| `NETLIFY_DB_URL` | Functions, Runtime | The `signups`, `card_selections`, `secret_card_sets` and `deck_builds` tables |
+| `DISCORD_WEBHOOK_URL` | Functions | The scheduled nudge and the console's "Post a nudge" button. Optional — without it the nudge reports that it has nowhere to post rather than failing |
+
+Blobs credentials are injected automatically by the Netlify runtime and need no variable of their own. `NETLIFY_SITE_ID` / `NETLIFY_AUTH_TOKEN` are for **local operator scripts only** — never set them on the deployed site.
 
 The Netlify CLI is **not** a project dependency (due to an OpenTelemetry dependency conflict with Vitest 4). Run it via `npx` or install it globally:
 
@@ -531,4 +786,5 @@ npx --yes netlify-cli deploy --build --prod
 
   Explicit credentials are unaffected: the operator's CLI always reaches the real store.
 
-- **Atomic Writes & Backups:** `writeEvent` snapshots the current state to a timestamped backup before writing changes (via atomic temp-file rename on local disk or timestamped key in Blobs).
+- **Atomic Writes & Backups:** `writeEvent` snapshots the current state to a timestamped backup before writing changes (via atomic temp-file rename on local disk or timestamped key in Blobs). There is no rotation and no cleanup — which is deliberate as a safety net, and is exactly why `deleteEventData` exists: every snapshot is a complete copy of the roster, so erasing `event.json` alone would erase nothing. See *Erasing Personal Data*.
+- **Other keys in the same store:** `nudge.json` holds the last Discord nudge's fingerprint. It is written only after a successful post, and it is deleted by the full wipe along with everything else, because its digest lists participants by name.

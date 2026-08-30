@@ -9,6 +9,7 @@ import { readEvent, writeEvent, describeTarget } from "#lib/store";
  * Usage:
  *   npm run update-participant -- "Ada" --color=R --veto="mill" --wish="elves"
  *   npm run update-participant -- "Ada" --email=ada@example.com
+ *   npm run update-participant -- "Ada" --discord=185432109876543210
  *   npm run update-participant -- "Ada" --color=none
  *
  * Edits details only. Assignments and tokens are never touched, so links
@@ -22,7 +23,7 @@ import { readEvent, writeEvent, describeTarget } from "#lib/store";
  * with the organiser console.
  */
 
-const KNOWN_FLAGS = ["email", "color", "veto", "wish"] as const;
+const KNOWN_FLAGS = ["email", "color", "veto", "wish", "discord"] as const;
 
 /** Reads --flag=value, rejecting typos and repeats rather than ignoring them. */
 function readFlags(flags: string[]): Map<string, string> {
@@ -54,7 +55,8 @@ async function main() {
   const [name, ...flags] = process.argv.slice(2);
   if (!name) {
     throw new Error(
-      'Usage: npm run update-participant -- "<name>" [--email=...] [--color=R|none] [--veto=...] [--wish=...]'
+      'Usage: npm run update-participant -- "<name>" [--email=...] [--color=R|none] ' +
+        '[--veto=...] [--wish=...] [--discord=<user-id>|<handle>|none]'
     );
   }
 
@@ -69,6 +71,7 @@ async function main() {
     color: values.get("color"),
     veto: values.get("veto"),
     wish: values.get("wish"),
+    discord: values.get("discord"),
   });
 
   await writeEvent(event);

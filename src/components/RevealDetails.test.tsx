@@ -13,6 +13,7 @@ const recipient = {
   colorVeto: "R" as const,
   themeVeto: "mill",
   themeWish: "something with elves",
+  discord: null,
 };
 
 describe("RevealDetails", () => {

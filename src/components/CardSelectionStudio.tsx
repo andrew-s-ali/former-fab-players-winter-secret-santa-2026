@@ -170,7 +170,7 @@ export function CardSelectionStudio({
             pick={peerCards[target.id]!}
             remove={() =>
               void dispatch(() =>
-                onRemove ? onRemove(target.id) : removeCardAction(token, target.id, 1)
+                onRemove ? onRemove(target.id) : removeCardAction(token, target.id)
               )
             }
           />

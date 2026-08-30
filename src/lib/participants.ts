@@ -17,6 +17,18 @@ export type Participant = {
   themeVeto: string | null;
   themeWish: string | null;
   /**
+   * How to address this person in Discord: a user id, or a handle.
+   *
+   * Not collected at sign-up — the organiser fills it in on the console once
+   * they know who is playing. Only an id produces a real ping; see
+   * `parseDiscordRef`. Null until somebody sets it, which is the normal state
+   * and simply means the nudge uses their name.
+   *
+   * Personal data, in the sense that it identifies an account. It is never
+   * rendered on a participant-facing page, and `npm run forget` clears it.
+   */
+  discord: string | null;
+  /**
    * The two commander choices this person seeded their own pool with at
    * sign-up. Either may be a partner pair, which counts as one choice.
    *

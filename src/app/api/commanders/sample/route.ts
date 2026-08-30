@@ -33,6 +33,10 @@ export async function GET(request: Request) {
       // Theme prompts search rules text, not card names — see CommanderFilters.
       theme: params.get("theme") ?? "",
       pairsOnly: params.get("pairs") === "1",
+      // Backgrounds are excluded unless a caller explicitly asks for them:
+      // this endpoint feeds pickers, and a Background is never a commander in
+      // its own right.
+      primaryOnly: params.get("primary") !== "0",
     },
     n
   );

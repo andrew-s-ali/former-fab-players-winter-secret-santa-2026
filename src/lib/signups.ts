@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { desc } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { getDb } from "#db/index";
 import { signups } from "#db/schema";
 import type { CommanderPick } from "#lib/pairing";
@@ -114,4 +114,61 @@ export async function readSignups(): Promise<StoredSignup[]> {
           : String(row.submittedAt),
     }))
     .sort((left, right) => left.submittedAt.localeCompare(right.submittedAt));
+}
+
+/**
+ * Every stored sign-up as `scripts/forget.ts` needs to match them: the row's
+ * primary key alongside the name.
+ *
+ * `readSignups` cannot serve this. It resolves each row into a draw input and
+ * drops the id on the way, and the id is the only thing that can delete
+ * exactly one of two rows belonging to a person who submitted twice.
+ */
+export async function readSignupIdentities(): Promise<
+  { id: string; name: string; email: string; submittedAt: string }[]
+> {
+  const rows = await getDb()
+    .select({
+      id: signups.id,
+      name: signups.name,
+      email: signups.email,
+      submittedAt: signups.submittedAt,
+    })
+    .from(signups)
+    .orderBy(desc(signups.submittedAt));
+
+  return rows.map((row) => ({
+    ...row,
+    submittedAt:
+      row.submittedAt instanceof Date
+        ? row.submittedAt.toISOString()
+        : String(row.submittedAt),
+  }));
+}
+
+/** Deletes the named sign-up rows. Returns how many went. */
+export async function deleteSignups(ids: string[]): Promise<number> {
+  if (ids.length === 0) {
+    return 0;
+  }
+  const deleted = await getDb()
+    .delete(signups)
+    .where(inArray(signups.id, ids))
+    .returning({ id: signups.id });
+  return deleted.length;
+}
+
+/**
+ * Empties the table.
+ *
+ * Separate from `deleteSignups` on purpose: the post-event wipe has to remove
+ * rows nobody is holding an id for any more — a withdrawn sign-up, a duplicate
+ * that lost a dedupe — and a list of ids taken from the current event can only
+ * ever reach the people who were drawn.
+ */
+export async function deleteAllSignups(): Promise<number> {
+  // No column list: drizzle only types `returning(...)` with one on a
+  // filtered delete, and a wipe has nothing to select by anyway.
+  const deleted = await getDb().delete(signups).returning();
+  return deleted.length;
 }
