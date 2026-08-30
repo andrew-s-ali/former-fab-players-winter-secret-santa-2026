@@ -110,7 +110,7 @@ describe("RevealRing", () => {
     await userEvent.click(copyBtn);
 
     const expectedSummary = [
-      "🎄 **Winter Secret Santa 2026 — Reveal Day Pairings** 🎁",
+      "🎄 **Winter Secret Santa 2026 Exchange — Reveal Day Pairings** 🎁",
       "||Alice ➜ Bob||",
       "||Bob ➜ Cleo||",
       "||Cleo ➜ Alice||",

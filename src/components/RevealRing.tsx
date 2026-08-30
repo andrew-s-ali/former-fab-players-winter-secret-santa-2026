@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { eventTitle } from "@/lib/event";
 import type { Ring } from "@/lib/ring";
 import { Confetti } from "./Confetti";
 
@@ -16,7 +17,7 @@ function position(index: number, total: number) {
 
 function formatDiscordSummary(steps: { from: string; to: string }[]): string {
   return [
-    "🎄 **Winter Secret Santa 2026 — Reveal Day Pairings** 🎁",
+    `🎄 **${eventTitle()} — Reveal Day Pairings** 🎁`,
     ...steps.map((step) => `||${step.from} ➜ ${step.to}||`),
   ].join("\n");
 }

@@ -16,7 +16,7 @@ test("the home page is a splash page until registration opens", async ({ page })
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { level: 1, name: /Winter Secret Santa 2026/ })
+    page.getByRole("heading", { level: 1, name: /Winter Secret Santa 2026 Exchange/ })
   ).toBeVisible();
   await expect(page.getByText(/sign-ups open/i)).toBeVisible();
 

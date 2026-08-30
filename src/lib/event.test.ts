@@ -9,12 +9,14 @@ import {
 } from "./event";
 
 describe("eventTitle", () => {
-  it("combines the event name and year", () => {
-    expect(eventTitle()).toBe(`${EVENT.name} ${EVENT.year}`);
+  it("is the one name the site and the bot both use", () => {
+    expect(eventTitle()).toBe("Winter Secret Santa 2026 Exchange");
   });
 
-  it("ends with the event year", () => {
-    expect(eventTitle()).toMatch(/2026$/);
+  it("carries the event year, which sits inside the name", () => {
+    // Not a suffix any more, which is why the title is built by this function
+    // rather than by appending EVENT.year to a prefix.
+    expect(eventTitle()).toContain(String(EVENT.year));
   });
 });
 

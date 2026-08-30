@@ -13,7 +13,7 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
 
   // 1. Home Page
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: /Winter Secret Santa 2026/ })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Winter Secret Santa 2026 Exchange/ })).toBeVisible();
   await expect(page.getByText(/sign-ups/i)).toBeVisible();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "01_home_page.png"), fullPage: true });
 

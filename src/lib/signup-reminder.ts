@@ -1,3 +1,4 @@
+import { eventTitle } from "#lib/event";
 import { instantOf, formatDeadline } from "#lib/launch";
 
 /**
@@ -118,7 +119,7 @@ export function reminderMessage(
 
   if (reminder.kind === "opening") {
     return (
-      `@here 🎁 **Welcome to the Winter 2026 Exchange**\n\n` +
+      `@here 🎁 **Welcome to the ${eventTitle()}**\n\n` +
       // Mind the spaces at these joins: adjacent template strings concatenate
       // with nothing between them, so a line ending mid-sentence needs its own
       // trailing space or the words run together.
@@ -135,14 +136,14 @@ export function reminderMessage(
 
   if (reminder.kind === "final") {
     return (
-      `@here ⏳ **Last chance — Winter 2026 Exchange sign-ups close at ${deadline}.**\n\n` +
+      `@here ⏳ **Last chance — ${eventTitle()} sign-ups close at ${deadline}.**\n\n` +
       `After that the draw runs and the pool is fixed, so there is no adding ` +
       `people later.${soFar}${signUp}`
     );
   }
 
   return (
-    `🎁 **${reminder.daysLeft} days left to sign up for the Winter 2026 Exchange.**\n\n` +
+    `🎁 **${reminder.daysLeft} days left to sign up for the ${eventTitle()}.**\n\n` +
     `Closes at ${deadline} (US Eastern).${soFar}${signUp}`
   );
 }
