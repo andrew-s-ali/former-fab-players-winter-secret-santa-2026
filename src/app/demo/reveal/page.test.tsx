@@ -22,6 +22,7 @@ describe("DemoRevealPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
       {
         id: "demo-2",
@@ -33,6 +34,7 @@ describe("DemoRevealPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",
@@ -50,6 +52,7 @@ describe("DemoRevealPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
       {
         id: "demo-2",
@@ -61,6 +64,7 @@ describe("DemoRevealPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt: null,

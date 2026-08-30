@@ -38,6 +38,7 @@ describe("RevealDayPage", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
         {
           id: "2",
@@ -49,6 +50,7 @@ describe("RevealDayPage", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: null,
@@ -81,6 +83,7 @@ describe("RevealDayPage", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
         {
           id: "2",
@@ -92,6 +95,7 @@ describe("RevealDayPage", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: "2026-12-25T00:00:00.000Z",

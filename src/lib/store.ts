@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { NudgeState } from "./nudge";
-import type { EventData } from "./participants";
+import type { EventData, Participant } from "./participants";
 
 const STORE_NAME = "secret-santa";
 const BLOB_KEY = "event.json";
@@ -13,7 +13,21 @@ function withDefaults(data: EventData | null): EventData {
   if (!data) {
     return EMPTY;
   }
-  return { participants: data.participants ?? [], revealedAt: data.revealedAt ?? null };
+  return {
+    participants: (data.participants ?? []).map(withParticipantDefaults),
+    revealedAt: data.revealedAt ?? null,
+  };
+}
+
+/**
+ * Fields added to a participant after an event was already drawn.
+ *
+ * A blob written before `discord` existed has no such key, and `undefined`
+ * where the type promises `string | null` is the kind of difference that
+ * surfaces as one odd render months later. Normalised on the way in instead.
+ */
+function withParticipantDefaults(participant: Participant): Participant {
+  return { ...participant, discord: participant.discord ?? null };
 }
 
 type BlobsMode =

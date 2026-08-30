@@ -22,6 +22,7 @@ function sampleEvent(revealedAt: string | null = null): EventData {
         colorVeto: "R",
         themeVeto: "mill",
         themeWish: "elves",
+        discord: null,
       },
       {
         id: "p2",
@@ -33,6 +34,7 @@ function sampleEvent(revealedAt: string | null = null): EventData {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt,

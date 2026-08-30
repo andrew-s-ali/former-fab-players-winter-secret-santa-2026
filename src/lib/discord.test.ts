@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DiscordError, isWebhookUrl, postToDiscord, webhookFromEnv } from "./discord";
+import {
+  DiscordError,
+  escapeMarkdown,
+  formatDiscordRef,
+  isWebhookUrl,
+  mentionFor,
+  parseDiscordRef,
+  postToDiscord,
+  webhookFromEnv,
+  willPing,
+} from "./discord";
 
 const VALID =
   "https://discord.com/api/webhooks/123456789012345678/abcDEF-ghi_JKL123";
@@ -92,5 +102,101 @@ describe("postToDiscord", () => {
     expect(error).toBeInstanceOf(DiscordError);
     expect(String(error)).not.toContain("abcDEF-ghi_JKL123");
     expect(String(error)).toContain("500");
+  });
+});
+
+const ID = "185432109876543210";
+
+describe("parseDiscordRef", () => {
+  it("reads a bare user id", () => {
+    expect(parseDiscordRef(ID)).toEqual({ kind: "id", id: ID });
+    expect(parseDiscordRef(`  ${ID}  `)).toEqual({ kind: "id", id: ID });
+  });
+
+  it("reads a mention copied out of a chat", () => {
+    // Both forms are what you actually get from copying a mention.
+    expect(parseDiscordRef(`<@${ID}>`)).toEqual({ kind: "id", id: ID });
+    expect(parseDiscordRef(`<@!${ID}>`)).toEqual({ kind: "id", id: ID });
+  });
+
+  it("reads a handle, with or without the leading @", () => {
+    expect(parseDiscordRef("ada_lovelace")).toEqual({
+      kind: "name",
+      name: "ada_lovelace",
+    });
+    expect(parseDiscordRef("@ada_lovelace")).toEqual({
+      kind: "name",
+      name: "ada_lovelace",
+    });
+  });
+
+  it("refuses input that could forge a mention", () => {
+    // allowed_mentions already blocks role and @everyone pings, but a value
+    // that can inject angle brackets has no business reaching the message.
+    expect(() => parseDiscordRef("<@&123456789012345678>")).toThrow(
+      /not a Discord handle/
+    );
+    expect(() => parseDiscordRef("everyone> <@&99")).toThrow(/not a Discord handle/);
+  });
+
+  it("points at Developer Mode when the input cannot ping", () => {
+    // The one thing an organiser needs to know and will not guess.
+    expect(() => parseDiscordRef("Ada <ada@example.com>")).toThrow(
+      /Developer Mode/
+    );
+  });
+
+  it("refuses empty, bare-@ and over-long input", () => {
+    expect(() => parseDiscordRef("   ")).toThrow(/user id or handle/);
+    expect(() => parseDiscordRef("@")).toThrow(/just an @/);
+    expect(() => parseDiscordRef("a".repeat(41))).toThrow(/too long/);
+  });
+
+  it("round-trips through the stored form", () => {
+    for (const raw of [ID, `<@${ID}>`, "@ada_lovelace", "ada_lovelace"]) {
+      const stored = formatDiscordRef(parseDiscordRef(raw));
+      expect(formatDiscordRef(parseDiscordRef(stored))).toBe(stored);
+    }
+    expect(formatDiscordRef(parseDiscordRef(`<@${ID}>`))).toBe(ID);
+  });
+});
+
+describe("willPing", () => {
+  it("is true only for a user id", () => {
+    expect(willPing(ID)).toBe(true);
+    expect(willPing("ada_lovelace")).toBe(false);
+    expect(willPing(null)).toBe(false);
+    expect(willPing("")).toBe(false);
+  });
+
+  it("does not throw on a value that no longer parses", () => {
+    expect(willPing("<@&123>")).toBe(false);
+  });
+});
+
+describe("mentionFor", () => {
+  it("renders a real ping for an id", () => {
+    expect(mentionFor(ID, "Ada")).toBe(`<@${ID}>`);
+  });
+
+  it("renders a handle as a bold name, not a fake @mention", () => {
+    expect(mentionFor("ada_lovelace", "Ada")).toBe("**ada\\_lovelace**");
+  });
+
+  it("falls back to the participant's name when nothing is set", () => {
+    expect(mentionFor(null, "Ada")).toBe("**Ada**");
+  });
+
+  it("survives a stored value that no longer parses", () => {
+    // Never take a message down over one bad field.
+    expect(mentionFor("<@&123>", "Ada")).toBe("**Ada**");
+  });
+});
+
+describe("escapeMarkdown", () => {
+  it("stops a name reformatting the message around it", () => {
+    expect(escapeMarkdown("gus_the_third")).toBe("gus\\_the\\_third");
+    expect(escapeMarkdown("*Gus*")).toBe("\\*Gus\\*");
+    expect(escapeMarkdown("Ada")).toBe("Ada");
   });
 });

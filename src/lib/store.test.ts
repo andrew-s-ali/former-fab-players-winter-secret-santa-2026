@@ -48,6 +48,7 @@ describe("readEvent (local file)", () => {
             colorVeto: "R",
             themeVeto: "mill",
             themeWish: "elves",
+            discord: null,
           },
         ],
       })
@@ -111,6 +112,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: null,
@@ -130,6 +132,7 @@ describe("writeEvent (local file) backup on overwrite", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: null,
@@ -192,12 +195,17 @@ describe("readEvent on Netlify (explicit credentials)", () => {
   });
 
   it("calls getStore with an explicit siteID/token object, not a bare string", async () => {
-    // Simulates older stored data that predates revealedAt; withDefaults()
-    // must fill it in on the way out.
+    // Simulates older stored data that predates both revealedAt and the
+    // per-participant discord field; withDefaults() must fill both in on the
+    // way out, so nothing downstream ever sees `undefined` where the type
+    // promises `string | null`.
     const event = { participants: [{ id: "p1", name: "Ada" }] };
     blobs.get.mockResolvedValue(event);
 
-    await expect(readEvent()).resolves.toEqual({ ...event, revealedAt: null });
+    await expect(readEvent()).resolves.toEqual({
+      participants: [{ id: "p1", name: "Ada", discord: null }],
+      revealedAt: null,
+    });
     expect(blobs.getStore).toHaveBeenCalledWith({
       name: "secret-santa",
       siteID: "site-123",
@@ -237,6 +245,7 @@ describe("readEvent on Netlify (explicit credentials)", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: null,
@@ -384,6 +393,7 @@ describe("deleteEventData (local file)", () => {
           colorVeto: null,
           themeVeto: null,
           themeWish: null,
+          discord: null,
         },
       ],
       revealedAt: null,

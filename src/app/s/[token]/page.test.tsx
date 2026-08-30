@@ -28,6 +28,7 @@ describe("RevealPage (/s/[token])", () => {
         colorVeto: "W" as const,
         themeVeto: "Infect",
         themeWish: "Dragons",
+        discord: null,
       },
       {
         id: "p-2",
@@ -39,6 +40,7 @@ describe("RevealPage (/s/[token])", () => {
         colorVeto: "U" as const,
         themeVeto: null,
         themeWish: "Artifacts",
+        discord: null,
       },
       {
         id: "p-3",
@@ -50,6 +52,7 @@ describe("RevealPage (/s/[token])", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",

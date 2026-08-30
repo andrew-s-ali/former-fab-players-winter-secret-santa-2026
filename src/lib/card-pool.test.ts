@@ -38,6 +38,7 @@ const participants: Participant[] = ["a", "b", "c", "d"].map((id) => ({
   colorVeto: null,
   themeVeto: null,
   themeWish: null,
+  discord: null,
   // Chosen at sign-up, so they live on the participant rather than in the
   // selection rows.
   selfCards: [soloPick(card(`${id}-self-1`)), soloPick(card(`${id}-self-2`))],

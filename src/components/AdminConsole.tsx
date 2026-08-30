@@ -9,6 +9,7 @@ import {
 } from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
 import type { EventSummary, ParticipantPool } from "@/lib/admin";
+import { willPing } from "@/lib/discord";
 import type { NudgeStatus } from "@/lib/nudge";
 import { pickId } from "@/lib/pairing";
 import { COLOR_CHOICES } from "@/lib/signup";
@@ -32,6 +33,29 @@ function mailtoStragglers(summary: EventSummary, nudge: NudgeStatus): string {
       "were emailed."
   );
   return `mailto:?bcc=${addresses.join(",")}&subject=${subject}&body=${body}`;
+}
+
+/**
+ * Whether this person can actually be pinged.
+ *
+ * Shown wherever a participant is listed, because the difference is invisible
+ * otherwise and matters exactly once — when the nudge goes out and half the
+ * group never sees it. "Handle only" is not a warning; plenty of people will
+ * never hand over an id, and the message falls back to their name.
+ */
+function DiscordTag({ discord }: { discord: string | null }) {
+  if (!discord) {
+    return <span className="block text-xs opacity-50">no Discord set</span>;
+  }
+  return willPing(discord) ? (
+    <span className="block text-xs text-emerald-400/90">
+      Discord {discord} — will ping
+    </span>
+  ) : (
+    <span className="block text-xs opacity-70">
+      Discord @{discord} — handle only, will not ping
+    </span>
+  );
 }
 
 const FIELD_CLASS =
@@ -173,6 +197,7 @@ export function AdminConsole({
                   {p.themeVeto ? `, not ${p.themeVeto}` : ""}
                   {p.themeWish ? `, would like ${p.themeWish}` : ""}
                 </span>
+                <DiscordTag discord={p.discord} />
               </li>
             ))}
           </ul>
@@ -214,8 +239,14 @@ export function AdminConsole({
             <>
               <ul className="divide-y divide-slate-300/20 text-sm">
                 {nudge.outstanding.map((entry) => (
-                  <li className="flex justify-between py-2" key={entry.name}>
-                    <strong>{entry.name}</strong>
+                  <li
+                    className="flex flex-wrap items-baseline justify-between gap-x-3 py-2"
+                    key={entry.name}
+                  >
+                    <span>
+                      <strong>{entry.name}</strong>{" "}
+                      <DiscordTag discord={entry.discord} />
+                    </span>
                     <span className="opacity-70">
                       {entry.owed} pick{entry.owed === 1 ? "" : "s"} to go
                     </span>
@@ -381,6 +412,23 @@ export function AdminConsole({
               ))}
               <option value="none" />
             </datalist>
+          </label>
+
+          <label className="block space-y-1">
+            <span className="text-sm font-medium">Discord</span>
+            <input
+              className={FIELD_CLASS}
+              name="discord"
+              placeholder="user id (pings) or handle — leave empty to keep"
+              type="text"
+            />
+            <span className="block text-xs opacity-70">
+              Only a numeric <strong>user id</strong> produces a real ping.
+              Turn on Discord&rsquo;s Settings &gt; Advanced &gt; Developer
+              Mode, then right-click the person and{" "}
+              <em>Copy User ID</em>. A handle is stored and shown, but notifies
+              nobody. Type <code>none</code> to clear.
+            </span>
           </label>
 
           <label className="block space-y-1">

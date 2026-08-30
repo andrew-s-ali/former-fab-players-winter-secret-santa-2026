@@ -34,6 +34,7 @@ describe("DemoTokenPage", () => {
         colorVeto: "W" as const,
         themeVeto: "Infect",
         themeWish: "Dragons",
+        discord: null,
       },
       {
         id: "demo-2",
@@ -45,6 +46,7 @@ describe("DemoTokenPage", () => {
         colorVeto: "U" as const,
         themeVeto: null,
         themeWish: "Artifacts",
+        discord: null,
       },
       {
         id: "demo-3",
@@ -56,6 +58,7 @@ describe("DemoTokenPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
       {
         id: "demo-4",
@@ -67,6 +70,7 @@ describe("DemoTokenPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",

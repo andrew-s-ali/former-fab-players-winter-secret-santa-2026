@@ -48,6 +48,7 @@ const people: Participant[] = ["ada", "brin", "cleo", "dara"].map((id, index, al
   colorVeto: null,
   themeVeto: null,
   themeWish: null,
+  discord: null,
   selfCards: testSelfCards(id),
 }));
 

@@ -25,6 +25,7 @@ describe("DemoIndexPage", () => {
         colorVeto: "W" as const,
         themeVeto: null,
         themeWish: "Tokens",
+        discord: null,
       },
       {
         id: "demo-2",
@@ -36,6 +37,7 @@ describe("DemoIndexPage", () => {
         colorVeto: null,
         themeVeto: null,
         themeWish: null,
+        discord: null,
       },
     ],
     revealedAt: "2026-12-25T00:00:00.000Z",

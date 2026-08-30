@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  EDITABLE_FIELDS,
   applyParticipantEdits,
   buildPools,
   findParticipantByName,
@@ -40,6 +41,7 @@ function participant(overrides: Partial<Participant> = {}): Participant {
     colorVeto: "R",
     themeVeto: "mill",
     themeWish: "elves",
+    discord: null,
     selfCards: [soloPick(commander("Blue Pick", ["U"])), soloPick(commander("White Pick", ["W"]))],
     ...overrides,
   };
@@ -257,5 +259,62 @@ describe("buildPools", () => {
 
     expect(ada.contributed).toEqual([]);
     expect(ada.awaiting).toEqual(["Bob", "Cleo", "Dev"]);
+  });
+});
+
+describe("editing a participant's Discord", () => {
+  it("stores a pasted mention as a bare id", () => {
+    const target = participant();
+
+    applyParticipantEdits(target, { discord: "<@185432109876543210>" });
+
+    expect(target.discord).toBe("185432109876543210");
+  });
+
+  it("stores a handle with the leading @ stripped", () => {
+    const target = participant();
+
+    applyParticipantEdits(target, { discord: "@ada_lovelace" });
+
+    expect(target.discord).toBe("ada_lovelace");
+  });
+
+  it("clears it with none", () => {
+    const target = participant();
+    target.discord = "185432109876543210";
+
+    applyParticipantEdits(target, { discord: "none" });
+
+    expect(target.discord).toBeNull();
+  });
+
+  it("refuses input that is neither, rather than storing a value that never pings", () => {
+    const target = participant();
+
+    expect(() =>
+      applyParticipantEdits(target, { discord: "<@&123456789012345678>" })
+    ).toThrow();
+    expect(target.discord).toBeNull();
+  });
+
+  it("leaves it alone when the field is not given", () => {
+    const target = participant();
+    target.discord = "ada_lovelace";
+
+    applyParticipantEdits(target, { wish: "elves" });
+
+    expect(target.discord).toBe("ada_lovelace");
+  });
+
+  it("reports the previous value, like every other editable field", () => {
+    const target = participant();
+    target.discord = "old_handle";
+
+    const { before } = applyParticipantEdits(target, {
+      discord: "185432109876543210",
+    });
+
+    expect(before.discord).toBe("old_handle");
+    expect(EDITABLE_FIELDS).toContain("discord");
   });
 });

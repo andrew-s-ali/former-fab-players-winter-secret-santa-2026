@@ -81,7 +81,7 @@ const key = (name: string): string => name.trim().toLowerCase();
  * would break somebody else's page.
  *
  * So what goes is what is actually theirs and actually identifying: the
- * address, and the two free-text answers they wrote.
+ * address, the Discord account, and the two free-text answers they wrote.
  */
 export function redactParticipant(participant: Participant): Participant {
   return {
@@ -89,6 +89,7 @@ export function redactParticipant(participant: Participant): Participant {
     email: "",
     themeVeto: null,
     themeWish: null,
+    discord: null,
   };
 }
 
@@ -304,7 +305,8 @@ export function describePlan(plan: ForgetPlan): string[] {
   const steps: string[] = [];
   if (plan.redactIds.length > 0) {
     steps.push(
-      `blank email, theme veto and theme wish for ${plan.redactIds.length} participant(s) in event.json`
+      "blank email, Discord handle, theme veto and theme wish for " +
+        `${plan.redactIds.length} participant(s) in event.json`
     );
   }
   if (plan.wipeEventStore) {

@@ -11,7 +11,10 @@ import {
 import type { EventData, Participant } from "./participants";
 import { testPick, testSelfCards } from "@/test-support/cards";
 
-function eventOf(names: string[]): EventData {
+function eventOf(
+  names: string[],
+  discord: Record<string, string | null> = {}
+): EventData {
   const participants: Participant[] = names.map((name, index) => ({
     id: name.toLowerCase(),
     name,
@@ -21,6 +24,7 @@ function eventOf(names: string[]): EventData {
     colorVeto: null,
     themeVeto: null,
     themeWish: null,
+    discord: discord[name] ?? null,
     selfCards: testSelfCards(name.toLowerCase()),
   }));
   return { participants, revealedAt: null };
@@ -53,10 +57,10 @@ describe("nudgeStatus", () => {
     expect(status.picksIn).toBe(1);
     expect(status.picksRequired).toBe(12);
     expect(status.outstanding).toEqual([
-      { name: "Brin", owed: 3 },
-      { name: "Cleo", owed: 3 },
-      { name: "Dara", owed: 3 },
-      { name: "Ada", owed: 2 },
+      { name: "Brin", owed: 3, discord: null },
+      { name: "Cleo", owed: 3, discord: null },
+      { name: "Dara", owed: 3, discord: null },
+      { name: "Ada", owed: 2, discord: null },
     ]);
     expect(status.complete).toBe(false);
   });
@@ -155,9 +159,9 @@ describe("nudgeMessage", () => {
     expect(message).not.toContain("1 picks");
   });
 
-  it("can be pointed at real Discord pings without changing the message", () => {
+  it("takes an injectable mention resolver", () => {
     const message = nudgeMessage(nudgeStatus(event, []), {
-      mention: (name) => `<@id-${name.toLowerCase()}>`,
+      mention: (entry) => `<@id-${entry.name.toLowerCase()}>`,
     })!;
 
     expect(message).toContain("<@id-ada>");
@@ -225,5 +229,62 @@ describe("shouldPost", () => {
     const none = nudgeStatus({ participants: [], revealedAt: null }, []);
 
     expect(shouldPost(none, null, now).post).toBe(false);
+  });
+});
+
+describe("nudgeMessage, addressing people in Discord", () => {
+  it("pings a real user id", () => {
+    const withIds = eventOf(["Ada", "Brin", "Cleo", "Dara"], {
+      Ada: "185432109876543210",
+    });
+
+    const message = nudgeMessage(nudgeStatus(withIds, []))!;
+
+    expect(message).toContain("<@185432109876543210>");
+    expect(message).not.toContain("**Ada**");
+  });
+
+  it("falls back to the bold name for a handle, never a fake @mention", () => {
+    // An `@handle` in message text notifies nobody and highlights nothing — it
+    // reads as a ping that failed, which is worse than not trying.
+    const withHandle = eventOf(["Ada", "Brin", "Cleo", "Dara"], {
+      Ada: "ada_lovelace",
+    });
+
+    const message = nudgeMessage(nudgeStatus(withHandle, []))!;
+
+    expect(message).toContain("**ada\\_lovelace**");
+    expect(message).not.toContain("<@");
+    expect(message).not.toContain("• @ada_lovelace");
+  });
+
+  it("falls back to the plain name when no Discord is set", () => {
+    const message = nudgeMessage(nudgeStatus(event, []))!;
+
+    expect(message).toContain("**Ada**");
+  });
+
+  it("mixes pinged and unpinged people in one message", () => {
+    const mixed = eventOf(["Ada", "Brin", "Cleo", "Dara"], {
+      Ada: "185432109876543210",
+      Brin: "brin",
+    });
+
+    const message = nudgeMessage(nudgeStatus(mixed, []))!;
+
+    expect(message).toContain("<@185432109876543210>");
+    expect(message).toContain("**brin**");
+    expect(message).toContain("**Cleo**");
+  });
+
+  it("keeps the digest stable when only a handle changes", () => {
+    // Filling in somebody's Discord is admin, not progress; it must not
+    // trigger a repeat post saying exactly the same thing.
+    const before = nudgeDigest(nudgeStatus(event, []));
+    const after = nudgeDigest(
+      nudgeStatus(eventOf(["Ada", "Brin", "Cleo", "Dara"], { Ada: "1854321098765432" }), [])
+    );
+
+    expect(after).toBe(before);
   });
 });

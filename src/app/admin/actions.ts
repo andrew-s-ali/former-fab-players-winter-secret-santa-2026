@@ -82,6 +82,7 @@ export async function updateParticipantAction(
       color: field("color"),
       veto: field("veto"),
       wish: field("wish"),
+      discord: field("discord"),
     });
 
     await writeEvent(event);

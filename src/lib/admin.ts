@@ -2,6 +2,7 @@ import type { SavedSelection } from "./card-pool";
 import type { ColorCode } from "./commanders";
 import { pickColorIdentity, pickId, pickName, type CommanderPick } from "#lib/pairing";
 import type { EventData, Participant } from "./participants";
+import { formatDiscordRef, parseDiscordRef } from "#lib/discord";
 import { COLOR_CODES, parseEmail } from "#lib/signup";
 
 /**
@@ -66,15 +67,22 @@ export type ParticipantEdits = {
   veto?: string;
   wish?: string;
   email?: string;
+  discord?: string;
 };
 
-export type EditableField = "email" | "colorVeto" | "themeVeto" | "themeWish";
+export type EditableField =
+  | "email"
+  | "colorVeto"
+  | "themeVeto"
+  | "themeWish"
+  | "discord";
 
 export const EDITABLE_FIELDS: readonly EditableField[] = [
   "email",
   "colorVeto",
   "themeVeto",
   "themeWish",
+  "discord",
 ];
 
 /**
@@ -92,6 +100,7 @@ export function applyParticipantEdits(
     colorVeto: participant.colorVeto,
     themeVeto: participant.themeVeto,
     themeWish: participant.themeWish,
+    discord: participant.discord,
   };
 
   // No "none" sentinel for the address: it is required, so the only sensible
@@ -131,6 +140,16 @@ export function applyParticipantEdits(
   if (edits.wish !== undefined) {
     participant.themeWish = edits.wish === "none" ? null : edits.wish;
   }
+  // Stored normalised — a bare id or a bare handle — so a value pasted as
+  // `<@123…>` reads back the same way it will be rendered. `parseDiscordRef`
+  // throws on anything that is neither, because a typo that was accepted here
+  // would show up as a nudge that quietly never pings.
+  if (edits.discord !== undefined) {
+    participant.discord =
+      edits.discord === "none"
+        ? null
+        : formatDiscordRef(parseDiscordRef(edits.discord));
+  }
 
   return { before };
 }
@@ -151,6 +170,8 @@ export type EventSummary = {
     colorVeto: ColorCode | null;
     themeVeto: string | null;
     themeWish: string | null;
+    /** A Discord user id or handle; null until the organiser fills one in. */
+    discord: string | null;
   }[];
 };
 
@@ -241,6 +262,7 @@ export function summarizeEvent(event: EventData): EventSummary {
       colorVeto: p.colorVeto,
       themeVeto: p.themeVeto,
       themeWish: p.themeWish,
+      discord: p.discord,
     })),
   };
 }

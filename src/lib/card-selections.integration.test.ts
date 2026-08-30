@@ -28,6 +28,7 @@ const people: Participant[] = ["a", "b", "c", "d"].map((id, index, all) => ({
   colorVeto: null,
   themeVeto: null,
   themeWish: null,
+  discord: null,
   selfCards: [
     soloPick(testCommander(`${id}-own-1`)),
     soloPick(testCommander(`${id}-own-2`)),

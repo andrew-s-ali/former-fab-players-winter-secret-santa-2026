@@ -16,8 +16,12 @@ function summary(
   return { participantCount: participants.length, revealedAt: null, participants };
 }
 
-function person(name: string, email: string): EventSummary["participants"][number] {
-  return { name, email, colorVeto: null, themeVeto: null, themeWish: null };
+function person(
+  name: string,
+  email: string,
+  discord: string | null = null
+): EventSummary["participants"][number] {
+  return { name, email, colorVeto: null, themeVeto: null, themeWish: null, discord };
 }
 
 describe("AdminConsole, on an address that has been erased", () => {
@@ -78,8 +82,8 @@ describe("AdminConsole, chasing outstanding picks", () => {
     render(
       <AdminConsole
         nudge={nudgeOf([
-          { name: "Brin", owed: 3 },
-          { name: "Cleo", owed: 1 },
+          { name: "Brin", owed: 3, discord: null },
+          { name: "Cleo", owed: 1, discord: null },
         ])}
         pools={[]}
         poolsError={null}
@@ -96,8 +100,8 @@ describe("AdminConsole, chasing outstanding picks", () => {
     render(
       <AdminConsole
         nudge={nudgeOf([
-          { name: "Brin", owed: 3 },
-          { name: "Cleo", owed: 1 },
+          { name: "Brin", owed: 3, discord: null },
+          { name: "Cleo", owed: 1, discord: null },
         ])}
         pools={[]}
         poolsError={null}
@@ -140,5 +144,37 @@ describe("AdminConsole, chasing outstanding picks", () => {
 
     expect(screen.queryByText(/Who to chase/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /unlock \/reveal/i })).toBeInTheDocument();
+  });
+});
+
+describe("AdminConsole, showing who can actually be pinged", () => {
+  it("distinguishes a pinging id from a handle from nothing at all", () => {
+    render(
+      <AdminConsole
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        summary={summary([
+          person("Ada", "ada@example.com", "185432109876543210"),
+          person("Brin", "brin@example.com", "brin_the_builder"),
+          person("Cleo", "cleo@example.com"),
+        ])}
+      />
+    );
+
+    expect(screen.getByText(/185432109876543210 — will ping/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/@brin_the_builder — handle only, will not ping/)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/no Discord set/)).toBeInTheDocument();
+  });
+
+  it("offers a Discord box that says how to get an id that pings", () => {
+    render(
+      <AdminConsole nudge={null} pools={[]} poolsError={null} summary={summary([])} />
+    );
+
+    expect(screen.getByRole("textbox", { name: /discord/i })).toBeInTheDocument();
+    expect(screen.getByText(/Developer Mode/)).toBeInTheDocument();
   });
 });

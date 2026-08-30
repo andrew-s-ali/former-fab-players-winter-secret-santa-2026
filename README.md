@@ -15,7 +15,7 @@ one-time hidden-card trade, and features a stepped public reveal-day ring, a
 two-phase countdown, a festive winter palette with reduced-motion snowfall,
 private per-link scratchpads and decklist links, enlarged card previews on
 hover, interactive deck prompts, demo preview routes, an Identity-gated
-organiser console, a **Discord nudge** for whoever still owes card picks, and a
+organiser console, a **Discord nudge** that @-pings whoever still owes card picks, and a
 **deletion path** for every copy of someone's personal data. 539 unit tests, 28
 Playwright E2E tests, and lint/typecheck/build are all clean.
 
@@ -60,7 +60,7 @@ npm run dev                       # http://localhost:3000
 | `npm run test:e2e`            | Playwright; boots the dev server itself                                     |
 | `npm run netlify:dev`         | Netlify Dev, for functions/redirects/env parity                              |
 | `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
-| `npm run update-participant`  | Edit one participant's vetoes/wish without redrawing                        |
+| `npm run update-participant`  | Edit one participant's email, Discord, vetoes or wish without redrawing     |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
 | `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
@@ -336,6 +336,16 @@ Looks the participant up by name (case-insensitive) and edits only the fields yo
 
 `--email` corrects an address; there is no `none` for it, since it is required.
 
+`--discord` sets how the Discord nudge addresses them — a numeric user id, or a
+handle. Only an id produces a real ping; see *Chasing Outstanding Picks*. It
+accepts a pasted mention (`<@123…>`) and stores the bare id, and refuses input
+that is neither rather than storing something that will silently never ping.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
+  npm run update-participant -- "Ada" --discord=185432109876543210
+```
+
 `--color` is refused if the participant's **own** pool cards carry that colour, and names them: those cards are already in the pool everyone else draws from, and nothing downstream re-checks them. Clearing the veto (`--color=none`) is always allowed.
 
 ### 6. Reveal Day
@@ -374,6 +384,12 @@ participant's pool** — their own two sign-up choices plus one from each other
 participant, attributed to whoever chose it, with a count of distinct choices
 and a list of who has not picked yet. Attribution is safe: everybody picks for
 everybody, so who contributed what says nothing about who was assigned whom.
+
+Every participant row also carries their **Discord** id or handle, labelled
+*will ping* / *handle only* / *no Discord set*, because the difference is
+invisible otherwise and matters exactly once — when the nudge goes out and half
+the group never sees it. The edit form sets it; see *Chasing Outstanding
+Picks*.
 
 An address that has been erased at its owner's request shows as *"address
 erased at their request"* rather than an empty mailto link, and drops out of
@@ -498,10 +514,40 @@ appears under every other participant. It has a **Post a nudge to Discord**
 button (which ignores the quiet period, because somebody asked explicitly) and
 a mailto fallback addressed to just those people, Bcc'd.
 
-**Real @-pings** would need a Discord user id per participant, which the
-sign-up form does not collect. `nudgeMessage` takes a `mention` resolver for
-exactly that — swapping in one that returns `<@123…>` is the whole change on
-this side.
+**Real @-pings.** Each participant has a `discord` field holding a user id or a
+handle. **Only a numeric user id pings** — `@gus` typed into a message is plain
+text: Discord highlights nothing and notifies nobody. A mention has to be
+`<@` + the account’s snowflake id + `>`.
+
+To get one: Discord **Settings > Advanced > Developer Mode**, then right-click
+the person and **Copy User ID**. Paste it into the *Discord* box on `/admin`
+(or use `npm run update-participant -- "<name>" --discord=<id>`). A pasted
+mention works too — `<@123…>` is stored as the bare id.
+
+It is **not collected at sign-up**: the organiser fills it in on the console
+once they know who is playing, so the sign-up form stays short and nobody has
+to turn on Developer Mode to enter the exchange.
+
+Three states, and the console labels each one on both the roster and the chase
+list:
+
+| Stored | In the message | Notifies |
+| --- | --- | --- |
+| `185432109876543210` | `<@185432109876543210>` | Yes — a real ping |
+| `gus_the_third` | **gus_the_third** | No |
+| nothing | **Gus** | No |
+
+A handle falls back to the **bold name, deliberately not `@handle`** — a plain
+`@name` looks exactly like a mention that failed, and invites the reader to
+conclude the bot is broken. Names are markdown-escaped on the way in, so a
+handle with underscores does not italicise the rest of the line, and angle
+brackets are refused outright so a hand-typed value cannot forge a role
+mention. (`allowed_mentions` already blocks role and `@everyone` pings; this is
+the second lock.)
+
+Filling in somebody’s Discord **does not** re-trigger a nudge: the quiet-period
+digest tracks names and counts, not how they are addressed. Admin is not
+progress.
 
 ### 9. Erasing Personal Data
 
@@ -513,7 +559,7 @@ project ever touches again:
 | --- | --- |
 | Netlify Forms | The original submission. Outlives everything here: deleting our copy does nothing to Netlify's. |
 | `signups` (Postgres) | The mirrored row. |
-| `event.json` (Blobs) | The drawn participant record, with the private token. |
+| `event.json` (Blobs) | The drawn participant record, with the private token and the Discord id or handle. |
 | **`event.backup-*.json` (Blobs)** | A complete copy of all of the above, **one per edit**. `writeEvent` snapshots before every write and never cleans up. |
 | `deck_builds.notes` (Postgres) | Free text a builder wrote about a named person. |
 | `nudge.json` (Blobs) | The last Discord nudge's fingerprint, which lists participants by name. |
@@ -537,7 +583,7 @@ Three modes:
 - **After the draw** — a plain delete is *refused*, and says who it would strand.
   The ring is a single cycle, so dropping one person leaves their giver with
   nobody to build for while their cards sit in everyone else's pools. Use
-  `--redact --yes` instead: it blanks the email, theme veto and theme wish, and
+  `--redact --yes` instead: it blanks the email, Discord, theme veto and theme wish, and
   deletes the sign-up row, the form submission and their private notes, while
   keeping the name, token, assignment and pool cards that other people's pages
   are built from. The console then shows *"address erased at their request"* in

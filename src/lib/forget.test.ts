@@ -21,6 +21,7 @@ function participant(name: string, recipientId: string): Participant {
     colorVeto: "R",
     themeVeto: "mill",
     themeWish: "elves",
+    discord: "185432109876543210",
     selfCards: testSelfCards(name.toLowerCase()),
   };
 }
@@ -58,6 +59,8 @@ describe("redactParticipant", () => {
     expect(after.email).toBe("");
     expect(after.themeVeto).toBeNull();
     expect(after.themeWish).toBeNull();
+    // Identifies an account, so it goes with the address.
+    expect(after.discord).toBeNull();
 
     // All load-bearing after a draw: the cycle, the private link, and two
     // cards already sitting in other people's shortlists.

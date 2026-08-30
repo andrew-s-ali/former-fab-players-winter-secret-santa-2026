@@ -76,6 +76,7 @@ function drawnEvent(): EventData {
       colorVeto: "R" as const,
       themeVeto: "mill",
       themeWish: "elves",
+      discord: null,
       selfCards: testSelfCards(id),
     })),
   };

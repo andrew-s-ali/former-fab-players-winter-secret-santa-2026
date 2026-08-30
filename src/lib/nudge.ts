@@ -1,4 +1,5 @@
 import { requiredSelectionCount, type SavedSelection } from "#lib/card-pool";
+import { mentionFor } from "#lib/discord";
 import type { EventData } from "#lib/participants";
 
 /**
@@ -19,7 +20,19 @@ import type { EventData } from "#lib/participants";
  */
 
 /** One person and how many picks they still owe. */
-export type Outstanding = { name: string; owed: number };
+export type Outstanding = {
+  name: string;
+  owed: number;
+  /**
+   * Their Discord user id or handle, or null.
+   *
+   * Carried here so the message can address them properly. Only an id
+   * produces a real ping — see `mentionFor`, which falls back to the bold
+   * name for anything else rather than rendering an `@handle` that looks like
+   * a mention which failed.
+   */
+  discord: string | null;
+};
 
 export type NudgeStatus = {
   participantCount: number;
@@ -58,7 +71,11 @@ export function nudgeStatus(
   }
 
   const outstanding = participants
-    .map((person) => ({ name: person.name, owed: owed.get(person.id) ?? 0 }))
+    .map((person) => ({
+      name: person.name,
+      owed: owed.get(person.id) ?? 0,
+      discord: person.discord,
+    }))
     .filter((entry) => entry.owed > 0)
     .sort(
       (left, right) =>
@@ -81,16 +98,16 @@ export function nudgeStatus(
 export const DISCORD_CONTENT_LIMIT = 2000;
 
 /**
- * How the message names somebody.
+ * How the message addresses somebody.
  *
- * Defaults to their name in bold. Swapping in a resolver that returns
- * `<@123…>` would turn these into real Discord pings, which needs a
- * name-to-Discord-id mapping this project does not collect — the seam is here
- * so adding one later does not mean rewriting the message.
+ * A real `<@id>` ping when the organiser has filled in a user id, and their
+ * bold name otherwise. Injectable so tests can assert the message shape
+ * without depending on the mention format.
  */
-export type MentionResolver = (name: string) => string;
+export type MentionResolver = (entry: Outstanding) => string;
 
-const boldName: MentionResolver = (name) => `**${name}**`;
+const defaultMention: MentionResolver = (entry) =>
+  mentionFor(entry.discord, entry.name);
 
 /**
  * The nudge, or null when there is nothing worth saying.
@@ -102,7 +119,7 @@ const boldName: MentionResolver = (name) => `**${name}**`;
  */
 export function nudgeMessage(
   status: NudgeStatus,
-  { mention = boldName }: { mention?: MentionResolver } = {}
+  { mention = defaultMention }: { mention?: MentionResolver } = {}
 ): string | null {
   if (status.participantCount === 0 || status.complete) {
     return null;
@@ -120,7 +137,7 @@ export function nudgeMessage(
     `one is in. Your private link is the one you were emailed.`;
 
   const line = (entry: Outstanding) =>
-    `• ${mention(entry.name)} — ${entry.owed} ${entry.owed === 1 ? "pick" : "picks"}`;
+    `• ${mention(entry)} — ${entry.owed} ${entry.owed === 1 ? "pick" : "picks"}`;
 
   const lines = status.outstanding.map(line);
   let body = lines.join("\n");
@@ -154,6 +171,10 @@ export function nudgeMessage(
  * three people, again".
  */
 export function nudgeDigest(status: NudgeStatus): string {
+  // Names and counts only. Filling in somebody's Discord handle changes how
+  // the next message is *addressed*, not what it says, and re-posting the same
+  // news because the organiser did some admin is exactly the noise the quiet
+  // period exists to prevent.
   return status.outstanding
     .map((entry) => `${entry.name.toLowerCase()}:${entry.owed}`)
     .join("|");
