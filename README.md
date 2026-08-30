@@ -667,6 +667,33 @@ Preview before a cron sends it to a channel full of friends:
 NETLIFY_DB_URL=<url> npm run remind -- --dry-run
 ```
 
+Outside the sign-up window there is no milestone and so nothing to send — not
+even with `--force` — which would leave no way to prove the webhook works until
+the morning it matters. `--now` pretends it is a different moment:
+
+```bash
+npm run remind -- --now=2026-09-01T12:00:00Z --dry-run
+```
+
+Drop `--dry-run` to post a real one. Point `DISCORD_WEBHOOK_URL` at a scratch
+channel first unless you want the announcement arriving early.
+
+**After deploying, nothing else is required.** Scheduled functions are declared
+by their `config.schedule` export and registered at deploy — there is no switch
+to flip in the UI. Both crons are armed and silent until their moment: the
+sign-up reminder returns no milestone before 1 September, and the pick nudge
+reports "no draw has run yet". Two things are worth checking, because both fail
+quietly:
+
+- **`DISCORD_WEBHOOK_URL` must be scoped to Functions**, and **variable values
+  are frozen per deploy** — one added after the last deploy is invisible until
+  the next one. Without it the reminder reports that it has nowhere to post
+  rather than failing, so the only symptom is silence.
+- **Deploy before 08:00 Eastern on 1 September.** The cron fires once a day; a
+  deploy later than that means the opening announcement goes out on the 2nd
+  instead. It is still correct when it lands — the milestone has not been
+  consumed — just a day late.
+
 ### 9. Erasing Personal Data
 
 The sign-up form collects real names and email addresses, and by the time an
