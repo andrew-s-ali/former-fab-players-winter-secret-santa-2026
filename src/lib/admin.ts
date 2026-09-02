@@ -4,7 +4,7 @@ import { pickColorIdentity, pickId, pickName, type CommanderPick } from "#lib/pa
 import type { EventData, Participant } from "./participants";
 import { formatDiscordRef, parseDiscordRef } from "#lib/discord";
 import { EXCHANGE_CANDIDATES } from "#lib/event";
-import { COLOR_CODES, parseEmail } from "#lib/signup";
+import { COLOR_CODES, dedupeSignups, parseEmail, type SignupEntry } from "#lib/signup";
 
 /**
  * Organiser operations, framework-free and pure over `EventData`.
@@ -380,4 +380,83 @@ export function tallyExchangeDates(event: EventData): ExchangeVote {
     tallies,
     winner: separated ? best.date : null,
   };
+}
+
+/** One person as they appear before the draw, straight from their sign-up. */
+export type SignupRosterEntry = {
+  name: string;
+  email: string;
+  submittedAt: string;
+  colorVeto: ColorCode | null;
+  themeVeto: string | null;
+  themeWish: string | null;
+  exchangeRanking: string[] | null;
+  /** The commanders they chose, by name — they are not resolved cards here. */
+  cards: string[];
+  /** True when they have submitted more than once; this is the entry that counts. */
+  updated: boolean;
+};
+
+export type SignupRoster = {
+  entries: SignupRosterEntry[];
+  /** Total rows behind those entries, including superseded resubmissions. */
+  submissionCount: number;
+  /**
+   * A clash that will stop the draw, surfaced now rather than on draw day.
+   *
+   * Two people sharing a name is the organiser's to resolve and needs them to
+   * talk to somebody, so finding out days early is the difference between a
+   * message and a scramble.
+   */
+  problem: string | null;
+};
+
+/**
+ * Who has signed up, before any draw exists.
+ *
+ * The console's participant list comes from the event store, which stays empty
+ * until `npm run draw` runs — so for the whole sign-up window the organiser
+ * could see nothing at all without this. Sign-ups live in Postgres and nothing
+ * else in the UI reads them.
+ *
+ * Deduplicated the same way the draw will do it, so this shows the roster that
+ * is actually going to be drawn rather than a raw row count. When that dedupe
+ * would fail, every row is listed and the reason is reported instead of
+ * throwing — a console that goes blank is worse than one showing a warning.
+ */
+export function buildSignupRoster(entries: SignupEntry[]): SignupRoster {
+  const seen = new Map<string, number>();
+  for (const entry of entries) {
+    const key = entry.input.name.trim().toLowerCase();
+    seen.set(key, (seen.get(key) ?? 0) + 1);
+  }
+
+  const describe = (entry: SignupEntry): SignupRosterEntry => ({
+    name: entry.input.name,
+    email: entry.input.email,
+    submittedAt: entry.submittedAt,
+    colorVeto: entry.input.colorVeto,
+    themeVeto: entry.input.themeVeto,
+    themeWish: entry.input.themeWish,
+    exchangeRanking: entry.input.exchangeRanking,
+    cards: entry.input.selfCards.map((pick) =>
+      pick.partner ? `${pick.commander} + ${pick.partner}` : pick.commander
+    ),
+    updated: (seen.get(entry.input.name.trim().toLowerCase()) ?? 0) > 1,
+  });
+
+  try {
+    const { entries: winners } = dedupeSignups(entries);
+    return {
+      entries: winners.map(describe),
+      submissionCount: entries.length,
+      problem: null,
+    };
+  } catch (error) {
+    return {
+      entries: entries.map(describe),
+      submissionCount: entries.length,
+      problem: error instanceof Error ? error.message : String(error),
+    };
+  }
 }

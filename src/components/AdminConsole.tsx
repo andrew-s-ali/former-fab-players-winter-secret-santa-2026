@@ -8,7 +8,12 @@ import {
   type ActionResult,
 } from "@/app/admin/actions";
 import { PickName } from "@/components/PickCards";
-import type { EventSummary, ExchangeVote, ParticipantPool } from "@/lib/admin";
+import type {
+  EventSummary,
+  ExchangeVote,
+  ParticipantPool,
+  SignupRoster,
+} from "@/lib/admin";
 import { DiscordError, parseDiscordRef, willPing } from "@/lib/discord";
 import { eventTitle } from "@/lib/event";
 import { formatEventDate } from "@/lib/launch";
@@ -142,6 +147,8 @@ export function AdminConsole({
   poolsError,
   nudge = null,
   exchangeVote = null,
+  roster = null,
+  signupsError = null,
 }: {
   summary: EventSummary;
   pools: ParticipantPool[];
@@ -150,6 +157,9 @@ export function AdminConsole({
   nudge?: NudgeStatus | null;
   /** The exchange-date vote. Null before a draw has run. */
   exchangeVote?: ExchangeVote | null;
+  /** Who has signed up, before any draw exists. Null if unreadable. */
+  roster?: SignupRoster | null;
+  signupsError?: string | null;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ActionResult | null>(null);
@@ -228,6 +238,77 @@ export function AdminConsole({
             Unlock /reveal
           </button>
         )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium">
+          Sign-ups so far ({roster ? roster.entries.length : "—"})
+        </h2>
+        <p className="text-sm opacity-80">
+          Straight from the sign-up form, before any draw. These become
+          participants when you run <code>npm run draw</code>; until then the
+          list below stays empty.
+        </p>
+
+        {signupsError ? (
+          <p className="rounded-xl border border-amber-500/40 px-4 py-3 text-sm">
+            The sign-ups could not be read ({signupsError}). Everything else on
+            this page still works.
+          </p>
+        ) : null}
+
+        {roster?.problem ? (
+          <p
+            className="rounded-xl border border-red-500/50 px-4 py-3 text-sm"
+            role="alert"
+          >
+            <strong>This will stop the draw.</strong> {roster.problem}
+          </p>
+        ) : null}
+
+        {roster && roster.entries.length === 0 ? (
+          <p className="text-sm opacity-80">Nobody has signed up yet.</p>
+        ) : null}
+
+        {roster && roster.entries.length > 0 ? (
+          <>
+            <ul className="divide-y divide-slate-300/20 text-sm">
+              {roster.entries.map((person) => (
+                <li className="py-2" key={`${person.name}-${person.submittedAt}`}>
+                  <strong>{person.name}</strong>{" "}
+                  <a className="underline opacity-80" href={`mailto:${person.email}`}>
+                    {person.email}
+                  </a>
+                  {person.updated ? (
+                    <span className="ml-2 text-xs opacity-70">
+                      updated — this is their latest
+                    </span>
+                  ) : null}
+                  <span className="block opacity-70">
+                    {person.cards.join(" · ")}
+                  </span>
+                  <span className="block text-xs opacity-60">
+                    avoids {person.colorVeto ?? "no colour"}
+                    {person.themeVeto ? `, not ${person.themeVeto}` : ""}
+                    {person.themeWish ? `, would like ${person.themeWish}` : ""}
+                    {person.exchangeRanking
+                      ? ` · dates: ${person.exchangeRanking
+                          .map((date) => formatEventDate(date))
+                          .join(" > ")}`
+                      : " · did not rank the dates"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {roster.submissionCount > roster.entries.length ? (
+              <p className="text-xs opacity-70">
+                {roster.submissionCount} submissions in total —{" "}
+                {roster.submissionCount - roster.entries.length} superseded by
+                somebody re-submitting to change their answers.
+              </p>
+            ) : null}
+          </>
+        ) : null}
       </section>
 
       <section className="space-y-3">

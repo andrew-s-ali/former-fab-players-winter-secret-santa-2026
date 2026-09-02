@@ -452,7 +452,17 @@ reveal day, and edit a participant's preferences — behind Netlify Identity, so
 running the event no longer means pasting a full-scope `NETLIFY_AUTH_TOKEN` onto
 a command line.
 
-**What it shows.** The roster with everyone's email (and a "mail everyone"
+**Sign-ups so far** is the first section, and the only one that means anything
+before the draw. Everything else on the console comes from the event store,
+which `npm run draw` creates — so the participant list reads zero for the whole
+sign-up window however many people have signed up. This section reads the
+`signups` table instead, deduplicated exactly the way the draw will do it, so
+it previews the roster that is actually going to be drawn rather than a raw row
+count. A resubmission is folded in and labelled; a name clash that *will* stop
+the draw is reported here days early, rather than discovered on draw day when
+it needs somebody to be talked to.
+
+**What it shows once the draw has run.** The roster with everyone's email (and a "mail everyone"
 link that puts the addresses in Bcc), each person's stated preferences, a
 **Who to chase** section counting outstanding picks per person, and **every
 participant's pool** — their own two sign-up choices plus one from each other
