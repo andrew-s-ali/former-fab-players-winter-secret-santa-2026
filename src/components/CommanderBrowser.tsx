@@ -16,11 +16,39 @@ const COLORS: Array<{ code: ColorCode; name: string }> = [
   { code: "G", name: "Green" },
 ];
 
-const SAMPLE_SIZE = 9;
+/**
+ * Cards per roll — a whole number of rows in whichever grid is on screen.
+ *
+ * The grid is `grid-cols-2 sm:grid-cols-3`. Nine is three clean rows at three
+ * columns, but at two columns it is four rows plus a single orphan, which
+ * reads as a gap rather than a layout. Ten fills five rows exactly on a phone,
+ * and would reintroduce the orphan on a wider screen — so the count follows
+ * the breakpoint rather than being one number.
+ */
+const WIDE_SAMPLE_SIZE = 9;
+const NARROW_SAMPLE_SIZE = 10;
+
+/** Tailwind's `sm`, where the grid goes from two columns to three. */
+const THREE_COLUMN_QUERY = "(min-width: 40rem)";
+
+/**
+ * Read when a request is built rather than held in state.
+ *
+ * Deliberately not a reactive value: as a dependency of `load` it would
+ * re-roll the whole grid when a phone is rotated, throwing away the cards
+ * somebody was reading to fix a one-card gap. The new size applies to the next
+ * roll instead.
+ */
+function sampleSize(): number {
+  const threeColumns =
+    typeof window !== "undefined" &&
+    window.matchMedia(THREE_COLUMN_QUERY).matches;
+  return threeColumns ? WIDE_SAMPLE_SIZE : NARROW_SAMPLE_SIZE;
+}
 
 /**
  * Grid browser for picking a commander: colour pips, a pairable toggle, a
- * name search, and a re-roll button, all filtering an `n=9` sample from the
+ * name search, and a re-roll button, all filtering a sample from the
  * server. `lockedExclude` is the recipient's vetoed colour (from the reveal
  * page) — the pip is disabled as a UI courtesy, but the exclusion is
  * enforced server-side by the sample endpoint regardless.
@@ -64,7 +92,7 @@ export function CommanderBrowser({
   const load = useCallback(() => {
     const requestId = ++latestRequest.current;
 
-    const params = new URLSearchParams({ n: String(SAMPLE_SIZE) });
+    const params = new URLSearchParams({ n: String(sampleSize()) });
     if (colors.length > 0) {
       params.set("colors", colors.join(""));
     }
@@ -203,7 +231,13 @@ export function CommanderBrowser({
           onClick={() => void load()}
           type="button"
         >
-          {loading ? "Rolling…" : "Roll nine more"}
+          {/*
+            No number in the label. The sample size follows the breakpoint, so
+            a hardcoded "nine" is simply wrong on a phone — and making it
+            reactive would mean holding the viewport in state, which would both
+            re-render on rotation and risk a hydration mismatch for a word.
+          */}
+          {loading ? "Rolling…" : "Roll again"}
         </button>
       </div>
 

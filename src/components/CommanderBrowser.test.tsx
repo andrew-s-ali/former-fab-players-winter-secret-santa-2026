@@ -222,3 +222,55 @@ describe("CommanderBrowser", () => {
     expect(screen.queryByText(/rules text mentions/i)).not.toBeInTheDocument();
   });
 });
+
+describe("CommanderBrowser, cards per roll", () => {
+  /** Reports whichever grid is on screen for `(min-width: 40rem)`. */
+  function stubViewport(threeColumns: boolean) {
+    vi.stubGlobal("matchMedia", (query: string) =>
+      ({
+        matches: /min-width/.test(query) ? threeColumns : true,
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as unknown as MediaQueryList
+    );
+  }
+
+  it("asks for ten on a phone, so five rows of two come out even", async () => {
+    // The grid is grid-cols-2 below `sm`. Nine there is four rows plus a
+    // single orphan, which reads as a gap rather than a layout.
+    stubViewport(false);
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(<CommanderBrowser lockedExclude={null} />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(String(fetchMock.mock.calls[0][0])).toContain("n=10");
+  });
+
+  it("asks for nine on a wider screen, where three columns already divide evenly", async () => {
+    stubViewport(true);
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(<CommanderBrowser lockedExclude={null} />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(String(fetchMock.mock.calls[0][0])).toContain("n=9");
+  });
+
+  it("does not re-roll when the viewport changes", async () => {
+    // Rotating a phone must not throw away the cards somebody is reading to
+    // fix a one-card gap; the new size applies to the next roll.
+    stubViewport(true);
+    const fetchMock = mockFetch([card("a", "Anara")]);
+    render(<CommanderBrowser lockedExclude={null} />);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    stubViewport(false);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
