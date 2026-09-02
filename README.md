@@ -267,6 +267,17 @@ Two properties worth knowing:
 If either check fails, submissions are dropped silently — the browser gets a
 success response and Netlify never records anything.
 
+**A filled honeypot is rejected silently, and that bit us on launch day.**
+Netlify returns 200 to the browser and records the submission in *neither* the
+verified list nor the spam list — the only trace is the form's "last
+submission" timestamp moving without a submission appearing under it. The
+honeypot is the first text input in the form, which is exactly what a password
+manager or browser autofill reaches for, so a real person's sign-up was erased
+with no symptom anybody could see. `SignupForm` now sends `bot-field` empty
+from its own submit path whatever ended up in the field, and marks it
+`autocomplete="off"`. The protection is not lost: a honeypot catches bots that
+scrape the registered form and POST straight at it, and those never run our JS.
+
 **Before drawing, check the spam list.** Every submission goes through Akismet,
 and short free-text answers arriving in a burst from one group look a lot like
 spam. A false positive is invisible: the person is simply absent, the draw still
