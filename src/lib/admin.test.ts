@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   EDITABLE_FIELDS,
+  buildSignupRoster,
   tallyExchangeDates,
   applyParticipantEdits,
   buildPools,
@@ -410,5 +411,82 @@ describe("tallyExchangeDates", () => {
     expect(vote.answered).toBe(0);
     expect(vote.winner).toBeNull();
     expect(vote.tallies.every((t) => t.points === 0 && t.averageRank === null)).toBe(true);
+  });
+});
+
+describe("buildSignupRoster", () => {
+  const entry = (
+    name: string,
+    submittedAt: string,
+    email = "someone@example.com",
+    colorVeto: "R" | null = null
+  ) => ({
+    submittedAt,
+    input: {
+      name,
+      email,
+      colorVeto,
+      themeVeto: null,
+      themeWish: null,
+      exchangeRanking: null,
+      selfCards: [
+        { commander: "First", partner: null },
+        { commander: "Second", partner: "Third" },
+      ] as [
+        { commander: string; partner: string | null },
+        { commander: string; partner: string | null },
+      ],
+    },
+  });
+
+  it("lists everyone who has signed up", () => {
+    const roster = buildSignupRoster([
+      entry("Ada", "2026-09-01T10:00:00Z"),
+      entry("Brin", "2026-09-01T11:00:00Z", "brin@example.com"),
+    ]);
+
+    expect(roster.entries.map((e) => e.name)).toEqual(["Ada", "Brin"]);
+    expect(roster.problem).toBeNull();
+    expect(roster.submissionCount).toBe(2);
+  });
+
+  it("shows a partner pair as one choice", () => {
+    const [person] = buildSignupRoster([entry("Ada", "2026-09-01T10:00:00Z")]).entries;
+
+    expect(person.cards).toEqual(["First", "Second + Third"]);
+  });
+
+  it("collapses a resubmission and flags it, the way the draw will", () => {
+    const roster = buildSignupRoster([
+      entry("Ada", "2026-09-01T10:00:00Z", "ada@example.com"),
+      entry("ada", "2026-09-02T10:00:00Z", "ada@example.com", "R"),
+    ]);
+
+    expect(roster.entries).toHaveLength(1);
+    expect(roster.entries[0].updated).toBe(true);
+    // The newest answers, so the console previews what will actually be drawn.
+    expect(roster.entries[0].colorVeto).toBe("R");
+    expect(roster.submissionCount).toBe(2);
+  });
+
+  it("reports a name clash days early instead of throwing", () => {
+    // Two people sharing a name needs the organiser to talk to somebody, so
+    // finding out now rather than on draw day is the whole point. A console
+    // that goes blank would be worse than one showing a warning.
+    const roster = buildSignupRoster([
+      entry("Ada", "2026-09-01T10:00:00Z", "ada@example.com"),
+      entry("ada", "2026-09-02T10:00:00Z", "other@example.com"),
+    ]);
+
+    expect(roster.problem).toMatch(/both named/i);
+    expect(roster.entries).toHaveLength(2);
+  });
+
+  it("is an empty roster, not an error, before anybody signs up", () => {
+    expect(buildSignupRoster([])).toEqual({
+      entries: [],
+      submissionCount: 0,
+      problem: null,
+    });
   });
 });

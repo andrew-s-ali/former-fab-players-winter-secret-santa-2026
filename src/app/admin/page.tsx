@@ -4,9 +4,11 @@ import { getUser } from "@netlify/identity";
 import { AdminConsole } from "@/components/AdminConsole";
 import {
   buildPools,
+  buildSignupRoster,
   summarizeEvent,
   tallyExchangeDates,
   type ParticipantPool,
+  type SignupRoster,
 } from "@/lib/admin";
 import { nudgeStatus, type NudgeStatus } from "@/lib/nudge";
 import { readAllSelections } from "@/lib/card-selections";
@@ -77,6 +79,30 @@ async function loadPools(
   }
 }
 
+/**
+ * Who has signed up, tolerating a database that is not answering.
+ *
+ * Same shape as `loadPools` and for the same reason: everything else on this
+ * page comes from Blobs, and a Postgres problem must not take the whole
+ * console down — including the reveal switch — for one section.
+ */
+async function loadSignups(): Promise<{
+  roster: SignupRoster | null;
+  signupsError: string | null;
+}> {
+  try {
+    const { readSignups } = await import("@/lib/signups");
+    return { roster: buildSignupRoster(await readSignups()), signupsError: null };
+  } catch (error) {
+    console.error("Organiser console: could not read sign-ups", error);
+    return {
+      roster: null,
+      signupsError:
+        error instanceof Error ? error.message : "The sign-ups could not be read.",
+    };
+  }
+}
+
 export default async function AdminPage() {
   const user = await getUser();
 
@@ -97,7 +123,10 @@ export default async function AdminPage() {
   }
 
   const event = await readEvent();
-  const { pools, nudge, poolsError } = await loadPools(event);
+  const [{ pools, nudge, poolsError }, { roster, signupsError }] = await Promise.all([
+    loadPools(event),
+    loadSignups(),
+  ]);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-8">
@@ -110,6 +139,8 @@ export default async function AdminPage() {
 
       <AdminConsole
         exchangeVote={tallyExchangeDates(event)}
+        roster={roster}
+        signupsError={signupsError}
         nudge={nudge}
         pools={pools}
         poolsError={poolsError}

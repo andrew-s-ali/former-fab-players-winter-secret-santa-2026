@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AdminConsole } from "./AdminConsole";
 import type { EventSummary } from "@/lib/admin";
-import type { ExchangeVote } from "@/lib/admin";
+import type { ExchangeVote, SignupRoster } from "@/lib/admin";
 import type { NudgeStatus } from "@/lib/nudge";
 
 vi.mock("@/app/admin/actions", () => ({
@@ -307,5 +307,67 @@ describe("AdminConsole, the Discord box", () => {
     await user.type(box(), "<@&123456789012345678>");
 
     expect(screen.getByRole("alert")).toHaveTextContent(/not a Discord handle/i);
+  });
+});
+
+describe("AdminConsole, sign-ups before the draw", () => {
+  const roster: SignupRoster = {
+    submissionCount: 3,
+    problem: null,
+    entries: [
+      {
+        name: "Ada",
+        email: "ada@example.com",
+        submittedAt: "2026-09-01T10:00:00Z",
+        colorVeto: "R",
+        themeVeto: null,
+        themeWish: null,
+        exchangeRanking: ["2026-12-12", "2026-12-05", "2026-12-19"],
+        cards: ["Narfi, Betrayer King", "Shadowfax, Lord of Horses"],
+        updated: true,
+      },
+    ],
+  };
+
+  function show(overrides: Partial<SignupRoster> = {}) {
+    render(
+      <AdminConsole
+        nudge={null}
+        pools={[]}
+        poolsError={null}
+        roster={{ ...roster, ...overrides }}
+        summary={summary([])}
+      />
+    );
+  }
+
+  it("shows who has signed up even though no draw has run", () => {
+    // The participant list comes from the event store and stays empty until
+    // the draw, so without this the console is blind for the whole window.
+    show();
+
+    expect(screen.getByText(/Sign-ups so far \(1\)/)).toBeInTheDocument();
+    expect(screen.getByText("Ada")).toBeInTheDocument();
+    expect(screen.getByText(/Narfi, Betrayer King/)).toBeInTheDocument();
+    expect(screen.getByText(/Participants \(0\)/)).toBeInTheDocument();
+  });
+
+  it("says when somebody has re-submitted, and how many rows are behind it", () => {
+    show();
+
+    expect(screen.getByText(/updated — this is their latest/)).toBeInTheDocument();
+    expect(screen.getByText(/2 superseded/)).toBeInTheDocument();
+  });
+
+  it("warns about a clash that will stop the draw", () => {
+    show({ problem: 'Two sign-ups are both named "Ada"' });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/will stop the draw/i);
+  });
+
+  it("says nobody has signed up rather than showing an empty list", () => {
+    show({ entries: [], submissionCount: 0 });
+
+    expect(screen.getByText(/Nobody has signed up yet/)).toBeInTheDocument();
   });
 });
