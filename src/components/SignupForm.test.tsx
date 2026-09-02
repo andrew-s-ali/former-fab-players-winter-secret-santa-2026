@@ -258,3 +258,45 @@ describe("SignupForm", () => {
     );
   });
 });
+
+describe("SignupForm, the honeypot", () => {
+  it("sends it empty even when something has filled it", async () => {
+    // Netlify rejects a filled honeypot silently — 200 to the browser, no
+    // record in either list — so a password manager reaching this hidden
+    // input erases a real sign-up with no symptom. This happened in
+    // production on launch day.
+    const fetchMock = mockFetch();
+    const user = userEvent.setup();
+    render(<SignupForm />);
+
+    await user.type(screen.getByLabelText(/Your name/), "Ada");
+    await user.type(screen.getByLabelText(/Your email/), "ada@example.com");
+    await pick(user, "Anara, Wolvid Familiar");
+    await pick(user, "Selvala, Explorer Returned");
+    await rankDates(user);
+
+    // Whatever an autofill would have done.
+    const honeypot = document.querySelector<HTMLInputElement>(
+      'input[name="bot-field"]'
+    )!;
+    honeypot.value = "ada@example.com";
+
+    await user.click(screen.getByRole("button", { name: "Sign me up" }));
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+
+    expect(submittedFields(fetchMock).get("bot-field")).toBe("");
+    // The real answers still go, so this is not blanking the whole payload.
+    expect(submittedFields(fetchMock).get("name")).toBe("Ada");
+  });
+
+  it("keeps autofill away from it in the first place", () => {
+    render(<SignupForm />);
+
+    const honeypot = document.querySelector<HTMLInputElement>(
+      'input[name="bot-field"]'
+    )!;
+    expect(honeypot).toHaveAttribute("autocomplete", "off");
+    expect(honeypot).toHaveAttribute("aria-hidden", "true");
+    expect(honeypot).toHaveAttribute("tabindex", "-1");
+  });
+});

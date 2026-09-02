@@ -261,6 +261,25 @@ export function SignupForm() {
         }
       }
 
+      // The honeypot is always sent empty from here, whatever ended up in the
+      // field.
+      //
+      // Netlify rejects a submission whose honeypot is filled, and does it
+      // *silently*: 200 back to the browser, no record in the verified list,
+      // none in the spam list either. A password manager or browser autofill
+      // filling this hidden input — it is the first text input in the form,
+      // which is exactly what they reach for — therefore erases a real
+      // person's sign-up with no symptom anybody can see. That happened, and
+      // the only trace was the form's "last submission" timestamp moving
+      // without a submission appearing under it.
+      //
+      // The protection is not lost. A honeypot catches bots that scrape the
+      // registered form and POST straight at it; those never run this code.
+      // Anything arriving through here has just driven a combobox and three
+      // selects, so trading that theoretical catch for "a real person is never
+      // silently dropped" is the right way round.
+      encoded.set(HONEYPOT_FIELD, "");
+
       const response = await fetch(SIGNUP_ACTION, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -316,7 +335,12 @@ export function SignupForm() {
       <p hidden>
         <label>
           Leave this empty
-          <input name={HONEYPOT_FIELD} tabIndex={-1} />
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            name={HONEYPOT_FIELD}
+            tabIndex={-1}
+          />
         </label>
       </p>
 
