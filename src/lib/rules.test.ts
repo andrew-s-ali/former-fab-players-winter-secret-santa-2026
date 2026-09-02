@@ -31,6 +31,17 @@ describe("event rules", () => {
   });
 
   it("defines the Scryfall query for the legal commander pool", () => {
-    expect(COMMANDER_POOL_QUERY).toBe("f:edh is:commander r:u game:paper");
+    expect(COMMANDER_POOL_QUERY).toBe(
+      "f:edh is:commander r:u game:paper -e:slz"
+    );
+  });
+
+  it("keeps the two filters that change what is legal", () => {
+    // game:paper: without it, digital-only MTGO uncommon reprints enter the
+    // pool. -e:slz: a set whose uncommon printings are not meant to affect
+    // legality here. Both are easy to drop in a reword and neither failure is
+    // visible until somebody picks a card that should not have been offered.
+    expect(COMMANDER_POOL_QUERY).toContain("game:paper");
+    expect(COMMANDER_POOL_QUERY).toContain("-e:slz");
   });
 });
