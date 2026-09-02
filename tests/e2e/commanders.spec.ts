@@ -18,7 +18,7 @@ test("choosing a card opens its detail panel with external deckbuilding links", 
 
   const first = page.locator("ul li button").first();
   await expect(first).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("button", { name: /roll nine more/i })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /roll again/i })).toBeEnabled();
   await first.click();
 
   // The panel is a labelled region, not a dialog: it has no focus trap or

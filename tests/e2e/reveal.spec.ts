@@ -63,7 +63,7 @@ test("the browser on a reveal page excludes the recipient's vetoed colour", asyn
   const request = page.waitForRequest((r) =>
     r.url().includes("/api/commanders/sample")
   );
-  await page.getByRole("button", { name: /roll nine more/i }).click();
+  await page.getByRole("button", { name: /roll again/i }).click();
 
   expect((await request).url()).toContain("exclude=R");
 });

@@ -21,7 +21,7 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
   await page.goto("/commanders");
   const firstTile = page.locator("ul li button").first();
   await expect(firstTile).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByRole("button", { name: /roll nine more/i })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /roll again/i })).toBeEnabled();
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "02_commander_browser_grid.png"), fullPage: true });
 
   // 2b. Theme Prompt Interaction
@@ -37,10 +37,10 @@ test("browser visual walkthrough of all pages and features", async ({ page }) =>
 
   // 2c. Commander Detail Modal with External Deckbuilding Links
   await page.getByRole("button", { name: /clear theme/i }).click();
-  await page.getByRole("button", { name: /roll nine more/i }).click();
+  await page.getByRole("button", { name: /roll again/i }).click();
   // Wait for the roll to settle rather than sleeping a fixed second: the
   // button re-enables only once the request has resolved.
-  await expect(page.getByRole("button", { name: /roll nine more/i })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /roll again/i })).toBeEnabled();
   await expect(page.locator("ul li button").first()).toBeVisible({ timeout: 30_000 });
   await page.locator("ul li button").first().click();
   await expect(page.getByRole("region")).toBeVisible();
