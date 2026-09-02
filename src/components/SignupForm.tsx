@@ -312,6 +312,11 @@ export function SignupForm() {
         you pick one commander for each other player. Once everyone has
         finished, the picks lock and the link shows you who you&rsquo;re
         building for.
+        <br />
+        <br />
+        <strong>Change your mind?</strong> Fill this form in again before
+        sign-ups close, using the same name and email. The most recent answers
+        are the ones that count — there is nothing to undo first.
       </p>
     );
   }

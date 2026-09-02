@@ -330,12 +330,25 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> SITE_URL=https://<site>.net
   npm run draw -- responses.csv
 ```
 
-**Resubmissions.** With a live form, someone fixing a typo just signs up again,
-so duplicate names are now normal rather than a mistake. The draw refuses to
-guess: by default it fails and names the person. Pass `--latest-wins` to keep the
-most recent submission per name (it prints what it superseded). Two genuinely
-different people who share a name still have to be told apart by hand — names
-identify people to `update-participant`.
+**Editing a sign-up, and how duplicates are resolved.** Nobody has a private
+link until the draw mints one, so **resubmitting the form is the only way to
+change an entry before the draw**. That is documented on the sign-up page and
+repeated on the confirmation, and the draw resolves the resulting duplicates
+from the email address:
+
+- same name **and** the same email — one person changing their answers. The
+  newest wins, and the older is printed as superseded. Erroring here would make
+  the documented update path fail every draw.
+- same name, **different** email — two different people. This still stops the
+  run and names both addresses. Collapsing them silently would drop somebody
+  from the exchange with no symptom until reveal day; tell them apart by hand
+  ("Dave K.").
+- `--latest-wins` — newest wins in both cases, for an organiser who has looked
+  and knows what they are merging.
+
+After the draw, entries are locked (other people have already picked against
+them) and corrections go through `npm run update-participant` or the organiser
+console.
 
 Both `draw` and `update-participant` print their resolved target first — e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or `Using local file data/event.local.json` — so a forgotten export is obvious immediately instead of silently editing a stale local file. The script refuses to run a second time once a draw exists — re-running reshuffles everyone and invalidates every link already sent. Pass `--force` if you genuinely need to redraw from scratch; either way, if a draw already existed, it is snapshotted to a timestamped `event.backup-<timestamp>.json` (or blob key) first.
 

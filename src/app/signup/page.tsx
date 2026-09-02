@@ -44,6 +44,12 @@ export default function SignupPage() {
             shown a shortlist taken from that pool — so nobody, including you,
             decides your deck alone.
           </p>
+          <p className="text-sm opacity-80">
+            Already signed up and want to change something? Fill the form in
+            again with the same name and email — the most recent answers are
+            the ones that count. That is how to edit an entry until sign-ups
+            close; after that, ask the organiser.
+          </p>
           <SignupForm />
         </>
       ) : (

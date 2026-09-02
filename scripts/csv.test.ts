@@ -117,13 +117,29 @@ describe("toParticipantInputs", () => {
     expect(() => toParticipantInputs(rows)).toThrow(/Row 2/);
   });
 
-  it("throws when two participants share a name", () => {
+  it("throws when two different people share a name", () => {
+    // Different addresses, so these are two people rather than one person's
+    // resubmission — collapsing them would drop somebody from the exchange.
     const rows = [
-      { "Your name": "Dave", ...REQUIRED, ...PICKS },
-      { "Your name": "dave", ...REQUIRED, ...PICKS },
+      { "Your name": "Dave", "Your email": "dave@example.com", ...PICKS },
+      { "Your name": "dave", "Your email": "dave.k@example.com", ...PICKS },
     ];
 
     expect(() => toParticipantInputs(rows)).toThrow(/both named/i);
+  });
+
+  it("takes the later row when one person appears twice", () => {
+    // A Google Form export carries a resubmission as a second row, the same
+    // way the live form does.
+    const rows = [
+      { "Your name": "Dave", ...REQUIRED, ...PICKS, "Colour to avoid": "Red" },
+      { "Your name": "dave", ...REQUIRED, ...PICKS, "Colour to avoid": "Green" },
+    ];
+
+    const inputs = toParticipantInputs(rows);
+
+    expect(inputs).toHaveLength(1);
+    expect(inputs[0].colorVeto).toBe("G");
   });
 
   // A Google Form that predates the card question exports without those

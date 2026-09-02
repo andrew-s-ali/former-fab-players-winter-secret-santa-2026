@@ -413,15 +413,19 @@ export type SignupEntry = {
  *
  * Names have to be unique because `update-participant` looks people up by
  * name, not by row. With a CSV that guarantee came from the organiser tidying
- * the export by hand; with a live form it does not, because resubmitting is
- * how someone fixes a typo. So the policy is explicit rather than guessed:
+ * the export by hand; with a live form it does not — **resubmitting the form
+ * is the only way to change a sign-up before the draw**, since nobody has a
+ * private link until the draw mints one. So duplicates are expected, and the
+ * policy distinguishes the two cases that produce them:
  *
- * - default: fail and name the person, matching the CSV importer's behaviour;
- * - `latestWins`: keep the newest submission per name and report what it
- *   superseded, for the common "Dave signed up twice" case.
- *
- * Two genuinely different people who share a name still have to be told apart
- * by hand ("Dave K."), under either policy.
+ * - same name **and** the same email — one person changing their answers.
+ *   The newest wins and the older is reported as superseded. Erroring here
+ *   would make the documented update path fail every draw.
+ * - same name, **different** email — two different people. This still stops
+ *   the run: collapsing them silently would drop somebody from the exchange
+ *   with no symptom until reveal day. Tell them apart by hand ("Dave K.").
+ * - `latestWins`: newest wins in both cases, for an organiser who has looked
+ *   and knows what they are merging.
  *
  * Generic over the entry type so the database path can carry its already
  * resolved commanders through the winner alongside `input`, rather than
@@ -435,6 +439,8 @@ export function dedupeSignups<Entry extends SignupEntry>(
   const byName = new Map<string, Entry>();
   const superseded: string[] = [];
 
+  const address = (entry: Entry) => entry.input.email.trim().toLowerCase();
+
   for (const entry of entries) {
     const key = entry.input.name.toLowerCase();
     const existing = byName.get(key);
@@ -444,9 +450,20 @@ export function dedupeSignups<Entry extends SignupEntry>(
       continue;
     }
 
-    if (!latestWins) {
+    // Same name *and* same address is one person changing their answers,
+    // which is the only way to edit a sign-up before the draw: they fill the
+    // form in again. Treating that as an error would make the documented
+    // update path fail every draw.
+    //
+    // Same name, different address is two people, and that still stops the
+    // run — silently collapsing them would drop somebody from the exchange
+    // with no symptom until reveal day.
+    const samePerson = address(entry) === address(existing);
+
+    if (!latestWins && !samePerson) {
       throw new Error(
-        `Two sign-ups are both named "${entry.input.name}". ` +
+        `Two sign-ups are both named "${entry.input.name}", with different ` +
+          `email addresses (${existing.input.email} and ${entry.input.email}). ` +
           "Names identify people when correcting entries later, so either " +
           'make them distinct (for example "Dave K.") or pass --latest-wins ' +
           "to keep only the most recent submission per name."
@@ -457,7 +474,8 @@ export function dedupeSignups<Entry extends SignupEntry>(
     const loser = winner === entry ? existing : entry;
     byName.set(key, winner);
     superseded.push(
-      `${loser.input.name} (kept ${winner.submittedAt}, dropped ${loser.submittedAt})`
+      `${loser.input.name}${samePerson ? " updated their entry" : ""} ` +
+        `(kept ${winner.submittedAt}, dropped ${loser.submittedAt})`
     );
   }
 
