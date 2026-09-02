@@ -25,11 +25,15 @@ const PICKED = [
   { commander: "Ada's Second", partner: null },
 ];
 
-function entry(name: string, submittedAt: string): SignupEntry {
+function entry(
+  name: string,
+  submittedAt: string,
+  email = "someone@example.com"
+): SignupEntry {
   return {
     input: {
       name,
-      email: "someone@example.com",
+      email,
       colorVeto: null,
       themeVeto: null,
       themeWish: null,
@@ -323,10 +327,65 @@ describe("dedupeSignups", () => {
     expect(superseded).toEqual([]);
   });
 
-  it("rejects duplicates by default, naming the person", () => {
+  it("treats the same name and address as one person updating their entry", () => {
+    // Resubmitting the form is the only way to change a sign-up before the
+    // draw — nobody has a private link until the draw mints one — so this is
+    // the documented update path, not an error.
+    const { inputs, superseded } = dedupeSignups([
+      entry("Ada", "2026-09-01"),
+      entry("ada", "2026-09-02"),
+    ]);
+
+    expect(inputs).toHaveLength(1);
+    expect(superseded[0]).toContain("updated their entry");
+    expect(superseded[0]).toContain("2026-09-01");
+  });
+
+  it("keeps the newest answers when someone updates", () => {
+    const older: SignupEntry = {
+      input: input({ colorVeto: "R" }),
+      submittedAt: "2026-09-01",
+    };
+    const newer: SignupEntry = {
+      input: input({ colorVeto: "G" }),
+      submittedAt: "2026-09-02",
+    };
+
+    expect(dedupeSignups([older, newer]).inputs).toEqual([newer.input]);
+  });
+
+  it("still refuses two different people who share a name", () => {
+    // Collapsing these would drop somebody from the exchange with no symptom
+    // until reveal day.
     expect(() =>
-      dedupeSignups([entry("Ada", "2026-09-01"), entry("ada", "2026-09-02")])
+      dedupeSignups([
+        entry("Ada", "2026-09-01", "ada@example.com"),
+        entry("ada", "2026-09-02", "other.ada@example.com"),
+      ])
     ).toThrow(/both named/i);
+  });
+
+  it("names both addresses so the organiser can tell them apart", () => {
+    const clash = () =>
+      dedupeSignups([
+        entry("Ada", "2026-09-01", "ada@example.com"),
+        entry("ada", "2026-09-02", "other.ada@example.com"),
+      ]);
+
+    expect(clash).toThrow(/ada@example\.com/);
+    expect(clash).toThrow(/other\.ada@example\.com/);
+  });
+
+  it("--latest-wins merges even two different people, for an organiser who has looked", () => {
+    const { inputs } = dedupeSignups(
+      [
+        entry("Ada", "2026-09-01", "ada@example.com"),
+        entry("ada", "2026-09-02", "other.ada@example.com"),
+      ],
+      { latestWins: true }
+    );
+
+    expect(inputs).toHaveLength(1);
   });
 
   it("keeps the newest submission per name under --latest-wins", () => {
