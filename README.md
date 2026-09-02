@@ -846,7 +846,7 @@ command again — there is a test that reorders it and fails.
   - A selection is a **pick**: one commander, optionally with a partner. A pair is *one* choice — it fills one of a person's two pool slots and one place on a shortlist, because it is one deck's worth of commander.
   - Legality is derived from the card, with no hand-maintained pairing table. The pool contains exactly three pairing groups — 30 plain **Partner**, 20 **"Choose a Background"**, 15 **Backgrounds** — and `pairingRoleOf` reads them from the type line, rules text and keywords. Partner goes with Partner; a Background chooser goes with a Background; nothing else pairs.
   - **It fails closed.** `"Partner with <name>"` is explicitly rejected rather than treated as generic Partner — that variant pairs with exactly one card, so treating it as generic would offer 29 illegal partners. None appear at uncommon today, but a set could add one. `fetchCommanderPool` cross-checks Scryfall's `otag:pair-commander` against the derived role and warns by name about anything it cannot classify; those cards are simply never offered a partner.
-  - **A Background is not a commander.** All 15 used to be selectable alone, so a sign-up could name one as a standalone commander and the draw would accept it. `canBePrimary` now keeps them out of every primary list (695 offered, not 710) and they appear only as the partner half.
+  - **A Background is not a commander.** All 15 used to be selectable alone, so a sign-up could name one as a standalone commander and the draw would accept it. `canBePrimary` now keeps them out of every primary list (689 offered, not 704) and they appear only as the partner half.
   - Identity is by `pickId`, the two ids sorted and joined, so "A + B" and "B + A" are one option — two people who independently choose the same pair cannot fill two of a shortlist's four slots with the same deck.
   - **Colour vetoes apply to the combined identity.** A partner can carry a colour the commander does not; `pickColorIdentity` is what the veto is checked against, in the sign-up resolver, the save action and the organiser's `--color` guard alike.
   - The rules are structural over `PairableCard`, so the same code runs against a full `Commander` on the server and the trimmed `CommanderOption` in the browser — one implementation that cannot disagree with itself.
@@ -856,7 +856,7 @@ command again — there is a test that reorders it and fails.
 
 - **Sign-up commander picker (`CommanderCombobox.tsx`):**
   - Backed by `/api/commanders/names`, which returns the whole legal pool
-    trimmed to `id`, `name`, `colorIdentity` and `imageUrl` — 710 cards, ~144 KB
+    trimmed to `id`, `name`, `colorIdentity` and `imageUrl` — 704 cards, ~144 KB
     raw and about 36 KB compressed. The full pool is 480 KB, nearly all of it
     oracle text a dropdown never shows; keeping `imageUrl` costs only ~8 KB
     compressed (the URLs share long prefixes) and buys an instant thumbnail for
@@ -903,7 +903,8 @@ command again — there is a test that reorders it and fails.
   - A "Copy Discord Summary" button formats the complete gift exchange ring into spoiler markdown (`||Giver ➜ Recipient||`) with copy feedback for instant channel announcements.
 - **Scryfall Queries & Caching:**
   - Upstream queries:
-    - Pool: `f:edh is:commander r:u game:paper` (710 cards as of August 2026; it grows with each set). `game:paper` is load-bearing: without it, digital-only MTGO uncommon reprints would wrongly enter the pool.
+    - Pool: `f:edh is:commander r:u game:paper -e:slz` (704 cards as of September 2026; it moves with each set). Two filters change what is legal and are easy to lose in a reword, so a test pins both. `game:paper`: without it, digital-only MTGO uncommon reprints wrongly enter the pool. `-e:slz`: a set whose uncommon printings are not meant to affect legality here. Scryfall filters **printings**, not cards, so the exclusion drops only commanders whose *sole* uncommon paper printing is in that set — six of them — while Kazuul and Yargle stay because they are printed uncommon elsewhere too.
+    - **Adding an exclusion can strand an existing sign-up.** `resolveSelfCards` resolves against the live pool, so a card that was legal when somebody picked it and is not legal now makes the draw fail, naming the person and the card. Check the console's sign-up list after changing this.
     - Partner-capable: `f:edh is:commander r:u game:paper otag:pair-commander` (~65 cards). Catches Partner, Partner with, "Choose a Background", and Backgrounds.
   - Cached for 24 hours (`revalidate: 86400`) via Next.js fetch cache. Scryfall sees ~6 requests per day total across all users.
   - Every request sends Scryfall's required headers: `User-Agent: FormerFabSecretSanta/1.0` and `Accept: application/json`.
