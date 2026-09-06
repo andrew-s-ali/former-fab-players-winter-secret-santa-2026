@@ -30,6 +30,7 @@ vi.mock("#lib/signups", () => ({
   },
 }));
 
+const { SIGNUPS_CLOSE_AT } = await import("./event");
 const { runSignupReminder } = await import("./signup-reminder-run");
 
 const originalEnv = { ...process.env };
@@ -61,8 +62,8 @@ afterEach(() => {
 
 /** 8am Eastern on each date, which is when the cron fires. */
 const OPENING = new Date("2026-09-01T12:00:00Z");
-const FIVE_LEFT = new Date("2026-09-03T12:00:00Z");
-const AFTER_CLOSE = new Date("2026-09-10T12:00:00Z");
+const FIVE_LEFT = new Date("2026-09-06T12:00:00Z");
+const AFTER_CLOSE = new Date("2026-09-13T12:00:00Z");
 
 describe("runSignupReminder", () => {
   it("posts the opening announcement and records it", async () => {
@@ -95,7 +96,10 @@ describe("runSignupReminder", () => {
 
     expect(result.posted).toBe(true);
     expect(sent[0]).toContain("5 days left");
-    expect(state?.postedKeys).toEqual(["opening", "days-5"]);
+    expect(state?.postedKeys).toEqual([
+      "opening",
+      `days-5@${SIGNUPS_CLOSE_AT}`,
+    ]);
   });
 
   it("says nothing at all outside the sign-up window", async () => {

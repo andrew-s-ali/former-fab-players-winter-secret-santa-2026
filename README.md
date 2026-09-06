@@ -165,8 +165,8 @@ if you want sign-ups gated on the same date too.
 ### 1. Schedule & Configuration
 
 - **Sign-ups open:** 1 September 2026 at midnight US Eastern (`SIGNUPS_OPEN_AT = "2026-09-01T04:00:00Z"` in `src/lib/event.ts` — see step 0).
-- **Sign-ups close:** midnight US Eastern as the 8th begins (`SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z"`), so the last full day is the 7th. **Seven days exactly**, midnight to midnight.
-- **Card workshop closes:** end of 21 September (`WORKSHOP_CLOSE_AT = "2026-09-22T04:00:00Z"`). **Advisory, not enforced** — the exchange still unlocks only when everybody has picked for everybody. This is the date the site and the Discord nudge point at; nothing refuses a pick after it.
+- **Sign-ups close:** midnight US Eastern as the 11th begins (`SIGNUPS_CLOSE_AT = "2026-09-11T04:00:00Z"`), so the last full day is **Thursday 10 September**. Extended from the 7th once a Monday deadline looked too soon after a Tuesday launch.
+- **Card workshop closes:** end of **Friday 25 September** (`WORKSHOP_CLOSE_AT = "2026-09-26T04:00:00Z"`), moved out with the sign-up deadline so the picking window was not squeezed. **Advisory, not enforced** — the exchange still unlocks only when everybody has picked for everybody. This is the date the site and the Discord nudge point at; nothing refuses a pick after it.
 - **Building period:** 22 September until the exchange date.
 - **Exchange date:** One of 5, 12, or 19 December 2026 (`EXCHANGE_CANDIDATES`). Every sign-up ranks all three; the organiser console tallies the vote (see step 7).
 - Setting `EXCHANGE_AT` in `src/lib/event.ts` (e.g. `export const EXCHANGE_AT = "2026-12-12";`) automatically switches the home page countdown from the sign-up phase to the exchange countdown.
@@ -688,7 +688,27 @@ It runs at **08:00 US Eastern** (`0 12 * * *` — cron is UTC, and September is
 EDT), so the opening announcement lands at a civilised hour rather than at
 midnight when the site actually flips over.
 
-**Milestone-driven, not periodic.** The window is seven days; a daily post
+**Moving a deadline re-arms the countdown.** Countdown milestones are keyed by
+the deadline they count to — `days-5@2026-09-11T04:00:00Z` — so each fires once
+*per deadline* rather than once ever. Changing the close date makes the
+remaining milestones unsaid again, and the next scheduled post carries the new
+date without anybody having to remember to announce it.
+
+That is not a nicety. Keyed on the milestone alone, extending a deadline
+silences the schedule for exactly the days it was extended by: every milestone
+the new window reaches has already been spent on the old one. Moving sign-ups
+from the 7th to the 10th left `opening`, `days-5` and `days-3` all posted, so
+one reminder would have gone out in the remaining five days and the group would
+have been holding a date that had been announced as something else. With
+deadline-scoped keys the same change posts three times, starting the next
+morning.
+
+The **opening announcement is deliberately not** scoped that way. It is keyed
+`opening` on its own and fires once for the event, because "sign-ups are open"
+is news about the event opening and it only opens once — a far-future deadline
+would otherwise put it back in front and re-welcome everybody.
+
+**Milestone-driven, not periodic.** The window is ten days; a daily post
 would be muted by day three, and a muted channel is worse than a quiet one on
 the day it finally matters. Outside the window it says nothing at all — a
 reminder to sign up for something that is not open, or is over, is worse than
