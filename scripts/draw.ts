@@ -32,11 +32,19 @@ const cryptoRng = () => randomInt(2 ** 30) / 2 ** 30;
 
 const USAGE =
   "Usage:\n" +
-  "  npm run draw                        [--latest-wins] [--force]   (database)\n" +
-  "        [--ignore-unrecorded]  draw even though sign-ups are missing rows\n" +
-  "        [--dry-run]            rehearse the whole thing, write nothing\n" +
-  "  npm run draw -- <responses.csv>                     [--force]\n" +
-  "  npm run draw -- --from=netlify-forms [--latest-wins] [--force]";
+  "  npm run draw                     rehearse: do everything, write nothing\n" +
+  "  npm run draw -- --yes            draw for real\n" +
+  "\n" +
+  "  Note the `--`. Without it npm keeps the flag for itself and the script\n" +
+  "  never sees it — which is why the real draw needs one rather than the\n" +
+  "  rehearsal: a lost separator then costs you a rehearsal, not a ring.\n" +
+  "\n" +
+  "  Sources:  (default) the database\n" +
+  "            -- <responses.csv>\n" +
+  "            -- --from=netlify-forms\n" +
+  "  Options:  --latest-wins          merge duplicate names, newest wins\n" +
+  "            --ignore-unrecorded    draw though sign-ups are missing rows\n" +
+  "            --force                redraw over an existing draw";
 
 /**
  * Flags this script understands. `from` carries a value; the rest are bare.
@@ -46,6 +54,7 @@ const KNOWN_FLAGS = [
   "latest-wins",
   "ignore-unrecorded",
   "dry-run",
+  "yes",
   "from",
 ] as const;
 
@@ -104,7 +113,20 @@ async function fromDatabase(
   latestWins: boolean,
   ignoreUnrecorded: boolean
 ): Promise<DrawInput[]> {
-  const stored = await readSignups();
+  let stored;
+  try {
+    stored = await readSignups();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Could not read the sign-ups. Nothing has been written.\n  ${detail}\n\n` +
+        "The database is the default source and needs NETLIFY_DB_URL — copy it\n" +
+        "from the Netlify UI under Data & Storage > Database. A full run also\n" +
+        "wants NETLIFY_SITE_ID and NETLIFY_AUTH_TOKEN, without which the draw\n" +
+        "cross-checks nothing against Netlify Forms and writes to the local\n" +
+        "file rather than the live event."
+    );
+  }
   console.log(`Read ${stored.length} sign-up(s) from the database.`);
 
   await checkAgainstForms(stored, ignoreUnrecorded);
@@ -289,7 +311,19 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
   const [path] = paths;
   const useForms = flags.includes("--from=netlify-forms");
   const useDatabase = !useForms && !path;
-  const dryRun = flags.includes("--dry-run");
+  /**
+   * A rehearsal unless `--yes` is given.
+   *
+   * The safe direction is the default because the unsafe one cannot be typed
+   * by accident. `npm run draw --yes`, with the `--` separator missing, hands
+   * the flag to npm instead of the script — so a slip costs a rehearsal rather
+   * than a ring that reshuffles everyone and invalidates every link already
+   * sent. `--dry-run` is still accepted and means the same as saying nothing.
+   *
+   * `npm run forget` has worked this way from the start. This is the more
+   * destructive of the two.
+   */
+  const dryRun = !flags.includes("--yes");
 
   if (useForms && path) {
     throw new Error(
@@ -417,8 +451,10 @@ function reportRehearsal(participants: Participant[]): void {
       "  whoever runs this is playing too."
   );
   console.log(
-    "\nRun again without --dry-run to draw for real. That mints the tokens,\n" +
-      "writes the event, and prints one private link per person.\n"
+    "\nTo draw for real:  npm run draw -- --yes\n" +
+      "That mints the tokens, writes the event, and prints one private link\n" +
+      "per person. The `--` matters: without it npm keeps the flag and you get\n" +
+      "another rehearsal.\n"
   );
 }
 

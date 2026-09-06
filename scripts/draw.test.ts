@@ -66,17 +66,17 @@ function output(): string {
   return log.map((call) => call.join(" ")).join("\n");
 }
 
-describe("npm run draw -- --dry-run", () => {
+describe("npm run draw (rehearsal by default)", () => {
   it("writes nothing", async () => {
     // The whole point. The real run is irreversible — it reshuffles everyone
     // and invalidates every link already sent.
-    await main(["--dry-run"]);
+    await main([]);
 
     expect(written).toEqual([]);
   });
 
   it("still does the work worth rehearsing", async () => {
-    await main(["--dry-run"]);
+    await main([]);
 
     expect(output()).toContain("4 participants would be drawn");
     expect(output()).toContain("Ada");
@@ -88,7 +88,7 @@ describe("npm run draw -- --dry-run", () => {
     // Whoever runs this is playing too, which is why the real run prints
     // neither. A rehearsal that spoiled the organiser's own recipient to prove
     // the ring was fine would be a strange way to make the run safer.
-    await main(["--dry-run"]);
+    await main([]);
 
     expect(output()).not.toMatch(/→|->|gives to|builds for/);
     expect(output()).not.toMatch(/\/s\/[A-Za-z0-9_-]{8,}/);
@@ -97,7 +97,7 @@ describe("npm run draw -- --dry-run", () => {
   it("still refuses a party that is too small", async () => {
     stored = ["Ada", "Brin"].map(signup);
 
-    await expect(main(["--dry-run"])).rejects.toThrow(/at least 4 participants/);
+    await expect(main([])).rejects.toThrow(/at least 4 participants/);
     expect(written).toEqual([]);
   });
 
@@ -123,16 +123,16 @@ describe("npm run draw -- --dry-run", () => {
       ],
     };
 
-    await main(["--dry-run"]);
+    await main([]);
 
     expect(output()).toContain("a draw already exists");
     expect(written).toEqual([]);
   });
 });
 
-describe("npm run draw, for real", () => {
+describe("npm run draw -- --yes (for real)", () => {
   it("writes the event and prints one private link per person", async () => {
-    await main([]);
+    await main(["--yes"]);
 
     expect(written).toHaveLength(1);
     expect(written[0].participants).toHaveLength(4);
@@ -142,7 +142,7 @@ describe("npm run draw, for real", () => {
   it("still refuses to overwrite an existing draw without --force", async () => {
     event = { ...event, participants: [{ name: "Existing" }] as never };
 
-    await expect(main([])).rejects.toThrow(/already exists/);
+    await expect(main(["--yes"])).rejects.toThrow(/already exists/);
     expect(written).toEqual([]);
   });
 });
@@ -183,5 +183,24 @@ describe("argument checking", () => {
 
     expect(written).toEqual([]);
     expect(output()).toContain("nothing has been written");
+  });
+});
+
+describe("the missing `--` separator", () => {
+  it("costs a rehearsal, not a ring", async () => {
+    // `npm run draw --yes` hands the flag to npm, so the script sees nothing
+    // at all. That has to be the safe direction, because it is the form a slip
+    // actually produces — and it produced one twice before this landed.
+    await main([]);
+
+    expect(written).toEqual([]);
+    expect(output()).toContain("nothing has been written");
+  });
+
+  it("tells you the separator matters when it suggests the real command", async () => {
+    await main([]);
+
+    expect(output()).toContain("npm run draw -- --yes");
+    expect(output()).toMatch(/`--` matters/);
   });
 });
