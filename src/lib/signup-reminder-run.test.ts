@@ -61,8 +61,8 @@ afterEach(() => {
 
 /** 8am Eastern on each date, which is when the cron fires. */
 const OPENING = new Date("2026-09-01T12:00:00Z");
-const FIVE_LEFT = new Date("2026-09-03T12:00:00Z");
-const AFTER_CLOSE = new Date("2026-09-10T12:00:00Z");
+const FIVE_LEFT = new Date("2026-09-06T12:00:00Z");
+const AFTER_CLOSE = new Date("2026-09-13T12:00:00Z");
 
 describe("runSignupReminder", () => {
   it("posts the opening announcement and records it", async () => {

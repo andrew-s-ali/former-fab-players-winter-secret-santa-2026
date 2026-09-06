@@ -62,14 +62,15 @@ export function eventTitle(): string {
 export const SIGNUPS_OPEN_AT: string | null = "2026-09-01T04:00:00Z";
 
 /**
- * When sign-ups close: midnight Eastern as the 8th begins, so the last full
- * day to sign up is the 7th. Seven days from opening, exactly.
+ * When sign-ups close: midnight Eastern as the 11th begins, so the last full
+ * day to sign up is **Thursday the 10th**. Extended from the 7th once it was
+ * clear a Monday deadline was too soon after a Tuesday launch.
  *
  * Same two forms as `SIGNUPS_OPEN_AT`, and an instant for the same reason: as
- * a bare `"2026-09-08"` this would close at midnight **UTC**, which is 8pm
- * Eastern on the 7th — while `/signup` told people they had until the 8th.
+ * a bare `"2026-09-11"` this would close at midnight **UTC**, which is 8pm
+ * Eastern on the 10th — while `/signup` told people they had until the 11th.
  */
-export const SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z";
+export const SIGNUPS_CLOSE_AT = "2026-09-11T04:00:00Z";
 
 /**
  * When picking commanders for other people stops being expected.
@@ -80,10 +81,12 @@ export const SIGNUPS_CLOSE_AT = "2026-09-08T04:00:00Z";
  * date is what the site tells people to aim for and what the Discord nudge
  * counts down to; nothing refuses a pick after it.
  *
- * Midnight Eastern as the 22nd begins, i.e. the **end of the 21st**, so the
- * 21st is a full working day and the building period runs from the 22nd.
+ * Midnight Eastern as the 26th begins, i.e. the **end of Friday the 25th**,
+ * so the 25th is a full working day and the building period runs from the
+ * 26th. Moved out with the sign-up deadline to keep the picking window from
+ * being squeezed.
  */
-export const WORKSHOP_CLOSE_AT = "2026-09-22T04:00:00Z";
+export const WORKSHOP_CLOSE_AT = "2026-09-26T04:00:00Z";
 
 /** The exchange will be one of these; the group has not chosen yet. */
 export const EXCHANGE_CANDIDATES = ["2026-12-05", "2026-12-12", "2026-12-19"] as const;

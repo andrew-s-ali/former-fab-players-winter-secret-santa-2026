@@ -69,8 +69,8 @@ describe("Home, the clock override", () => {
     const Home = await homeWithOpenDate("2026-09-01T04:00:00Z");
     render(<Home />);
 
-    // Sign-ups close midnight ET on the 8th (04:00Z): 6d16h away, rounded up.
-    expect(screen.getByText(/7 days/i)).toBeInTheDocument();
+    // Sign-ups close midnight ET on the 11th (04:00Z): 9d16h away, rounded up.
+    expect(screen.getByText(/10 days/i)).toBeInTheDocument();
     expect(screen.getByText(/until sign-ups close/i)).toBeInTheDocument();
   });
 });

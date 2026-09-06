@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SIGNUPS_CLOSE_AT, SIGNUPS_OPEN_AT } from "./event";
 import {
   REMINDER_THRESHOLDS,
   alertsChannel,
@@ -183,5 +184,31 @@ describe("alertsChannel", () => {
     expect(text("01")).toContain("@here");
     expect(text("07")).toContain("@here");
     expect(text("03")).not.toContain("@here");
+  });
+});
+
+describe("the configured window", () => {
+  it("is long enough for every milestone to fire", () => {
+    // The local WINDOW above tests the rule; this tests the real dates, which
+    // have moved once already. A threshold at or above the window length
+    // either never becomes the current milestone or collides with the opening
+    // announcement — and the symptom is a reminder that silently never goes
+    // out, which nobody notices until the deadline passes.
+    const days =
+      (Date.parse(SIGNUPS_CLOSE_AT) - Date.parse(SIGNUPS_OPEN_AT!)) / 86_400_000;
+
+    expect(SIGNUPS_OPEN_AT).not.toBeNull();
+    expect(Math.max(...REMINDER_THRESHOLDS)).toBeLessThan(days);
+  });
+
+  it("reaches the final call before closing", () => {
+    const lastMorning = new Date(Date.parse(SIGNUPS_CLOSE_AT) - 16 * 3_600_000);
+    const reminder = currentReminder(lastMorning, {
+      opensAt: SIGNUPS_OPEN_AT,
+      closesAt: SIGNUPS_CLOSE_AT,
+    });
+
+    expect(reminder?.kind).toBe("final");
+    expect(alertsChannel(reminder!)).toBe(true);
   });
 });
