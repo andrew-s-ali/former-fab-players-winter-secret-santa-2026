@@ -48,18 +48,24 @@ npx playwright install chromium   # once, for E2E
 npm run dev                       # http://localhost:3000
 ```
 
-## Operator credentials (`.env`)
+## Operator credentials (`.env.operator`)
 
 The CLI scripts need credentials; the site and the tests do not. Copy the
 template and fill it in:
 
 ```bash
-cp .env.example .env
+cp .env.operator.example .env.operator
 ```
 
-`.env` is gitignored — this repo is public and two of the values are secrets.
-It is loaded by Node itself (`--env-file-if-exists`), so there is no dotenv
-dependency and nothing to import; only the operator scripts read it.
+**`.env.operator`, not `.env`.** Next.js auto-loads `.env` and `.env.local`, so
+credentials put there are picked up by `next dev` — which makes the local site
+read and write the **live event** instead of `data/event.local.json`, and fails
+every Playwright reveal test for exactly that reason. Next does not load this
+name, so only the operator scripts see it. Both are gitignored; the repo is
+public and two of the values are secrets.
+
+Loaded by Node itself (`--env-file-if-exists`), so there is no dotenv
+dependency and nothing to import, and a missing file is a no-op.
 
 **`NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` decide whether you are touching
 the live event.** Set together, every script reads and writes the real Blobs
@@ -983,6 +989,8 @@ command again — there is a test that reorders it and fails.
     - **Adding an exclusion can strand an existing sign-up.** `resolveSelfCards` resolves against the live pool, so a card that was legal when somebody picked it and is not legal now makes the draw fail, naming the person and the card. Check the console's sign-up list after changing this.
     - Partner-capable: `f:edh is:commander r:u game:paper otag:pair-commander` (~65 cards). Catches Partner, Partner with, "Choose a Background", and Backgrounds.
   - Cached for 24 hours (`revalidate: 86400`) via Next.js fetch cache. Scryfall sees ~6 requests per day total across all users.
+  - **Every request is serialised through a queue with a 250ms gap**, and 429s and 5xx are retried with backoff. Scryfall asks for 50–100ms between requests; the pool and pair queries were issued through `Promise.all`, so two paginated streams interleaved with no gap at all and doubled the rate. That is fine behind the day-long cache and not fine from the CLI, which has none — three rehearsals in a row earned a 429. A queue rather than a delay in the paging loop, because the paging loop was never the whole story. Six requests at a quarter-second each costs under two seconds on a command nobody is waiting on.
+  - Retries are deliberately unhurried (1s, 3s, 6s, and `Retry-After` honoured up to 30s). There is no deadline on a draw, and hammering a 429 is what earns a longer one. A 400 is not retried — that means the query itself is wrong — and a 404 is a real answer the pair query relies on.
   - Every request sends Scryfall's required headers: `User-Agent: FormerFabSecretSanta/1.0` and `Accept: application/json`.
   - Transform-layout cards (e.g. Exdeath, Garland, The Emperor of Palamecia, Ultimecia) fall back to `card_faces[0]` for image and oracle data.
 - **Reveal Ring Algorithm:**

@@ -1,7 +1,7 @@
 {
   "name": "former-fab-players-winter-secret-santa-2026",
   "version": "0.1.0",
-  "private": true,
+  "type": "module",
   "imports": {
     "#db/*": "./db/*.ts",
     "#lib/*": "./src/lib/*.ts",
@@ -17,12 +17,12 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "netlify:dev": "npx --yes netlify-cli dev",
-    "draw": "node --env-file-if-exists=.env --experimental-strip-types scripts/draw.ts",
-    "update-participant": "node --env-file-if-exists=.env --experimental-strip-types scripts/update-participant.ts",
-    "reveal": "node --env-file-if-exists=.env --experimental-strip-types scripts/reveal.ts",
-    "forget": "node --env-file-if-exists=.env --experimental-strip-types scripts/forget.ts",
-    "nudge": "node --env-file-if-exists=.env --experimental-strip-types scripts/nudge.ts",
-    "remind": "node --env-file-if-exists=.env --experimental-strip-types scripts/remind.ts",
+    "draw": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/draw.ts",
+    "update-participant": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/update-participant.ts",
+    "reveal": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/reveal.ts",
+    "forget": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/forget.ts",
+    "nudge": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/nudge.ts",
+    "remind": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/remind.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "dependencies": {

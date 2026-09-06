@@ -84,14 +84,39 @@ describe("npm run draw (rehearsal by default)", () => {
     expect(output()).toContain("nothing has been written");
   });
 
-  it("prints no assignment and no token", async () => {
-    // Whoever runs this is playing too, which is why the real run prints
-    // neither. A rehearsal that spoiled the organiser's own recipient to prove
-    // the ring was fine would be a strange way to make the run safer.
+  it("shows an example pairing, labelled as discarded", async () => {
+    // Safe to show, unlike on the real run: a rehearsal mints fresh ids and
+    // shuffles again, so this ring is thrown away and the real draw produces
+    // an independent one. Seeing it tells you nothing about that.
     await main([]);
 
-    expect(output()).not.toMatch(/→|->|gives to|builds for/);
+    expect(output()).toMatch(/builds for/);
+    expect(output()).toContain("EXAMPLE");
+    expect(output()).toContain("discarded");
+  });
+
+  it("prints no tokens", async () => {
+    // Those are throwaway too, and link-shaped strings that lead nowhere are
+    // no use to somebody about to send links out.
+    await main([]);
+
     expect(output()).not.toMatch(/\/s\/[A-Za-z0-9_-]{8,}/);
+  });
+
+  it("draws a different ring each time, which is why showing one is safe", async () => {
+    const rings = new Set<string>();
+    for (let run = 0; run < 6; run += 1) {
+      vi.mocked(console.log).mockClear();
+      await main([]);
+      rings.add(
+        output()
+          .split("\n")
+          .filter((line) => line.includes("builds for"))
+          .join("|")
+      );
+    }
+
+    expect(rings.size).toBeGreaterThan(1);
   });
 
   it("still refuses a party that is too small", async () => {

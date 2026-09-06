@@ -421,17 +421,20 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
 /**
  * What a rehearsal reports.
  *
- * **Deliberately no assignments and no tokens.** The real run prints neither,
- * for the reason that the organiser is a participant too — and a rehearsal
- * that spoiled their own recipient to prove the ring was fine would be a
- * strange way to make the run safer. The ring is verified instead of shown:
- * `buildRing` is the same check reveal day performs, so a derangement that
- * would break that page fails here, days earlier, without printing it.
+ * **The example ring is shown, and spoils nothing.** The real run prints no
+ * assignments because whoever runs it is playing too — but that reasoning does
+ * not carry over here. A rehearsal mints fresh ids and shuffles again with
+ * `cryptoRng`, so the ring below is thrown away and the real draw produces an
+ * independent one. Knowing this example tells you nothing about that.
  *
- * Everything a rehearsal *can* answer is the expensive-to-discover part — do
- * the sign-ups read, do the cards still resolve, are there enough people, does
- * the ring close — and all of it has already happened by the time this is
- * called.
+ * It is worth showing precisely because it is the output nobody can check any
+ * other way: that the cycle closes, that nobody has themselves, that the names
+ * are the people you expect. The label says plainly that it is discarded, so
+ * it cannot be mistaken for the real pairing later.
+ *
+ * **Tokens stay out.** Those are minted fresh too, so printing them would put
+ * link-shaped strings that lead nowhere in front of somebody about to send
+ * links out.
  */
 function reportRehearsal(participants: Participant[]): void {
   console.log(`\nRehearsal — nothing has been written.\n`);
@@ -444,11 +447,17 @@ function reportRehearsal(participants: Participant[]): void {
   // one complete cycle.
   const ring = buildRing(participants);
   console.log(
-    `\n  Ring: verified as a single closed cycle across ${ring.steps.length} people.`
+    `\n  Ring: a single closed cycle across ${ring.steps.length} people.\n`
   );
+  for (const step of ring.steps) {
+    console.log(`    ${step.from} builds for ${step.to}`);
+  }
   console.log(
-    "  Assignments and tokens are not printed, here or on the real run —\n" +
-      "  whoever runs this is playing too."
+    "\n  That pairing is an EXAMPLE and is discarded with this run. The real\n" +
+      "  draw shuffles again from scratch and will not produce it — so this is\n" +
+      "  safe to look at even though you are playing. Tokens are not printed:\n" +
+      "  these are throwaway too, and link-shaped strings that lead nowhere are\n" +
+      "  no use to somebody about to send links out."
   );
   console.log(
     "\nTo draw for real:  npm run draw -- --yes\n" +
