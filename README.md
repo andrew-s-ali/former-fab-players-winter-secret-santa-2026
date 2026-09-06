@@ -60,7 +60,7 @@ npm run dev                       # http://localhost:3000
 | `npm run test:watch`          | Vitest in watch mode                                                        |
 | `npm run test:e2e`            | Playwright; boots the dev server itself                                     |
 | `npm run netlify:dev`         | Netlify Dev, for functions/redirects/env parity                              |
-| `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
+| `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links. `-- --dry-run` rehearses the whole thing and writes nothing |
 | `npm run update-participant`  | Edit one participant's email, Discord, vetoes or wish without redrawing     |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
@@ -351,6 +351,21 @@ them) and corrections go through `npm run update-participant` or the organiser
 console.
 
 Both `draw` and `update-participant` print their resolved target first — e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or `Using local file data/event.local.json` — so a forgotten export is obvious immediately instead of silently editing a stale local file. The script refuses to run a second time once a draw exists — re-running reshuffles everyone and invalidates every link already sent. Pass `--force` if you genuinely need to redraw from scratch; either way, if a draw already existed, it is snapshotted to a timestamped `event.backup-<timestamp>.json` (or blob key) first.
+
+**Rehearse it first.** `npm run draw -- --dry-run` does everything the real run
+does — reads the sign-ups, cross-checks Netlify Forms, resolves every card
+against the live pool, checks the party size, builds the ring and verifies it
+closes — and then writes nothing. The draw is the one irreversible step, and
+the first time it runs for real is the worst time to discover a card no longer
+resolves.
+
+It prints **no assignments and no tokens**, because the real run does not
+either: whoever runs it is playing too. The ring is *verified* rather than
+shown, using the same `buildRing` check the reveal page performs, so a
+derangement that would break reveal day fails here instead — without spoiling
+the organiser's own recipient. A rehearsal is allowed over an existing draw
+without `--force`, since it changes nothing, and says so rather than letting
+the fresh ring be mistaken for the real one.
 
 Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - an unrecognised colour word (only white/blue/black/red/green plus "no preference" are understood),

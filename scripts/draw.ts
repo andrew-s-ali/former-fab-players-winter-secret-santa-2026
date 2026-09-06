@@ -1,6 +1,8 @@
+import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { randomInt, randomUUID } from "node:crypto";
 import { drawAssignments } from "#lib/draw";
+import { buildRing } from "#lib/ring";
 import {
   MINIMUM_PARTICIPANTS,
   type EventData,
@@ -32,6 +34,7 @@ const USAGE =
   "Usage:\n" +
   "  npm run draw                        [--latest-wins] [--force]   (database)\n" +
   "        [--ignore-unrecorded]  draw even though sign-ups are missing rows\n" +
+  "        [--dry-run]            rehearse the whole thing, write nothing\n" +
   "  npm run draw -- <responses.csv>                     [--force]\n" +
   "  npm run draw -- --from=netlify-forms [--latest-wins] [--force]";
 
@@ -229,12 +232,12 @@ async function resolveEverySelfPick(
  * Refuses to overwrite an existing draw without --force: rerunning reshuffles
  * everyone, invalidating links already sent out.
  */
-async function main() {
-  const args = process.argv.slice(2);
+export async function main(args: string[] = process.argv.slice(2)): Promise<void> {
   const flags = args.filter((arg) => arg.startsWith("--"));
   const [path] = args.filter((arg) => !arg.startsWith("--"));
   const useForms = flags.includes("--from=netlify-forms");
   const useDatabase = !useForms && !path;
+  const dryRun = flags.includes("--dry-run");
 
   if (useForms && path) {
     throw new Error(
@@ -245,11 +248,19 @@ async function main() {
   console.log(describeTarget());
 
   const existing = await readEvent();
-  if (existing.participants.length > 0 && !flags.includes("--force")) {
+  if (existing.participants.length > 0 && !flags.includes("--force") && !dryRun) {
     throw new Error(
       `A draw already exists with ${existing.participants.length} participants. ` +
         "Re-running reshuffles everyone and breaks links already sent. " +
         "Use scripts/update-participant.ts to fix details, or pass --force to redraw."
+    );
+  }
+  // A rehearsal writes nothing, so an existing draw is no reason to refuse it
+  // — but it is a reason to say that what follows is not that draw.
+  if (existing.participants.length > 0 && dryRun) {
+    console.log(
+      `\nNote: a draw already exists with ${existing.participants.length} participants. ` +
+        "This rehearsal builds a fresh ring with fresh tokens and leaves that one alone.\n"
     );
   }
 
@@ -303,6 +314,12 @@ async function main() {
   }));
 
   const event: EventData = { participants, revealedAt: null };
+
+  if (dryRun) {
+    reportRehearsal(participants);
+    return;
+  }
+
   await writeEvent(event);
 
   const base = process.env.SITE_URL ?? "http://localhost:3000";
@@ -315,7 +332,54 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+/**
+ * What a rehearsal reports.
+ *
+ * **Deliberately no assignments and no tokens.** The real run prints neither,
+ * for the reason that the organiser is a participant too — and a rehearsal
+ * that spoiled their own recipient to prove the ring was fine would be a
+ * strange way to make the run safer. The ring is verified instead of shown:
+ * `buildRing` is the same check reveal day performs, so a derangement that
+ * would break that page fails here, days earlier, without printing it.
+ *
+ * Everything a rehearsal *can* answer is the expensive-to-discover part — do
+ * the sign-ups read, do the cards still resolve, are there enough people, does
+ * the ring close — and all of it has already happened by the time this is
+ * called.
+ */
+function reportRehearsal(participants: Participant[]): void {
+  console.log(`\nRehearsal — nothing has been written.\n`);
+  console.log(`  ${participants.length} participants would be drawn:`);
+  for (const person of [...participants].sort((a, b) => a.name.localeCompare(b.name))) {
+    console.log(`    ${person.name} <${person.email}>`);
+  }
+
+  // The same validation the reveal page runs. Throws if the derangement is not
+  // one complete cycle.
+  const ring = buildRing(participants);
+  console.log(
+    `\n  Ring: verified as a single closed cycle across ${ring.steps.length} people.`
+  );
+  console.log(
+    "  Assignments and tokens are not printed, here or on the real run —\n" +
+      "  whoever runs this is playing too."
+  );
+  console.log(
+    "\nRun again without --dry-run to draw for real. That mints the tokens,\n" +
+      "writes the event, and prints one private link per person.\n"
+  );
+}
+
+const isDirectRun =
+  typeof process !== "undefined" &&
+  process.argv[1] &&
+  (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1].endsWith("scripts/draw.ts") ||
+    process.argv[1].endsWith("draw.ts"));
+
+if (isDirectRun && process.env.NODE_ENV !== "test") {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}
