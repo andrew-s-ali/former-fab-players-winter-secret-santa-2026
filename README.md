@@ -359,6 +359,12 @@ closes — and then writes nothing. The draw is the one irreversible step, and
 the first time it runs for real is the worst time to discover a card no longer
 resolves.
 
+**Every option is checked, and an unknown one stops the run.** Silently
+ignoring one is not survivable here: `--dry-rn` used to be dropped and the
+real, irreversible draw ran in its place — on a command typed specifically to
+avoid that. Stray positional arguments are refused for the same reason, since
+the first was read as a CSV path and the rest ignored.
+
 It prints **no assignments and no tokens**, because the real run does not
 either: whoever runs it is playing too. The ring is *verified* rather than
 shown, using the same `buildRing` check the reveal page performs, so a

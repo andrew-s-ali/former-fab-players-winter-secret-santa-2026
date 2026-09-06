@@ -146,3 +146,42 @@ describe("npm run draw, for real", () => {
     expect(written).toEqual([]);
   });
 });
+
+describe("argument checking", () => {
+  it("refuses a mistyped --dry-run instead of drawing for real", async () => {
+    // The failure this exists for. `--dry-rn` was silently dropped, and the
+    // irreversible draw ran on a command typed specifically to avoid it.
+    await expect(main(["--dry-rn"])).rejects.toThrow(/Unrecognised option/);
+    expect(written).toEqual([]);
+  });
+
+  it("names what it does understand", async () => {
+    await expect(main(["--dry-rn"])).rejects.toThrow(/--dry-run/);
+  });
+
+  it("refuses the argv a doubled-up paste produces", async () => {
+    // Exactly what came out of `npm run draw -- --dry-runnpm run draw -- --dry-run`:
+    // "run" was read as a CSV path and the real intent was lost.
+    await expect(
+      main(["--dry-runnpm", "run", "draw", "--", "--dry-run"])
+    ).rejects.toThrow(/Unrecognised option/);
+    expect(written).toEqual([]);
+  });
+
+  it("refuses more than one CSV path rather than ignoring the rest", async () => {
+    await expect(main(["one.csv", "two.csv"])).rejects.toThrow(/at most one CSV/);
+    expect(written).toEqual([]);
+  });
+
+  it("refuses a --from it cannot read", async () => {
+    await expect(main(["--from=google-forms"])).rejects.toThrow(/netlify-forms/);
+    expect(written).toEqual([]);
+  });
+
+  it("still accepts every flag it documents", async () => {
+    await main(["--dry-run", "--latest-wins", "--ignore-unrecorded", "--force"]);
+
+    expect(written).toEqual([]);
+    expect(output()).toContain("nothing has been written");
+  });
+});

@@ -38,6 +38,55 @@ const USAGE =
   "  npm run draw -- <responses.csv>                     [--force]\n" +
   "  npm run draw -- --from=netlify-forms [--latest-wins] [--force]";
 
+/**
+ * Flags this script understands. `from` carries a value; the rest are bare.
+ */
+const KNOWN_FLAGS = [
+  "force",
+  "latest-wins",
+  "ignore-unrecorded",
+  "dry-run",
+  "from",
+] as const;
+
+/**
+ * Rejects anything this script does not recognise, rather than ignoring it.
+ *
+ * Silently dropping an unknown flag is not survivable here. `--dry-rn` would
+ * have been discarded and the **real, irreversible draw** would have run in
+ * its place — reshuffling everyone and invalidating every link already sent,
+ * on a command the operator typed specifically to avoid that. A safety flag
+ * that fails open is worse than no safety flag.
+ *
+ * The same goes for stray positional arguments: the first is read as a CSV
+ * path and the rest were quietly ignored, so a mistyped command could go
+ * looking for a file nobody meant to name.
+ */
+function checkArguments(flags: string[], paths: string[]): void {
+  for (const flag of flags) {
+    const name = flag.slice(2).split("=")[0];
+    if (!KNOWN_FLAGS.includes(name as (typeof KNOWN_FLAGS)[number])) {
+      throw new Error(
+        `Unrecognised option "${flag}".\n` +
+          `Known: ${KNOWN_FLAGS.map((f) => `--${f}`).join(", ")}.\n${USAGE}`
+      );
+    }
+    if (name === "from" && flag !== "--from=netlify-forms") {
+      throw new Error(
+        `"${flag}" is not a source this script reads. The only --from value ` +
+          `is netlify-forms.\n${USAGE}`
+      );
+    }
+  }
+
+  if (paths.length > 1) {
+    throw new Error(
+      `Expected at most one CSV path, got ${paths.length}: ` +
+        `${paths.map((p) => `"${p}"`).join(", ")}.\n${USAGE}`
+    );
+  }
+}
+
 /** One person ready to be drawn: their answers plus their resolved pool cards. */
 type DrawInput = { input: ParticipantInput; cards: [CommanderPick, CommanderPick] };
 
@@ -234,7 +283,10 @@ async function resolveEverySelfPick(
  */
 export async function main(args: string[] = process.argv.slice(2)): Promise<void> {
   const flags = args.filter((arg) => arg.startsWith("--"));
-  const [path] = args.filter((arg) => !arg.startsWith("--"));
+  const paths = args.filter((arg) => !arg.startsWith("--"));
+  checkArguments(flags, paths);
+
+  const [path] = paths;
   const useForms = flags.includes("--from=netlify-forms");
   const useDatabase = !useForms && !path;
   const dryRun = flags.includes("--dry-run");
