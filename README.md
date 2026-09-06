@@ -48,6 +48,31 @@ npx playwright install chromium   # once, for E2E
 npm run dev                       # http://localhost:3000
 ```
 
+## Operator credentials (`.env`)
+
+The CLI scripts need credentials; the site and the tests do not. Copy the
+template and fill it in:
+
+```bash
+cp .env.example .env
+```
+
+`.env` is gitignored — this repo is public and two of the values are secrets.
+It is loaded by Node itself (`--env-file-if-exists`), so there is no dotenv
+dependency and nothing to import; only the operator scripts read it.
+
+**`NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` decide whether you are touching
+the live event.** Set together, every script reads and writes the real Blobs
+store; leave both unset and everything works on `data/event.local.json`
+instead, which is what you want for a rehearsal you do not trust yet. Setting
+only one is a misconfiguration and fails loudly rather than falling back
+silently. Every script prints which it resolved on every run — read that line
+before typing `--yes`.
+
+**Never set those two in Netlify's own environment variables.** The deployed
+site is handed Blobs credentials automatically, and the token is account-wide.
+The only variable the deployed site needs is `DISCORD_WEBHOOK_URL`.
+
 ## Scripts
 
 | Script                       | Does                                                                        |
