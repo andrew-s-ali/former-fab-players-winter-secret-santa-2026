@@ -41,13 +41,15 @@ describe("currentReminder", () => {
     // 12:00Z is 8am Eastern, the hour the schedule fires.
     const keyAt = (day: string) => currentReminder(at(`2026-09-${day}T12:00:00Z`), WINDOW)?.key;
 
-    expect(keyAt("01")).toBe("opening");
-    expect(keyAt("02")).toBe("opening");
-    expect(keyAt("03")).toBe("days-5");
-    expect(keyAt("04")).toBe("days-5");
-    expect(keyAt("05")).toBe("days-3");
-    expect(keyAt("06")).toBe("days-3");
-    expect(keyAt("07")).toBe("days-1");
+    const days = (key: string | undefined) => key?.replace(`@${WINDOW.closesAt}`, "");
+
+    expect(days(keyAt("01"))).toBe("opening");
+    expect(days(keyAt("02"))).toBe("opening");
+    expect(days(keyAt("03"))).toBe("days-5");
+    expect(days(keyAt("04"))).toBe("days-5");
+    expect(days(keyAt("05"))).toBe("days-3");
+    expect(days(keyAt("06"))).toBe("days-3");
+    expect(days(keyAt("07"))).toBe("days-1");
     expect(keyAt("08")).toBeUndefined();
   });
 
@@ -64,7 +66,7 @@ describe("currentReminder", () => {
     // Four days left is still the "five days" milestone — so a cron that
     // missed a day posts something true rather than something stale.
     const four = currentReminder(at("2026-09-04T12:00:00Z"), WINDOW)!;
-    expect(four.key).toBe("days-5");
+    expect(four.key).toBe(`days-5@${WINDOW.closesAt}`);
     expect(four.daysLeft).toBe(4);
   });
 
@@ -84,9 +86,11 @@ describe("shouldPostReminder", () => {
   });
 
   it("posts each milestone exactly once, however often the cron runs", () => {
-    expect(shouldPostReminder(reminder, { postedKeys: ["opening", "days-5"] })).toBe(
-      false
-    );
+    expect(
+      shouldPostReminder(reminder, {
+        postedKeys: ["opening", `days-5@${WINDOW.closesAt}`],
+      })
+    ).toBe(false);
   });
 
   it("never posts when there is no milestone", () => {
@@ -210,5 +214,45 @@ describe("the configured window", () => {
 
     expect(reminder?.kind).toBe("final");
     expect(alertsChannel(reminder!)).toBe(true);
+  });
+});
+
+describe("moving the deadline re-arms the countdown", () => {
+  const moved = { ...WINDOW, closesAt: "2026-09-11T04:00:00Z" };
+  const morning = at("2026-09-06T12:00:00Z");
+
+  it("treats the same milestone against a new deadline as unsaid", () => {
+    // Extending used to silence the schedule for exactly the days it was
+    // extended by: every milestone the new window reaches had been spent on
+    // the old one, leaving the group holding a date announced as something
+    // else.
+    const spentOnTheOldDeadline = {
+      postedKeys: ["opening", `days-5@${WINDOW.closesAt}`, `days-3@${WINDOW.closesAt}`],
+    };
+
+    const reminder = currentReminder(morning, moved)!;
+
+    expect(reminder.key).toBe(`days-5@${moved.closesAt}`);
+    expect(shouldPostReminder(reminder, spentOnTheOldDeadline)).toBe(true);
+  });
+
+  it("still says each milestone once per deadline", () => {
+    const reminder = currentReminder(morning, moved)!;
+
+    expect(
+      shouldPostReminder(reminder, { postedKeys: [reminder.key] })
+    ).toBe(false);
+  });
+
+  it("never re-welcomes the group when a date moves", () => {
+    // The opening announcement is news about the event opening, and it opens
+    // once. A far-future deadline puts `opening` back in front, and it must
+    // still be recognised as already said.
+    const faraway = { ...WINDOW, closesAt: "2026-10-30T04:00:00Z" };
+    const reminder = currentReminder(morning, faraway)!;
+
+    expect(reminder.kind).toBe("opening");
+    expect(reminder.key).toBe("opening");
+    expect(shouldPostReminder(reminder, { postedKeys: ["opening"] })).toBe(false);
   });
 });

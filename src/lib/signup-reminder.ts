@@ -80,10 +80,25 @@ export function currentReminder(
 
   if (threshold === undefined) {
     // More time left than any threshold covers: the opening announcement.
+    //
+    // Keyed on its own, with no deadline in it, so it fires exactly once for
+    // the event however often a date moves. "Sign-ups are open" is news about
+    // the event opening, and it only opens once — re-welcoming everybody
+    // because a deadline shifted would be worse than saying nothing.
     return { key: "opening", kind: "opening", daysLeft };
   }
   return {
-    key: `days-${threshold}`,
+    // Keyed **by deadline**. Each milestone still fires once, but once *per
+    // deadline* rather than once ever: moving the close date is genuinely new
+    // news, and the countdown to the old one has already been said.
+    //
+    // Without this, extending a deadline silences the schedule for exactly the
+    // days it was extended by — every milestone the new window reaches has
+    // already been spent on the old one — and the group is left holding a date
+    // that was announced as something else. That happened when sign-ups moved
+    // from the 7th to the 10th: `opening`, `days-5` and `days-3` were all
+    // already posted, leaving four silent days.
+    key: `days-${threshold}@${closesAt}`,
     kind: threshold === Math.min(...REMINDER_THRESHOLDS) ? "final" : "countdown",
     daysLeft,
   };

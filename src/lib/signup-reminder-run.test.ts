@@ -30,6 +30,7 @@ vi.mock("#lib/signups", () => ({
   },
 }));
 
+const { SIGNUPS_CLOSE_AT } = await import("./event");
 const { runSignupReminder } = await import("./signup-reminder-run");
 
 const originalEnv = { ...process.env };
@@ -95,7 +96,10 @@ describe("runSignupReminder", () => {
 
     expect(result.posted).toBe(true);
     expect(sent[0]).toContain("5 days left");
-    expect(state?.postedKeys).toEqual(["opening", "days-5"]);
+    expect(state?.postedKeys).toEqual([
+      "opening",
+      `days-5@${SIGNUPS_CLOSE_AT}`,
+    ]);
   });
 
   it("says nothing at all outside the sign-up window", async () => {
