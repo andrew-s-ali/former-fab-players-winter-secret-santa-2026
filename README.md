@@ -48,6 +48,37 @@ npx playwright install chromium   # once, for E2E
 npm run dev                       # http://localhost:3000
 ```
 
+## Operator credentials (`.env.operator`)
+
+The CLI scripts need credentials; the site and the tests do not. Copy the
+template and fill it in:
+
+```bash
+cp .env.operator.example .env.operator
+```
+
+**`.env.operator`, not `.env`.** Next.js auto-loads `.env` and `.env.local`, so
+credentials put there are picked up by `next dev` — which makes the local site
+read and write the **live event** instead of `data/event.local.json`, and fails
+every Playwright reveal test for exactly that reason. Next does not load this
+name, so only the operator scripts see it. Both are gitignored; the repo is
+public and two of the values are secrets.
+
+Loaded by Node itself (`--env-file-if-exists`), so there is no dotenv
+dependency and nothing to import, and a missing file is a no-op.
+
+**`NETLIFY_SITE_ID` and `NETLIFY_AUTH_TOKEN` decide whether you are touching
+the live event.** Set together, every script reads and writes the real Blobs
+store; leave both unset and everything works on `data/event.local.json`
+instead, which is what you want for a rehearsal you do not trust yet. Setting
+only one is a misconfiguration and fails loudly rather than falling back
+silently. Every script prints which it resolved on every run — read that line
+before typing `--yes`.
+
+**Never set those two in Netlify's own environment variables.** The deployed
+site is handed Blobs credentials automatically, and the token is account-wide.
+The only variable the deployed site needs is `DISCORD_WEBHOOK_URL`.
+
 ## Scripts
 
 | Script                       | Does                                                                        |
@@ -60,7 +91,8 @@ npm run dev                       # http://localhost:3000
 | `npm run test:watch`          | Vitest in watch mode                                                        |
 | `npm run test:e2e`            | Playwright; boots the dev server itself                                     |
 | `npm run netlify:dev`         | Netlify Dev, for functions/redirects/env parity                              |
-| `npm run draw`                | Netlify Forms **or** CSV → derangement draw → tokens → store; prints links   |
+| `npm run draw`                | **Rehearses** the draw: reads everything, verifies the ring, writes nothing |
+| `npm run draw -- --yes`       | Draws for real — Netlify Forms **or** CSV → derangement → tokens → store; prints links |
 | `npm run update-participant`  | Edit one participant's email, Discord, vetoes or wish without redrawing     |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
@@ -351,6 +383,35 @@ them) and corrections go through `npm run update-participant` or the organiser
 console.
 
 Both `draw` and `update-participant` print their resolved target first — e.g. `Using Netlify Blobs (site abc123, explicit credentials)` or `Using local file data/event.local.json` — so a forgotten export is obvious immediately instead of silently editing a stale local file. The script refuses to run a second time once a draw exists — re-running reshuffles everyone and invalidates every link already sent. Pass `--force` if you genuinely need to redraw from scratch; either way, if a draw already existed, it is snapshotted to a timestamped `event.backup-<timestamp>.json` (or blob key) first.
+
+**It rehearses by default.** `npm run draw` does everything the real run
+does — reads the sign-ups, cross-checks Netlify Forms, resolves every card
+against the live pool, checks the party size, builds the ring and verifies it
+closes — and then writes nothing. The draw is the one irreversible step, and
+the first time it runs for real is the worst time to discover a card no longer
+resolves.
+
+**Every option is checked, and an unknown one stops the run.** Silently
+ignoring one is not survivable here: `--dry-rn` used to be dropped and the
+real, irreversible draw ran in its place — on a command typed specifically to
+avoid that. Stray positional arguments are refused for the same reason, since
+the first was read as a CSV path and the rest ignored.
+
+**The real draw is the one that needs a flag**, `npm run draw -- --yes`, and
+that is deliberate. Without the `--` separator npm keeps the flag for itself
+and the script never sees it — so the failure mode of a slip has to be the
+harmless one. Written the other way round, `npm run draw --dry-run` silently
+performed the real, irreversible draw, which is exactly what happened before
+this changed. `npm run forget` has required `--yes` from the start; this is the
+more destructive of the two.
+
+It prints **no assignments and no tokens**, because the real run does not
+either: whoever runs it is playing too. The ring is *verified* rather than
+shown, using the same `buildRing` check the reveal page performs, so a
+derangement that would break reveal day fails here instead — without spoiling
+the organiser's own recipient. A rehearsal is allowed over an existing draw
+without `--force`, since it changes nothing, and says so rather than letting
+the fresh ring be mistaken for the real one.
 
 Sign-up validation (`src/lib/signup.ts`, both sources) fails loudly on:
 - an unrecognised colour word (only white/blue/black/red/green plus "no preference" are understood),
@@ -928,6 +989,8 @@ command again — there is a test that reorders it and fails.
     - **Adding an exclusion can strand an existing sign-up.** `resolveSelfCards` resolves against the live pool, so a card that was legal when somebody picked it and is not legal now makes the draw fail, naming the person and the card. Check the console's sign-up list after changing this.
     - Partner-capable: `f:edh is:commander r:u game:paper otag:pair-commander` (~65 cards). Catches Partner, Partner with, "Choose a Background", and Backgrounds.
   - Cached for 24 hours (`revalidate: 86400`) via Next.js fetch cache. Scryfall sees ~6 requests per day total across all users.
+  - **Every request is serialised through a queue with a 250ms gap**, and 429s and 5xx are retried with backoff. Scryfall asks for 50–100ms between requests; the pool and pair queries were issued through `Promise.all`, so two paginated streams interleaved with no gap at all and doubled the rate. That is fine behind the day-long cache and not fine from the CLI, which has none — three rehearsals in a row earned a 429. A queue rather than a delay in the paging loop, because the paging loop was never the whole story. Six requests at a quarter-second each costs under two seconds on a command nobody is waiting on.
+  - Retries are deliberately unhurried (1s, 3s, 6s, and `Retry-After` honoured up to 30s). There is no deadline on a draw, and hammering a 429 is what earns a longer one. A 400 is not retried — that means the query itself is wrong — and a 404 is a real answer the pair query relies on.
   - Every request sends Scryfall's required headers: `User-Agent: FormerFabSecretSanta/1.0` and `Accept: application/json`.
   - Transform-layout cards (e.g. Exdeath, Garland, The Emperor of Palamecia, Ultimecia) fall back to `card_faces[0]` for image and oracle data.
 - **Reveal Ring Algorithm:**
