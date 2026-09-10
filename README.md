@@ -95,6 +95,8 @@ The only variable the deployed site needs is `DISCORD_WEBHOOK_URL`.
 | `npm run draw -- --yes`       | Draws for real — Netlify Forms **or** CSV → derangement → tokens → store; prints links |
 | `npm run update-participant`  | Edit one participant's email, Discord, vetoes or wish without redrawing     |
 | `npm run reveal`              | Unlock or lock the public reveal page (`-- --undo` to lock)                 |
+| `npm run restore`             | List the snapshots `writeEvent` takes before every write, with what is in each |
+| `npm run restore -- <key> --yes` | Write one snapshot back over the event, snapshotting the current state first |
 | `npm run forget`              | Erase one person's personal data, or the whole event's (`-- --everyone`); prints the plan and stops unless given `--yes` |
 | `npm run nudge`               | Post the outstanding-picks nudge to Discord (`-- --dry-run` to preview, `-- --force` to ignore the quiet period) |
 | `npm run remind`              | Post the sign-up reminder for the current milestone (`-- --dry-run` to preview, `-- --force` to repost a spent one) |
@@ -483,6 +485,58 @@ NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
 ```
 
 `--color` is refused if the participant's **own** pool cards carry that colour, and names them: those cards are already in the pool everyone else draws from, and nothing downstream re-checks them. Clearing the veto (`--color=none`) is always allowed.
+
+### 5b. Getting the Event Back
+
+Every write to the event store snapshots the previous state first, under a
+timestamped key beside it (`event.backup-<timestamp>.json`) — and for a long
+time nothing could read one. `npm run restore` is that reader.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> npm run restore
+```
+
+Lists every snapshot newest first, with what is actually in it: when it was
+taken (in US Eastern, not UTC — a snapshot listed under tomorrow's date is one
+nobody can place), how many participants, **whether the ring still closes**,
+whether every private link is present and distinct, and whether reveal day was
+unlocked at the time. The ring is checked with the same `buildRing` the reveal
+page runs, because "six participants" is not the question — the question is
+whether restoring this leaves an exchange that works.
+
+```bash
+NETLIFY_SITE_ID=<site-id> NETLIFY_AUTH_TOKEN=<token> \
+  npm run restore -- event.backup-2026-09-11T04-12-33-119Z.json --yes
+```
+
+**It lists by default and writes only for `--yes`**, exactly like the draw, and
+for the same reason: without the `--` separator npm keeps the flag and the
+script never sees it, so a slip has to cost a listing rather than the event.
+Unknown options and stray arguments stop the run instead of being ignored.
+
+Restoring is itself undoable — the event as it stands is snapshotted before the
+old one is written over it, so a restore of the wrong snapshot is one more
+`restore` away from being fixed.
+
+Two things it will not do. It **refuses an empty snapshot**, which would erase
+the event rather than recover it. And it refuses any key that is not in the
+`event.backup-…` shape, because on the local path a key becomes a filename and
+a made-up one could otherwise read anything on the disk.
+
+A snapshot with a broken ring or a duplicated token is **warned about and
+restored anyway**: the situation this exists for is that the event is already
+lost, and a damaged copy of it beats none. Fix it afterwards with
+`update-participant`.
+
+**Private links survive a restore**, because the tokens come back with the
+snapshot. What does not come back is anything saved since it was taken —
+card picks live in Postgres and are untouched by any of this, but a
+`update-participant` edit made after the snapshot is gone. Check `/admin`
+before telling anybody the event is back.
+
+Snapshots are never rotated or cleaned up, and each is a complete copy of every
+name, address and private token. `npm run forget -- --everyone` deletes them
+along with the event, which is why it exists rather than a one-line delete.
 
 ### 6. Reveal Day
 
