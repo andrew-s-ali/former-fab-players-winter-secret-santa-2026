@@ -156,6 +156,86 @@ function backupKey(now: Date = new Date()): string {
 }
 
 /**
+ * The shape of a key `writeEvent` produced, and the only shape `readBackup`
+ * will open.
+ *
+ * Anchored, and checked on the way in rather than trusted: on the local path a
+ * key becomes a filename, and a key the caller made up could otherwise walk
+ * out of the data directory and read whatever it liked.
+ */
+const BACKUP_KEY = /^event\.backup-[0-9TZ-]+\.json$/;
+
+export function isBackupKey(key: string): boolean {
+  return BACKUP_KEY.test(key);
+}
+
+/**
+ * Every snapshot `writeEvent` has taken, oldest first.
+ *
+ * The keys carry an ISO timestamp, so sorting them as strings sorts them by
+ * time — which is why the format is worth keeping even though nothing parses
+ * it to sort.
+ */
+export async function listBackupKeys(): Promise<string[]> {
+  const mode = resolveMode();
+
+  if (mode.kind !== "local") {
+    const store = await openStore(mode);
+    const { blobs } = await store.list();
+    return blobs.map((blob) => blob.key).filter(isBackupKey).sort();
+  }
+
+  const { readdir } = await import("node:fs/promises");
+  const { dirname } = await import("node:path");
+  try {
+    return (await readdir(dirname(localPath()))).filter(isBackupKey).sort();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+}
+
+/**
+ * Reads one snapshot without making it the event.
+ *
+ * Null when there is no such snapshot, so a caller can tell "you named a key
+ * that is not there" from "the snapshot is empty" — which are different
+ * mistakes with different fixes.
+ */
+export async function readBackup(key: string): Promise<EventData | null> {
+  if (!isBackupKey(key)) {
+    throw new Error(
+      `"${key}" is not a snapshot key. They look like ` +
+        "event.backup-2026-09-11T04-12-33-119Z.json — list them with " +
+        "`npm run restore`."
+    );
+  }
+  const mode = resolveMode();
+
+  if (mode.kind !== "local") {
+    const store = await openStore(mode);
+    const data = await store.get(key, { type: "json" });
+    return data ? withDefaults(data as EventData) : null;
+  }
+
+  const { join, dirname } = await import("node:path");
+  try {
+    return withDefaults(
+      JSON.parse(
+        await readFile(join(dirname(localPath()), key), "utf8")
+      ) as EventData
+    );
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
  * Reads the event data.
  *
  * Server-side only — this contains every assignment, and must never be

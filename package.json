@@ -23,6 +23,7 @@
     "forget": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/forget.ts",
     "nudge": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/nudge.ts",
     "remind": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/remind.ts",
+    "restore": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/restore.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },
   "dependencies": {
