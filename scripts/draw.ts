@@ -370,10 +370,10 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
   if (drawInputs.length < MINIMUM_PARTICIPANTS) {
     throw new Error(
       `Need at least ${MINIMUM_PARTICIPANTS} participants to draw; found ${drawInputs.length}. ` +
-        "Each person's shortlist is four unique cards taken from their pool " +
-        "minus their deck builder's own contribution, which leaves exactly as " +
-        "many cards as there are participants — so fewer than " +
-        `${MINIMUM_PARTICIPANTS} can never unlock the exchange.`
+        "Each person's pool is their two sign-up picks plus one from everyone " +
+        "else, and a shortlist needs four unique cards from it — so three " +
+        "people reach exactly four with no room for a single duplicate, and " +
+        `fewer than ${MINIMUM_PARTICIPANTS} is not worth starting.`
     );
   }
 

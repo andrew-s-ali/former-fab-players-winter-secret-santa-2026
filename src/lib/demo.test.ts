@@ -85,15 +85,20 @@ describe("demo data reader", () => {
 
     for (const giver of event.participants) {
       const recipient = event.participants.find((p) => p.id === giver.recipientId)!;
-      const cards = pickSecretCards(selections, giver.id, recipient);
+      const cards = pickSecretCards(selections, recipient);
 
       expect(cards).not.toBeNull();
       expect(new Set(cards!.map(pickId)).size).toBe(4);
-      // Nobody is shown the card they recommended themselves.
-      const own = selections.find(
-        (row) => row.selectorId === giver.id && row.recipientId === recipient.id
-      )!;
-      expect(cards!.some((pick) => pickId(pick) === pickId(own.card))).toBe(false);
+      // Every card comes from that recipient's pool and nowhere else. The
+      // giver's own recommendation is part of that pool, so it is allowed
+      // through — what must never appear is a card meant for somebody else.
+      const pool = new Set([
+        ...recipient.selfCards.map(pickId),
+        ...selections
+          .filter((row) => row.recipientId === recipient.id)
+          .map((row) => pickId(row.card)),
+      ]);
+      expect(cards!.every((pick) => pool.has(pickId(pick)))).toBe(true);
       // Nor a card in the colour the recipient asked to avoid.
       if (recipient.colorVeto) {
         expect(

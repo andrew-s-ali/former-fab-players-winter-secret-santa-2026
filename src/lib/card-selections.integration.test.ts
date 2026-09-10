@@ -228,14 +228,31 @@ describe("card selections, against a real database", () => {
     expect(first?.cashInUsed).toBe(false);
   });
 
-  it("never shows a giver their own recommendation", async () => {
-    await completeTheWorkshop();
+  it("can show a giver the card they recommended themselves", async () => {
+    // Squeezed to exactly four candidates, so the stored set is forced: B's
+    // two sign-up cards, one card C and D both chose, and A's own. While A's
+    // was filtered out for A there were three and this returned null.
+    for (const selector of people) {
+      for (const recipient of people) {
+        if (selector.id === recipient.id) continue;
+        const converge = recipient.id === "b" && selector.id !== "a";
+        await saveSelection({
+          selector,
+          recipient,
+          participants: people,
+          card: card(converge ? "everyone-but-a" : `${selector.id}-for-${recipient.id}`),
+        });
+      }
+    }
 
-    const shortlist = await getOrCreateSecretCards(by("a"), by("b"), people);
-
-    expect(
-      shortlist?.cards.some((pick) => pick.commander.id === "a-for-b")
-    ).toBe(false);
+    // Which of the four is held back is random, so this asserts the thing that
+    // is not: that a set can be drawn at all. With A's own card discounted the
+    // pool is three and both of these come back empty-handed.
+    expect(await getSelectionWorkspace(by("a"), people)).toMatchObject({
+      ready: true,
+      needsMoreVariety: false,
+    });
+    expect(await getOrCreateSecretCards(by("a"), by("b"), people)).not.toBeNull();
   });
 
   it("returns nothing while the workshop is unfinished", async () => {

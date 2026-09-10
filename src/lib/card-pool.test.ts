@@ -69,16 +69,25 @@ describe("card selection rules", () => {
     expect(selectionsAreReady(completeRows().slice(1), participants)).toBe(false);
   });
 
-  it("builds a recipient pool from their sign-up picks and non-giver peer picks", () => {
-    const picked = pickSecretCards(completeRows(), "a", byId("b"), () => 0.5);
+  it("builds a recipient pool from their sign-up picks and every peer pick", () => {
+    // Squeezed to exactly four candidates so the draw has no choice about what
+    // comes back: B's two sign-up picks, one card C and D both chose, and A's
+    // own recommendation. A's used to be filtered out for the giver A, which
+    // would leave three here and return null.
+    const shared = soloPick(card("c-and-d-agree"));
+    const rows = completeRows().map((row) =>
+      row.recipientId === "b" && row.selectorId !== "a"
+        ? { ...row, card: shared }
+        : row
+    );
+
+    const picked = pickSecretCards(rows, byId("b"), () => 0.5);
 
     expect(picked).toHaveLength(4);
-    // A's own recommendation for B must not come back to A.
-    expect(picked?.every((choice) => choice.commander.id !== "a-b")).toBe(true);
-    // B's two sign-up picks are in the pool.
+    expect(picked?.some((choice) => choice.commander.id === "a-b")).toBe(true);
     expect(
-      picked?.some((choice) => choice.commander.id.startsWith("b-self"))
-    ).toBe(true);
+      picked?.filter((choice) => choice.commander.id.startsWith("b-self"))
+    ).toHaveLength(2);
   });
 
   it("ignores a self row left in the table by an earlier version", () => {
@@ -89,7 +98,7 @@ describe("card selection rules", () => {
 
     expect(selectionsAreReady(rows, participants)).toBe(true);
     expect(
-      pickSecretCards(rows, "a", byId("b"), () => 0.5)?.some(
+      pickSecretCards(rows, byId("b"), () => 0.5)?.some(
         (choice) => choice.commander.id === "stale"
       )
     ).toBe(false);
@@ -112,13 +121,11 @@ describe("card selection rules", () => {
     );
     const b = flattened.find((participant) => participant.id === "b")!;
 
-    expect(pickSecretCards(rows, "a", b, () => 0.5)).toBeNull();
+    expect(pickSecretCards(rows, b, () => 0.5)).toBeNull();
     expect(selectionsAreReady(rows, flattened)).toBe(false);
   });
 
-  it("cannot be satisfied below the minimum participant count", () => {
-    // Three people leave three cards in each pool once the giver's own is
-    // removed, which is why the draw refuses to run below this.
+  it("leaves three people no slack, which is why four is the floor", () => {
     expect(MINIMUM_PARTICIPANTS).toBe(4);
 
     const three = participants.slice(0, 3).map((participant, index, all) => ({
@@ -136,6 +143,23 @@ describe("card selection rules", () => {
     );
 
     expect(rows).toHaveLength(requiredSelectionCount(3));
-    expect(selectionsAreReady(rows, three)).toBe(false);
+    // Two sign-up picks plus two recommendations: exactly the four needed, and
+    // only while every one of them is different.
+    expect(selectionsAreReady(rows, three)).toBe(true);
+
+    // One duplicate anywhere and that pool can never reach four, however long
+    // the group waits — there is no third recommendation to make up the gap.
+    // At four participants the same slip still leaves a fillable pool.
+    const [first] = three;
+    let collapsed = false;
+    const withDuplicate = rows.map((row) => {
+      if (collapsed || row.recipientId !== first.id) {
+        return row;
+      }
+      collapsed = true;
+      return { ...row, card: first.selfCards[0] };
+    });
+
+    expect(selectionsAreReady(withDuplicate, three)).toBe(false);
   });
 });
