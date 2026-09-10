@@ -132,6 +132,51 @@ describe("DemoCardWorkshop", () => {
     expect(actions.removeCardAction).not.toHaveBeenCalled();
   });
 
+  it("counts this person's own picks separately from the group's", async () => {
+    // The group counter moves when other people work, so it cannot tell a
+    // reader whether *they* are finished. Both numbers, side by side.
+    mountWorkshop({ t1: soloPick(testCommander("green", { name: "Green One" })) });
+
+    expect(await screen.findByText(/5 of 6 group picks saved/)).toBeInTheDocument();
+    expect(screen.getByText(/1 of 2 of yours saved/)).toBeInTheDocument();
+  });
+
+  it("says so once this person has nothing left to pick", async () => {
+    mountWorkshop({
+      t1: soloPick(testCommander("green", { name: "Green One" })),
+      t2: soloPick(testCommander("other", { name: "Other One" })),
+    });
+
+    expect(await screen.findByText(/All of yours are in/)).toBeInTheDocument();
+  });
+
+  it("explains what to do and how many picks are owed", async () => {
+    mountWorkshop();
+
+    expect(
+      await screen.findByRole("heading", { name: /what to do here/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/one commander for each of the 2 other players/i)).toBeInTheDocument();
+    // The failure mode nobody can see coming from the controls alone.
+    expect(
+      screen.getByText(/that pool comes up short and nobody/i)
+    ).toBeInTheDocument();
+  });
+
+  it("links the full Scryfall search into a new tab", async () => {
+    mountWorkshop();
+
+    const link = await screen.findByRole("link", { name: /full legal pool on Scryfall/i });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
+
+    const url = new URL(link.getAttribute("href")!);
+    expect(url.origin + url.pathname).toBe("https://scryfall.com/search");
+    expect(url.searchParams.get("q")).toContain("f:edh is:commander r:u game:paper");
+    // A search that still lists a banned commander is worse than no link.
+    expect(url.searchParams.get("q")).toContain('-!"Zada, Hedron Grinder"');
+  });
+
   it("offers every other participant as a target", async () => {
     mountWorkshop();
 
