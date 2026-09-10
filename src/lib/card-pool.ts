@@ -53,12 +53,13 @@ export function selectionsAreReady(
   if (relevant.length !== requiredSelectionCount(participants.length)) {
     return false;
   }
-  return participants.every((giver) => {
-    const recipient = participants.find(
-      (candidate) => candidate.id === giver.recipientId
-    );
-    return recipient && pickSecretCards(relevant, giver.id, recipient, () => 0) !== null;
-  });
+  // Every participant, not every giver. A pool no longer depends on who is
+  // drawing from it, and the ring is a derangement, so "each giver's recipient
+  // can be filled" and "everybody's pool can be filled" are the same set —
+  // said the plainer way round.
+  return participants.every(
+    (recipient) => pickSecretCards(relevant, recipient, () => 0) !== null
+  );
 }
 
 function shuffle<T>(items: T[], random: () => number): T[] {
@@ -73,9 +74,29 @@ function shuffle<T>(items: T[], random: () => number): T[] {
 /**
  * Draws four distinct choices from a recipient's pool for one giver.
  *
- * The pool is the recipient's two sign-up picks plus everyone else's
- * recommendation for them, minus the giver's own — a giver must not be shown
- * the choice they made, or the shortlist leaks who recommended what.
+ * The pool is the recipient's two sign-up picks plus every other participant's
+ * recommendation for them — **including the giver's own**. Their card is one
+ * candidate among `n + 1`, no more likely to be drawn than any other, and it
+ * still has to survive the cut to the visible three.
+ *
+ * **Every card in a recipient's pool is legal for that recipient, so none of
+ * them is set aside.** That is the rule, and it is the organiser's: a pool is
+ * what the group chose for one person, and discarding a card from it because
+ * of who happened to suggest it withholds a deck the recipient could perfectly
+ * well have been given.
+ *
+ * This used to exclude the giver's own card, so that nobody could recognise a
+ * suggestion as theirs. That was thin protection — a giver learns about their
+ * own pick, never about who contributed any of the others — and it cost a
+ * candidate from a pool with very little slack. At six participants it was the
+ * difference between four and five spare recommendations, and a group that
+ * converged on one commander could fill every slot and still stall.
+ *
+ * Four out of `n + 1` is itself deliberate, and does not contradict the above:
+ * every card is eligible, and a shortlist is still short. Handing a builder
+ * the whole pool would turn a constrained, surprising brief into a menu, and
+ * three of the four are shown precisely so the fourth can be traded for.
+ * Which cards are left out is chance; that some are is the design.
  *
  * Distinctness is by `pickId`, so a partner pair counts once however its two
  * halves were ordered, and two people who independently chose the same pair
@@ -83,7 +104,6 @@ function shuffle<T>(items: T[], random: () => number): T[] {
  */
 export function pickSecretCards(
   rows: SavedSelection[],
-  giverId: string,
   recipient: Participant,
   random: () => number = Math.random
 ): [CommanderPick, CommanderPick, CommanderPick, CommanderPick] | null {
@@ -94,12 +114,8 @@ export function pickSecretCards(
   for (const row of rows) {
     // A recipient's own contribution comes from `selfCards`, never from a row:
     // this function is exported and must not depend on the caller having
-    // filtered self rows out first.
-    if (
-      row.recipientId === recipient.id &&
-      row.selectorId !== recipient.id &&
-      row.selectorId !== giverId
-    ) {
+    // filtered self rows out first. The giver's row is deliberately kept.
+    if (row.recipientId === recipient.id && row.selectorId !== recipient.id) {
       unique.set(pickId(row.card), row.card);
     }
   }

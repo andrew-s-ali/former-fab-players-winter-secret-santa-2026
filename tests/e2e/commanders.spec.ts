@@ -67,3 +67,18 @@ test("searching a theme returns real commanders matching it", async ({ page }) =
   await expect(page.getByPlaceholder("Search by name…")).toHaveValue("");
 });
 
+
+test("the pool links out to the same search on Scryfall", async ({ page }) => {
+  await page.goto("/commanders");
+
+  const link = page.getByRole("link", { name: /same pool on Scryfall/i });
+  await expect(link).toHaveAttribute("target", "_blank");
+
+  // The href, not just its presence: a search that has lost the pool query or
+  // kept a banned commander in it sends people back with an unusable card, and
+  // nothing on this page would look wrong.
+  const href = await link.getAttribute("href");
+  const query = new URL(href!).searchParams.get("q") ?? "";
+  expect(query).toContain("f:edh is:commander r:u game:paper");
+  expect(query).toContain('-!"Zada, Hedron Grinder"');
+});

@@ -221,7 +221,7 @@ export async function getOrCreateSecretCards(
     .limit(1);
 
   if (!set) {
-    const cards = pickSecretCards(rows, giver.id, recipient);
+    const cards = pickSecretCards(rows, recipient);
     if (!cards) {
       throw new Error(
         `Fewer than four unique cards were submitted for ${recipient.name}.`

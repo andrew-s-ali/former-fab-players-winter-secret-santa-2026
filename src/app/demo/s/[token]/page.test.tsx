@@ -81,14 +81,15 @@ describe("DemoTokenPage", () => {
   };
 
   /**
-   * Enough for Alice's view of Bob's pool: Bob's two sign-up cards, plus a
-   * pick from everyone except Bob and Alice herself — four unique, which is
-   * what `pickSecretCards` requires.
+   * Enough for Alice's view of Bob's pool: Bob's two sign-up cards plus a pick
+   * from everyone except Bob — Alice's own included, since a giver's own
+   * recommendation is a candidate like any other. Five unique, of which four
+   * are drawn and three shown.
    */
   const mockSelections = [
     { selectorId: "demo-3", recipientId: "demo-2", card: soloPick(testCommander("from-charlie")) },
     { selectorId: "demo-4", recipientId: "demo-2", card: soloPick(testCommander("from-dana")) },
-    // Alice's own pick for Bob, which must never come back to her.
+    // Alice's own pick for Bob, which may well come back to her.
     { selectorId: "demo-1", recipientId: "demo-2", card: soloPick(testCommander("from-alice")) },
   ];
 
@@ -189,8 +190,12 @@ describe("DemoTokenPage", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: /build around one of these/i })
     ).toBeInTheDocument();
-    // A giver is never shown their own recommendation.
-    expect(screen.queryByText("Card from-alice")).toBeNull();
+    // Three of the pool's five, whichever three the seeded draw landed on.
+    // Naming one would pin this to the shuffle rather than to the page.
+    const pool = ["bob", "from-charlie", "from-dana", "from-alice"];
+    expect(
+      pool.flatMap((id) => screen.queryAllByText(new RegExp(`Card ${id}`)))
+    ).toHaveLength(3);
 
     // The browser is a link now, matching the real reveal page, which never
     // embedded one either.

@@ -52,10 +52,13 @@ export type Participant = {
 /**
  * Fewest participants the exchange can run with.
  *
- * A giver's shortlist is drawn from their recipient's pool minus their own
- * contribution to it: the recipient's two sign-up picks plus one pick from
- * each of the other `n - 2` participants, so `n` cards for `n` participants.
- * Four unique are needed, so three people can never unlock however they pick.
+ * A pool is the recipient's two sign-up picks plus one from each of the other
+ * `n - 1` participants — `n + 1` cards for `n` people — and four unique are
+ * needed to draw a shortlist. Three people therefore reach exactly four with
+ * nothing to spare: one duplicate anywhere, including somebody recommending a
+ * card the recipient already listed, and that pool can never fill however long
+ * everyone waits. Four is the smallest size with any slack at all, and it has
+ * only one card of it.
  */
 export const MINIMUM_PARTICIPANTS = 4;
 

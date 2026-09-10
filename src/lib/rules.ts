@@ -38,3 +38,29 @@ export const BUDGET_USD = 75;
  * changing this.
  */
 export const COMMANDER_POOL_QUERY = "f:edh is:commander r:u game:paper -e:slz";
+
+/**
+ * The same pool, as a search a participant can open on Scryfall.
+ *
+ * `COMMANDER_POOL_QUERY` on its own is not what this event plays with: six
+ * commanders are banned on top of it, and a search that still lists them sends
+ * somebody back here holding a card the save action refuses. Scryfall's
+ * exact-name operator drops them — verified against the live API, which goes
+ * from 704 results to 698, the same six `legalCommanders` removes.
+ *
+ * Two things it deliberately does not express:
+ *
+ *   - the banned **pair**. Malcolm and Kediss are each legal alone and only the
+ *     combination is out, which no single search can say. The rules panel
+ *     stays the authority there.
+ *   - the recipient's vetoed colour. This is the whole pool rather than one
+ *     person's slice of it, so the same link is correct on every screen; the
+ *     picker on this site is what enforces a veto.
+ */
+export function commanderPoolSearchUrl(): string {
+  const query = [
+    COMMANDER_POOL_QUERY,
+    ...BANNED_COMMANDERS.map((name) => `-!"${name}"`),
+  ].join(" ");
+  return `https://scryfall.com/search?unique=cards&q=${encodeURIComponent(query)}`;
+}

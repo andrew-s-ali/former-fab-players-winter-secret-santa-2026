@@ -96,6 +96,18 @@ test("the sign-up page links out to the full browser without losing the form", a
   await expect(link).toHaveAttribute("target", "_blank");
 });
 
+test("the sign-up page also links straight to the Scryfall search", async ({
+  page,
+}) => {
+  await page.goto("/signup");
+
+  const link = page.getByRole("link", { name: /on Scryfall/i });
+  await expect(link).toHaveAttribute("target", "_blank");
+
+  const href = await link.getAttribute("href");
+  expect(new URL(href!).origin).toBe("https://scryfall.com");
+});
+
 test("the honeypot is present but hidden from real participants", async ({ page }) => {
   await page.goto("/signup");
 

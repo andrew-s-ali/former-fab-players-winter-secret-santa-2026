@@ -4,6 +4,7 @@ import {
   BANNED_PAIRS,
   BUDGET_USD,
   COMMANDER_POOL_QUERY,
+  commanderPoolSearchUrl,
 } from "./rules";
 
 describe("event rules", () => {
@@ -43,5 +44,25 @@ describe("event rules", () => {
     // visible until somebody picks a card that should not have been offered.
     expect(COMMANDER_POOL_QUERY).toContain("game:paper");
     expect(COMMANDER_POOL_QUERY).toContain("-e:slz");
+  });
+
+  it("links to a Scryfall search carrying the pool query", () => {
+    const url = new URL(commanderPoolSearchUrl());
+
+    expect(url.origin + url.pathname).toBe("https://scryfall.com/search");
+    // One row per card, as `fetchCommanderPool` reads it — otherwise a card
+    // with a dozen printings fills the first screen on its own.
+    expect(url.searchParams.get("unique")).toBe("cards");
+    expect(url.searchParams.get("q")).toContain(COMMANDER_POOL_QUERY);
+  });
+
+  it("excludes every banned commander from that search", () => {
+    // Without this the search lists cards the save action then refuses, which
+    // is a worse experience than not linking to it at all.
+    const query = new URL(commanderPoolSearchUrl()).searchParams.get("q") ?? "";
+
+    for (const name of BANNED_COMMANDERS) {
+      expect(query).toContain(`-!"${name}"`);
+    }
   });
 });

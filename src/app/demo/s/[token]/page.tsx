@@ -56,11 +56,10 @@ export default async function DemoTokenPage({
   }
 
   // The real function over the real (committed, invented) selections: the
-  // recipient's two sign-up cards plus everyone else's pick for them, minus
-  // this giver's own. Seeded so the draw is stable across renders.
+  // recipient's two sign-up cards plus every other participant's pick for
+  // them, this giver's included. Seeded so the draw is stable across renders.
   const shortlist = pickSecretCards(
     readDemoSelections(),
-    giver.id,
     recipient,
     stableRandom(giver.token)
   );
@@ -158,7 +157,7 @@ export default async function DemoTokenPage({
         <div className="space-y-3">
           <p className="text-sm opacity-70">
             Drawn from {recipient.name}&rsquo;s pool — their own two cards plus
-            everyone else&rsquo;s pick for them, minus yours. Try the one-time
+            everyone else&rsquo;s pick for them, yours included. Try the one-time
             trade: it works here exactly as it would on a real link, except
             that you can undo it.
           </p>

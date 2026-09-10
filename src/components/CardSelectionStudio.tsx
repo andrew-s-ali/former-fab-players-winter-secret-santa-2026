@@ -15,6 +15,7 @@ import type { ColorCode, CommanderOption } from "@/lib/commanders";
 import { WORKSHOP_CLOSE_AT } from "@/lib/event";
 import { formatDeadline } from "@/lib/launch";
 import { canTakePartner, pickCards, type CommanderPick } from "@/lib/pairing";
+import { commanderPoolSearchUrl } from "@/lib/rules";
 
 type Target = {
   id: string;
@@ -87,6 +88,14 @@ export function CardSelectionStudio({
   const [pendingPrimary, setPendingPrimary] = useState<CommanderOption | null>(null);
   const { options } = useCommanderOptions();
   const target = targets.find((candidate) => candidate.id === targetId) ?? targets[0];
+  /**
+   * This person's own progress, which the group counter does not show.
+   *
+   * "53 of 56" is the number that decides when the exchange opens, but it is
+   * not the number anybody can act on: it moves when other people work. What
+   * a reader wants to know is how many of their own are left.
+   */
+  const yoursSaved = targets.filter((candidate) => peerCards[candidate.id]).length;
 
   async function dispatch(
     work: () => Promise<{ ok: true; message: string } | { ok: false; error: string }>
@@ -135,9 +144,16 @@ export function CardSelectionStudio({
               last pick is in.
             </p>
           </div>
-          <p className="rounded-full border border-sky-200/20 px-4 py-2 text-sm">
-            {completedSlots} of {totalSlots} group picks saved
-          </p>
+          <div className="space-y-2 sm:text-right">
+            <p className="inline-block rounded-full border border-sky-200/20 px-4 py-2 text-sm">
+              {completedSlots} of {totalSlots} group picks saved
+            </p>
+            <p className="text-sm opacity-75">
+              {yoursSaved === targets.length
+                ? "All of yours are in \u2014 thank you."
+                : `${yoursSaved} of ${targets.length} of yours saved`}
+            </p>
+          </div>
         </div>
         <div className="h-1 bg-slate-950/30">
           <div
@@ -154,6 +170,65 @@ export function CardSelectionStudio({
           Every slot is filled, but at least one secret pool has fewer than four unique cards. Replace a duplicated recommendation to unlock the exchange.
         </p>
       ) : null}
+
+      {/*
+        Spelled out rather than left to be inferred. Rehearsing the workshop
+        turned up three things nobody can work out from the controls: how many
+        picks they personally owe, that the deadline is a target and the last
+        pick is what actually unlocks anything, and that several people
+        choosing the same commander for the same person can stall the event
+        with every slot apparently filled.
+      */}
+      <section className="space-y-3 rounded-2xl border border-slate-300/20 p-5">
+        <h2 className="text-lg font-semibold">What to do here</h2>
+        <ol className="list-decimal space-y-2 pl-5 text-sm opacity-80">
+          <li>
+            Pick a name under <strong>Choose a participant</strong> below. You
+            owe one commander for each of the {targets.length} other players.
+          </li>
+          <li>
+            Find them a commander &mdash; search by name, filter by colour, or
+            press <strong>Roll again</strong> for a fresh handful &mdash; then
+            open the card and press <strong>Save for &hellip;</strong>. If it
+            can take a partner you are offered one; saving it on its own is
+            always fine.
+          </li>
+          <li>
+            Change any of them as often as you like until the last person
+            finishes. At that moment every choice locks.
+          </li>
+          <li>
+            Once the whole group is done this page turns into your own
+            assignment: who you are building for, and a shortlist drawn from
+            their pool.
+          </li>
+        </ol>
+        <p className="text-sm opacity-80">
+          <strong>
+            Pick a different card for each person, and something you would not
+            expect everyone else to pick.
+          </strong>{" "}
+          Each person&rsquo;s shortlist needs four distinct cards out of their
+          two sign-up choices plus one from each of the rest of you &mdash; so
+          if several of you land on the same commander for the same person,
+          that pool comes up short and nobody&rsquo;s assignment opens.
+        </p>
+        <p className="text-sm">
+          <a
+            className="underline"
+            href={commanderPoolSearchUrl()}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Open the full legal pool on Scryfall &#8599;
+          </a>{" "}
+          <span className="opacity-70">
+            &mdash; all of it in a new tab, with the banned commanders already
+            taken out. Scryfall knows nothing about colour vetoes; the picker
+            below does.
+          </span>
+        </p>
+      </section>
 
       <section className="space-y-4">
         <div>

@@ -9,6 +9,7 @@ import { useCommanderOptions } from "@/components/use-commander-options";
 import type { CommanderOption } from "@/lib/commanders";
 import { EXCHANGE_CANDIDATES } from "@/lib/event";
 import { formatEventDate } from "@/lib/launch";
+import { commanderPoolSearchUrl } from "@/lib/rules";
 import {
   canBePrimary,
   canTakePartner,
@@ -505,7 +506,16 @@ export function SignupForm() {
                 Browse every legal commander
               </Link>{" "}
               — opens in a new tab, so you won&rsquo;t lose what you&rsquo;ve
-              filled in here.
+              filled in here. The same pool is{" "}
+              <a
+                className="underline"
+                href={commanderPoolSearchUrl()}
+                rel="noreferrer"
+                target="_blank"
+              >
+                on Scryfall
+              </a>{" "}
+              if you would rather search there.
             </p>
           </>
         )}
