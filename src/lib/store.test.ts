@@ -24,6 +24,7 @@ function clearNetlifyEnv() {
 
 afterEach(() => {
   process.env = { ...originalEnv };
+  request.context = null;
 });
 
 describe("readEvent (local file)", () => {
@@ -175,6 +176,23 @@ const blobs = vi.hoisted(() => ({
   getDeployStore: vi.fn(),
 }));
 
+/**
+ * The deploy context a Netlify request carries, or null outside one.
+ *
+ * Null by default, because that is what the CLI and the test runner are: not
+ * inside a Netlify request. `getContext()` really does throw there.
+ */
+const request = vi.hoisted(() => ({ context: null as string | null }));
+
+vi.mock("@netlify/functions", () => ({
+  getContext: () => {
+    if (request.context === null) {
+      throw new Error("getContext() can only be called within a Netlify request.");
+    }
+    return { deploy: { context: request.context, published: true } };
+  },
+}));
+
 vi.mock("@netlify/blobs", () => ({
   getStore: blobs.getStore.mockReturnValue({
     get: blobs.get,
@@ -278,10 +296,15 @@ describe("readEvent on Netlify (explicit credentials)", () => {
 });
 
 describe("readEvent on Netlify (automatic context, production)", () => {
+  // How production actually looks at runtime: Blobs credentials injected, the
+  // request saying "production", and CONTEXT absent — it is a build variable.
+  // This block used to set CONTEXT = "production" by hand, a condition the
+  // real runtime never produces, which is how every production read went to an
+  // empty store for ten days with this suite green.
   beforeEach(() => {
     clearNetlifyEnv();
     process.env.NETLIFY_BLOBS_CONTEXT = "base64-context-blob";
-    process.env.CONTEXT = "production";
+    request.context = "production";
     blobs.get.mockReset();
     blobs.setJSON.mockReset();
     blobs.getStore.mockClear();
@@ -304,6 +327,48 @@ describe("readEvent on Netlify (automatic context, production)", () => {
       "Using Netlify Blobs (automatic Netlify runtime context, production store)"
     );
   });
+
+  it("reads the store the draw wrote, with no CONTEXT anywhere in the environment", async () => {
+    // The regression, stated plainly. The CLI writes the shared store; the
+    // site must read that same store in production.
+    expect(process.env.CONTEXT).toBeUndefined();
+    blobs.get.mockResolvedValue(null);
+
+    await readEvent();
+
+    expect(blobs.getStore).toHaveBeenCalledWith("secret-santa");
+    expect(blobs.getDeployStore).not.toHaveBeenCalled();
+  });
+
+  it("believes the request over a stray build variable", async () => {
+    // The request describes the deploy actually serving; CONTEXT at best
+    // describes whatever was built.
+    process.env.CONTEXT = "deploy-preview";
+    blobs.get.mockResolvedValue(null);
+
+    await readEvent();
+
+    expect(blobs.getStore).toHaveBeenCalledWith("secret-santa");
+  });
+});
+
+describe("netlify dev, where CONTEXT is the only signal", () => {
+  beforeEach(() => {
+    clearNetlifyEnv();
+    process.env.NETLIFY_BLOBS_CONTEXT = "base64-context-blob";
+    blobs.getStore.mockClear();
+    blobs.getDeployStore.mockClear();
+    blobs.get.mockReset();
+  });
+
+  it("still honours CONTEXT when there is no request context to read", async () => {
+    process.env.CONTEXT = "production";
+    blobs.get.mockResolvedValue(null);
+
+    await readEvent();
+
+    expect(blobs.getStore).toHaveBeenCalledWith("secret-santa");
+  });
 });
 
 describe("deploy-context isolation", () => {
@@ -320,8 +385,8 @@ describe("deploy-context isolation", () => {
   });
 
   for (const context of ["deploy-preview", "branch-deploy", "dev"]) {
-    it(`uses a deploy-scoped store when CONTEXT is "${context}"`, async () => {
-      process.env.CONTEXT = context;
+    it(`uses a deploy-scoped store when the request says "${context}"`, async () => {
+      request.context = context;
       blobs.get.mockResolvedValue(null);
 
       await readEvent();
@@ -332,7 +397,7 @@ describe("deploy-context isolation", () => {
   }
 
   it("writes from a preview go to the deploy-scoped store, never the shared one", async () => {
-    process.env.CONTEXT = "deploy-preview";
+    request.context = "deploy-preview";
     blobs.get.mockResolvedValue(null);
 
     await writeEvent({ participants: [], revealedAt: null });
@@ -345,10 +410,11 @@ describe("deploy-context isolation", () => {
     });
   });
 
-  it("fails closed when CONTEXT is missing entirely", async () => {
-    // An empty production site is loud and fixed in minutes; a preview quietly
-    // writing to live event data is not. So an unknown context is not
-    // production.
+  it("fails closed when neither the request nor CONTEXT names a context", async () => {
+    // Still the right direction: a preview quietly writing to live event data
+    // is worse than an empty site. But an empty production site turned out not
+    // to be loud at all — it looks exactly like a correct site before the draw
+    // — which is why the signal has to be one the runtime really has.
     blobs.get.mockResolvedValue(null);
 
     await readEvent();
@@ -357,15 +423,15 @@ describe("deploy-context isolation", () => {
     expect(blobs.getStore).not.toHaveBeenCalled();
   });
 
-  it("describeTarget names the context so a wrong resolution is visible", () => {
-    process.env.CONTEXT = "deploy-preview";
+  it("describeTarget names the context and where it came from", () => {
+    request.context = "deploy-preview";
 
     expect(describeTarget()).toContain("deploy-scoped store");
-    expect(describeTarget()).toContain("CONTEXT=deploy-preview");
+    expect(describeTarget()).toContain("deploy-preview (from request)");
   });
 
-  it("describeTarget says so when CONTEXT is unset", () => {
-    expect(describeTarget()).toContain("CONTEXT=(unset)");
+  it("describeTarget says so when no context could be found", () => {
+    expect(describeTarget()).toContain("(unknown)");
   });
 
   it("explicit credentials still reach the real store regardless of context", () => {
