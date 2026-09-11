@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { getContext } from "@netlify/functions";
 import type { NudgeState } from "./nudge";
 import type { ReminderState } from "./signup-reminder";
 import type { EventData, Participant } from "./participants";
@@ -50,6 +51,39 @@ type BlobsMode =
 const PRODUCTION_CONTEXT = "production";
 
 /**
+ * Which deploy context this code is running in, and where that came from.
+ *
+ * **The request, first.** Every request Netlify hands a function — the Next.js
+ * server handler included — carries `deploy.context`, and `getContext()` reads
+ * it. That is the platform describing the deploy that is actually serving, so
+ * it is the one to believe.
+ *
+ * `CONTEXT` is only the fallback, and this used to rely on it alone. It is a
+ * **build** variable: Netlify sets it while the site is built and not in the
+ * runtime that serves it. So every production request resolved to "unset",
+ * failed closed to the deploy-scoped store, and read an empty event — for ten
+ * days, silently. The admin console showed nobody, the sign-up reminder kept
+ * its memory per deploy, and on the night of the draw all seven private links
+ * returned 404, because the draw had written the one store the site never
+ * looked in. It is kept for `netlify dev`, which does set it.
+ *
+ * `getContext()` throws outside a request (the CLI, a build step); that is not
+ * an error here, just the absence of the better answer.
+ */
+function deployContext(): { context: string; source: "request" | "CONTEXT" } | null {
+  try {
+    const context = getContext().deploy?.context;
+    if (context) {
+      return { context, source: "request" };
+    }
+  } catch {
+    // Not inside a Netlify request. Fall through to the build variable.
+  }
+  const fromBuild = process.env.CONTEXT;
+  return fromBuild ? { context: fromBuild, source: "CONTEXT" } : null;
+}
+
+/**
  * Decides where event data lives.
  *
  * `getStore(name)` called with a bare string only resolves credentials from
@@ -67,7 +101,8 @@ const PRODUCTION_CONTEXT = "production";
  *   silently falling back to the local file (which would look like success).
  * - `NETLIFY_BLOBS_CONTEXT` set → Blobs, automatic credentials (this is the
  *   deployed-on-Netlify case; no manual credentials needed or wanted there).
- *   `CONTEXT` then decides *which* store — see `openStore`.
+ *   The deploy context then decides *which* store — see `deployContext` for
+ *   where that comes from, and `openStore` for why it matters.
  * - Neither → local JSON file (`npm run dev`, Playwright E2E).
  */
 function resolveMode(): BlobsMode {
@@ -84,11 +119,11 @@ function resolveMode(): BlobsMode {
     );
   }
   if (process.env.NETLIFY_BLOBS_CONTEXT) {
-    const context = process.env.CONTEXT ?? "";
+    const resolved = deployContext();
     return {
       kind: "automatic",
-      production: context === PRODUCTION_CONTEXT,
-      context: context || "(unset)",
+      production: resolved?.context === PRODUCTION_CONTEXT,
+      context: resolved ? `${resolved.context} (from ${resolved.source})` : "(unknown)",
     };
   }
   return { kind: "local" };
@@ -107,7 +142,7 @@ export function describeTarget(): string {
     case "automatic":
       return mode.production
         ? "Using Netlify Blobs (automatic Netlify runtime context, production store)"
-        : `Using Netlify Blobs (deploy-scoped store; CONTEXT=${mode.context}) — ` +
+        : `Using Netlify Blobs (deploy-scoped store; context ${mode.context}) — ` +
           "this deploy cannot see or change production event data";
     case "local":
       return `Using local file ${localPath()}`;
@@ -130,11 +165,14 @@ export function describeTarget(): string {
  * and the console has nothing to unlock. Same structural isolation the `/demo`
  * routes already have, arrived at a different way.
  *
- * **Missing `CONTEXT` fails closed**, to the deploy-scoped store. If Netlify
- * ever stops providing it, production shows an empty event — loud, obvious,
- * fixed in minutes — rather than previews quietly writing to live data.
- * `describeTarget()` prints which store was chosen, so a wrong answer is
- * visible rather than inferred.
+ * **An unknown context fails closed**, to the deploy-scoped store. That is
+ * still the right direction — a preview must never write to live data — but
+ * this comment used to promise the failure would be "loud, obvious, fixed in
+ * minutes", and it was none of those. Production ran against an empty store for
+ * ten days and nothing looked broken until a private link 404'd, because an
+ * empty event is also exactly what a correct site shows before the draw. The
+ * lesson is in `deployContext`: the signal has to be one the runtime actually
+ * has, not one that only exists while building.
  *
  * The operator's CLI is unaffected: it authenticates with explicit
  * credentials, which always mean the real store.
