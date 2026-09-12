@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { CardImage } from "@/components/CardImage";
 import type { CommanderOption } from "@/lib/commanders";
 
 /**
@@ -15,6 +16,37 @@ const MAX_VISIBLE = 50;
 
 function matches(option: CommanderOption, query: string): boolean {
   return option.name.toLowerCase().includes(query);
+}
+
+/**
+ * A card thumbnail sized to Scryfall's own aspect ratio.
+ *
+ * 40×56 is 488:680 to within a pixel, so the card is not squashed and needs no
+ * cropping. Hovering it magnifies the full card through `CardImage`'s portal —
+ * which is the point of showing art here at all, since nobody can read a
+ * commander at this size. The portal also matters more here than elsewhere:
+ * the dropdown is `overflow-hidden`, and a preview rendered inline would be
+ * clipped to the width of the list.
+ */
+function OptionThumbnail({ option }: { option: CommanderOption }) {
+  if (!option.imageUrl) {
+    // A few cards have no art on Scryfall. An empty frame keeps the rows the
+    // same height, so the list does not jump around as it filters.
+    return (
+      <span
+        aria-hidden="true"
+        className="h-14 w-10 shrink-0 rounded border border-slate-300/25"
+      />
+    );
+  }
+  return (
+    <CardImage
+      className="h-14 w-10 shrink-0 rounded"
+      loading="lazy"
+      name={option.name}
+      src={option.imageUrl}
+    />
+  );
 }
 
 /**
@@ -162,7 +194,7 @@ export function CommanderCombobox({
             {visible.map((option, index) => (
               <li
                 aria-selected={index === activeIndex}
-                className={`cursor-pointer px-3 py-2 text-sm ${
+                className={`flex cursor-pointer items-center gap-3 px-3 py-2 text-sm ${
                   index === activeIndex ? "bg-sky-600 text-white" : ""
                 }`}
                 id={`${optionId}-${index}`}
@@ -176,7 +208,8 @@ export function CommanderCombobox({
                 onMouseEnter={() => setActive(index)}
                 role="option"
               >
-                {option.name}
+                <OptionThumbnail option={option} />
+                <span>{option.name}</span>
               </li>
             ))}
             {visible.length === 0 ? (
