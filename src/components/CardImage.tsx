@@ -42,6 +42,7 @@ export function CardImage({
   name,
   className,
   style,
+  loading,
 }: {
   src: string;
   /** Usually empty: the card's name is nearly always rendered beside it. */
@@ -51,6 +52,15 @@ export function CardImage({
   className?: string;
   /** For sizes Tailwind has no utility for; never applied to the preview. */
   style?: React.CSSProperties;
+  /**
+   * Defer loading until the thumbnail is near the viewport.
+   *
+   * For long lists. Scryfall's art is the full 488×680 "normal" image — about
+   * 100 KB each — so a dropdown of fifty of them is several megabytes fetched
+   * to show the four rows somebody can actually see. Grids that render a
+   * handful of cards at once leave this alone.
+   */
+  loading?: "lazy" | "eager";
 }) {
   const hoverCapable = useSyncExternalStore(
     subscribeToHover,
@@ -135,6 +145,7 @@ export function CardImage({
       <img
         alt={alt}
         className={className}
+        loading={loading}
         onBlur={close}
         onFocus={openFromFocus}
         onMouseEnter={open}
