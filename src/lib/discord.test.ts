@@ -6,7 +6,9 @@ import {
   isWebhookUrl,
   mentionFor,
   parseDiscordRef,
+  PLAYERS_ROLE_ID,
   postToDiscord,
+  roleMention,
   webhookFromEnv,
   willPing,
 } from "./discord";
@@ -218,4 +220,31 @@ describe("escapeMarkdown", () => {
     expect(escapeMarkdown("*Gus*")).toBe("\\*Gus\\*");
     expect(escapeMarkdown("Ada")).toBe("Ada");
   });
+});
+
+describe("role mentions", () => {
+  it("uses the role form, which is not the person form", () => {
+    // `<@id>` and `<@&id>` differ by one character, and Discord renders the
+    // wrong one as plain text rather than complaining.
+    expect(roleMention("123")).toBe("<@&123>");
+    expect(roleMention()).toBe(`<@&${PLAYERS_ROLE_ID}>`);
+  });
+
+  it("allows roles to ping only when the message asks for it", async () => {
+    // Without `roles` in the allow-list Discord renders `<@&id>` as plain text
+    // and notifies nobody — a ping that looks sent and reaches no one.
+    const fetchMock = vi.fn(
+      async (_url: string, _init: RequestInit) => new Response(null, { status: 204 })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await postToDiscord(VALID, "hi", { mentionRoles: true });
+
+    const body = JSON.parse(String(fetchMock.mock.calls[0][1].body));
+    expect(body.allowed_mentions.parse).toContain("roles");
+    // A role ping is not an @everyone ping, and must not quietly become one.
+    expect(body.allowed_mentions.parse).not.toContain("everyone");
+    vi.unstubAllGlobals();
+  });
+
 });

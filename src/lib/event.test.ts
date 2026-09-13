@@ -30,6 +30,9 @@ describe("event schedule constants", () => {
     // starts on the 26th.
     expect(WORKSHOP_CLOSE_AT).toBe("2026-09-26T04:00:00Z");
     expect(EXCHANGE_CANDIDATES).toEqual(["2026-12-05", "2026-12-12", "2026-12-19"]);
-    expect(EXCHANGE_AT).toBeNull();
+    // Settled from the sign-up ranking: the 12th took four of seven firsts.
+    // An instant at local midnight, not a bare date — as UTC midnight the
+    // countdown would hit zero on the evening of the 11th.
+    expect(EXCHANGE_AT).toBe("2026-12-12T05:00:00Z");
   });
 });

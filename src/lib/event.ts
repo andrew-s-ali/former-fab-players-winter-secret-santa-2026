@@ -92,9 +92,20 @@ export const WORKSHOP_CLOSE_AT = "2026-09-26T04:00:00Z";
 export const EXCHANGE_CANDIDATES = ["2026-12-05", "2026-12-12", "2026-12-19"] as const;
 
 /**
- * Set to the agreed exchange date to turn on the second countdown.
+ * The agreed exchange date, which turns on the second countdown.
+ *
+ * Settled on 12 September 2026 by the ranking collected at sign-up: all seven
+ * ranked the dates, and the 12th took four of the seven first choices, 18
+ * Borda points to the 5th's 15, and the best average rank at 1.43. See
+ * `tallyExchangeDates`, which the organiser console shows.
+ *
+ * An instant rather than a bare date, for the same reason the sign-up gate is:
+ * `"2026-12-12"` alone means midnight **UTC**, which is seven in the evening
+ * on the 11th here, and the countdown would reach zero a day early. December
+ * is EST (UTC-5), so local midnight is 05:00 UTC. `formatEventDate` renders in
+ * UTC and still reads "12 December 2026", because Eastern is behind Greenwich.
  *
  * Deliberately not validated against EXCHANGE_CANDIDATES — plans change, and
  * the site should not refuse a date the group actually settled on.
  */
-export const EXCHANGE_AT: string | null = null;
+export const EXCHANGE_AT: string | null = "2026-12-12T05:00:00Z";
