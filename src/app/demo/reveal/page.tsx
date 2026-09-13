@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { DemoBadge } from "@/components/DemoBadge";
 import { RevealRing } from "@/components/RevealRing";
-import { readDemoEvent } from "@/lib/demo";
-import { isRevealed } from "@/lib/participants";
+import { pickSecretCards, visibleShortlist } from "@/lib/card-pool";
+import {
+  readDemoEvent,
+  readDemoSelections,
+  readDemoWorkspace,
+  stableRandom,
+} from "@/lib/demo";
+import { pickId } from "@/lib/pairing";
+import { findById, isRevealed } from "@/lib/participants";
 import { buildRing } from "@/lib/ring";
 
 export const metadata = {
@@ -28,11 +35,40 @@ export default function DemoRevealPage() {
     );
   }
 
+  const ring = buildRing(event.participants);
+  const selections = readDemoSelections();
+
+  /*
+    The same shortlist the demo's own private pages draw, so the cards under
+    the ring are the cards those links show. No database here: the demo routes
+    cannot reach one, which is their isolation guarantee.
+  */
+  const builds = ring.steps.map((step) => {
+    const giver = event.participants.find((p) => p.name === step.from);
+    const recipient = giver ? findById(event, giver.recipientId) : undefined;
+    if (!giver || !recipient) {
+      return null;
+    }
+    const drawn = pickSecretCards(selections, recipient, stableRandom(giver.token));
+    if (!drawn) {
+      return null;
+    }
+    const cards = visibleShortlist(drawn, null);
+    return {
+      cards,
+      // Invented, so the demo shows the marked state rather than implying
+      // nobody ever answers: every other builder has decided.
+      builtPickId:
+        event.participants.indexOf(giver) % 2 === 0 ? pickId(cards[0]) : null,
+      decklistUrl: readDemoWorkspace(giver.id).decklistUrl,
+    };
+  });
+
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-8">
+    <main className="mx-auto max-w-4xl space-y-6 p-8">
       <DemoBadge />
       <h1 className="text-3xl font-semibold">Who had who</h1>
-      <RevealRing ring={buildRing(event.participants)} />
+      <RevealRing builds={builds} ring={ring} />
       <Link className="underline" href="/demo">
         ← Back to the demo links
       </Link>

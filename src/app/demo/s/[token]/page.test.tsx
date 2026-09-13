@@ -7,7 +7,10 @@ import * as demoLib from "@/lib/demo";
 import { soloPick } from "@/lib/pairing";
 import { testCommander, testSelfCards } from "@/test-support/cards";
 
-vi.mock("@/lib/demo", () => ({
+vi.mock("@/lib/demo", async (importOriginal) => ({
+  // `stableRandom` stays real: it is pure, and seeding the draw from the token
+  // is what keeps a demo link's three cards fixed across reloads.
+  ...(await importOriginal<typeof import("@/lib/demo")>()),
   readDemoEvent: vi.fn(),
   readDemoSelections: vi.fn(),
   readDemoWorkspace: vi.fn(),

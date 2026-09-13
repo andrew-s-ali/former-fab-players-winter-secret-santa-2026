@@ -2,19 +2,28 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { cashInCardAction, type CardActionResult } from "@/app/s/actions";
+import {
+  cashInCardAction,
+  chooseBuiltCardAction,
+  type CardActionResult,
+} from "@/app/s/actions";
+import { CardLinks } from "@/components/CardLinks";
 import { PickCards, PickName } from "@/components/PickCards";
-import { pickId, pickName, type CommanderPick } from "@/lib/pairing";
+import { pickCards, pickId, pickName, type CommanderPick } from "@/lib/pairing";
 
 export function SecretCardChoices({
   token,
   cards,
   cashInUsed,
+  builtPickId = null,
   onCashIn,
+  onChooseBuilt,
 }: {
   token: string;
   cards: CommanderPick[];
   cashInUsed: boolean;
+  /** Which of these they have said they are building, if they have said. */
+  builtPickId?: string | null;
   /**
    * Overrides the server action. Only the `/demo` routes pass this: they let
    * someone try the trade without a database behind them, and they do it
@@ -22,6 +31,8 @@ export function SecretCardChoices({
    * what the real page does.
    */
   onCashIn?: (index: number) => Promise<CardActionResult>;
+  /** Overrides the server action, for the same reason as `onCashIn`. */
+  onChooseBuilt?: (pickId: string | null) => Promise<CardActionResult>;
 }) {
   const router = useRouter();
   const [tradeIndex, setTradeIndex] = useState<number | null>(null);
@@ -47,6 +58,31 @@ export function SecretCardChoices({
     });
   }
 
+  /**
+   * Says which one they are building.
+   *
+   * Asked here, while they are building, because nothing else can recover it
+   * later: the shortlist is stored but the choice made from it is not, and by
+   * reveal day the only record would be in somebody's memory. Changeable as
+   * often as they like — people change their minds at the table — and clearing
+   * it back to undecided is allowed.
+   */
+  function chooseBuilt(next: string | null) {
+    setError(null);
+    startTransition(async () => {
+      const result = onChooseBuilt
+        ? await onChooseBuilt(next)
+        : await chooseBuiltCardAction(token, next);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      if (!onChooseBuilt) {
+        router.refresh();
+      }
+    });
+  }
+
   return (
     <section className="space-y-5">
       <div>
@@ -61,6 +97,12 @@ export function SecretCardChoices({
 
       {error ? <p className="rounded-lg bg-red-500/15 p-3 text-sm" role="alert">{error}</p> : null}
 
+      <p className="text-sm opacity-75">
+        {builtPickId === null
+          ? "Once you have decided, say which one you are building — it goes on the reveal-day page beside the three you chose from."
+          : "Changed your mind? Choose another and it will be updated."}
+      </p>
+
       <div className="grid gap-5 sm:grid-cols-3">
         {cards.map((pick, index) => (
           <article className="overflow-hidden rounded-2xl border border-amber-100/20 bg-slate-950/25" key={pickId(pick)}>
@@ -69,9 +111,45 @@ export function SecretCardChoices({
               <h3 className="font-semibold leading-tight">
                 <PickName pick={pick} />
               </h3>
-              {!cashInUsed ? (
+
+              {/*
+                Both halves of a pair get their own price and links: they are
+                two cards to buy and two pages to read, and the budget counts
+                them both.
+              */}
+              {pickCards(pick).map((card) => (
+                <div key={card.id}>
+                  {pick.partner ? (
+                    <p className="text-xs font-medium opacity-70">{card.name}</p>
+                  ) : null}
+                  <CardLinks card={card} />
+                </div>
+              ))}
+              {builtPickId === pickId(pick) ? (
+                <p className="flex items-center gap-2 text-sm font-medium text-emerald-300">
+                  <span aria-hidden="true">✓</span> You are building this one
+                  <button
+                    className="ml-auto text-xs underline opacity-70 disabled:opacity-40"
+                    disabled={pending}
+                    onClick={() => chooseBuilt(null)}
+                    type="button"
+                  >
+                    Undo
+                  </button>
+                </p>
+              ) : (
                 <button
                   className="text-sm underline disabled:opacity-50"
+                  disabled={pending}
+                  onClick={() => chooseBuilt(pickId(pick))}
+                  type="button"
+                >
+                  I&rsquo;m building this one
+                </button>
+              )}
+              {!cashInUsed ? (
+                <button
+                  className="block text-sm underline opacity-70 disabled:opacity-50"
                   disabled={pending}
                   onClick={() => setTradeIndex(index)}
                   type="button"

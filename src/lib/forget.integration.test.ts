@@ -88,7 +88,7 @@ describe("erasing one person, against a real database", () => {
 
     expect(await deleteDeckBuilds(["ada"])).toBe(1);
 
-    expect(await readDeckBuild("ada")).toEqual({ decklistUrl: null, notes: "" });
+    expect(await readDeckBuild("ada")).toEqual({ decklistUrl: null, notes: "", builtPickId: null });
     expect((await readDeckBuild("brin")).notes).toBe("keep");
   });
 

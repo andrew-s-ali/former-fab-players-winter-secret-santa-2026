@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "#db/index";
 import { pickId } from "#lib/pairing";
-import { cardSelections, secretCardSets } from "#db/schema";
+import { cardSelections, deckBuilds, secretCardSets } from "#db/schema";
 import {
   pickSecretCards,
   relevantSelections,
@@ -284,6 +284,68 @@ export async function readAllSelections(
   participants: Participant[]
 ): Promise<SavedSelection[]> {
   return loadRelevantSelections(participants);
+}
+
+export type RevealedShortlist = {
+  giverId: string;
+  /** The three the builder could see, after any trade. */
+  cards: CommanderPick[];
+  /** Which one they said they were building, if they said. */
+  builtPickId: string | null;
+  decklistUrl: string | null;
+};
+
+/**
+ * Every builder's finished shortlist, for reveal day.
+ *
+ * Only ever read once the ring is public, so this is the one place the
+ * shortlists stop being secret. It reads what each builder *saw* — the visible
+ * three, not the held-back fourth — because showing the card somebody was
+ * never offered would misrepresent the choice they made.
+ *
+ * Missing rows are simply absent from the result: a builder who never opened
+ * their link has no set, and reveal day should say nothing about them rather
+ * than fail.
+ */
+export async function readRevealedShortlists(
+  participants: Participant[]
+): Promise<RevealedShortlist[]> {
+  if (participants.length === 0) {
+    return [];
+  }
+  const db = getDb();
+  const ids = participants.map((participant) => participant.id);
+
+  const [sets, builds] = await Promise.all([
+    db
+      .select()
+      .from(secretCardSets)
+      .where(inArray(secretCardSets.giverId, ids)),
+    db
+      .select({
+        giverId: deckBuilds.giverId,
+        builtPickId: deckBuilds.builtPickId,
+        decklistUrl: deckBuilds.decklistUrl,
+      })
+      .from(deckBuilds)
+      .where(inArray(deckBuilds.giverId, ids)),
+  ]);
+
+  const byGiver = new Map(builds.map((build) => [build.giverId, build]));
+  return sets.map((set) => {
+    const build = byGiver.get(set.giverId);
+    const cards = visibleShortlist(set.cards, set.cashedInAt ? set.replacedIndex : null);
+    const builtPickId = build?.builtPickId ?? null;
+    return {
+      giverId: set.giverId,
+      cards,
+      // Guarded rather than trusted: a trade after the choice can carry the
+      // built card out of the visible three, and the page should then show
+      // nobody's deck rather than point at a card that is no longer offered.
+      builtPickId: cards.some((card) => pickId(card) === builtPickId) ? builtPickId : null,
+      decklistUrl: build?.decklistUrl ?? null,
+    };
+  });
 }
 
 /**

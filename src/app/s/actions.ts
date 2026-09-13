@@ -3,13 +3,20 @@
 import { revalidatePath } from "next/cache";
 import {
   cashInSecretCard,
+  getOrCreateSecretCards,
   removeSelection,
   saveSelection,
 } from "@/lib/card-selections";
-import { clearDecklistUrl, saveDecklistUrl, saveNotes } from "@/lib/deck-builds";
+import {
+  clearDecklistUrl,
+  saveBuiltPick,
+  saveDecklistUrl,
+  saveNotes,
+} from "@/lib/deck-builds";
 import {
   describeIllegalPick,
   pickColorIdentity,
+  pickId,
   pickName,
   type CommanderPick,
 } from "@/lib/pairing";
@@ -125,6 +132,39 @@ export async function cashInCardAction(
   return run(token, async ({ participant }) => {
     await cashInSecretCard(participant, replacedIndex);
     return "Your hidden fourth card has replaced the traded choice.";
+  });
+}
+
+/**
+ * Records which of the shortlist this builder is actually building.
+ *
+ * Checked against their *visible* three rather than all four: the held-back
+ * card is not a thing they have been offered, and accepting it would let the
+ * page report a deck built around a card its builder never saw. Passing null
+ * clears the choice, for somebody who goes back to undecided.
+ */
+export async function chooseBuiltCardAction(
+  token: string,
+  chosenPickId: string | null
+): Promise<CardActionResult> {
+  return run(token, async ({ event, participant }) => {
+    if (chosenPickId === null) {
+      await saveBuiltPick(participant.id, null);
+      return "Cleared — you have not said which one you are building.";
+    }
+
+    const recipient = findById(event, participant.recipientId);
+    if (!recipient) {
+      throw new Error("This private link is not valid.");
+    }
+    const secret = await getOrCreateSecretCards(participant, recipient, event.participants);
+    const chosen = secret?.cards.find((card) => pickId(card) === chosenPickId);
+    if (!chosen) {
+      throw new Error("That card is not one of the three on your shortlist.");
+    }
+
+    await saveBuiltPick(participant.id, chosenPickId);
+    return `Noted — you are building ${pickName(chosen)}.`;
   });
 }
 

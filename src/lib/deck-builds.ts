@@ -24,17 +24,27 @@ export {
 export type DeckBuild = {
   decklistUrl: string | null;
   notes: string;
+  /** The `pickId` of the shortlist card they are building, or null. */
+  builtPickId: string | null;
 };
 
 
 /** This builder's saved workspace. Absent rows read as empty, not missing. */
 export async function readDeckBuild(giverId: string): Promise<DeckBuild> {
   const [row] = await getDb()
-    .select({ decklistUrl: deckBuilds.decklistUrl, notes: deckBuilds.notes })
+    .select({
+      decklistUrl: deckBuilds.decklistUrl,
+      notes: deckBuilds.notes,
+      builtPickId: deckBuilds.builtPickId,
+    })
     .from(deckBuilds)
     .where(eq(deckBuilds.giverId, giverId))
     .limit(1);
-  return { decklistUrl: row?.decklistUrl ?? null, notes: row?.notes ?? "" };
+  return {
+    decklistUrl: row?.decklistUrl ?? null,
+    notes: row?.notes ?? "",
+    builtPickId: row?.builtPickId ?? null,
+  };
 }
 
 /** Saves or replaces this builder's decklist link. */
@@ -50,6 +60,21 @@ export async function clearDecklistUrl(giverId: string): Promise<void> {
 }
 
 /** Saves this builder's notes. */
+/**
+ * Records which card of the shortlist this builder is building.
+ *
+ * The id is checked against their own shortlist by the caller, not here: this
+ * module knows about rows, and which cards somebody was offered is a question
+ * for `card-selections`. Null clears it, for somebody who changes their mind
+ * back to undecided.
+ */
+export async function saveBuiltPick(
+  giverId: string,
+  pickId: string | null
+): Promise<void> {
+  await upsert(giverId, { builtPickId: pickId });
+}
+
 export async function saveNotes(giverId: string, raw: string): Promise<void> {
   await upsert(giverId, { notes: normalizeNotes(raw) });
 }
@@ -61,7 +86,7 @@ export async function saveNotes(giverId: string, raw: string): Promise<void> {
  */
 async function upsert(
   giverId: string,
-  fields: { decklistUrl?: string | null; notes?: string }
+  fields: { decklistUrl?: string | null; notes?: string; builtPickId?: string | null }
 ): Promise<void> {
   await getDb()
     .insert(deckBuilds)
