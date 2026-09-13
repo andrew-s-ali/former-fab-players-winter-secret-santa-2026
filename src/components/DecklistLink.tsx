@@ -38,9 +38,17 @@ function check(raw: string): { ok: true; url: string } | { ok: false; error: str
 export function DecklistLink({
   token,
   savedUrl,
+  builtName = null,
 }: {
   token: string;
   savedUrl: string | null;
+  /**
+   * The commander they said they were building, if they have said.
+   *
+   * Carried down so this box and the shortlist above it read as one job rather
+   * than a list of cards and an unrelated URL field.
+   */
+  builtName?: string | null;
 }) {
   const [draft, setDraft] = useLocalDraft(`${DRAFT_KEY_PREFIX}${token}`);
   /** What has been typed this session; null until the participant edits. */
@@ -183,6 +191,13 @@ export function DecklistLink({
           {label[status]}
         </span>
       </div>
+
+      {builtName ? (
+        <p className="text-sm opacity-75">
+          You are building <strong>{builtName}</strong>. Save the list here as
+          it comes together.
+        </p>
+      ) : null}
 
       <p className="text-sm opacity-70">
         Paste the link to the deck you&rsquo;re building — Moxfield, Archidekt,

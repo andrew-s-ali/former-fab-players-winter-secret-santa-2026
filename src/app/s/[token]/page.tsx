@@ -4,12 +4,15 @@ import { CommanderBrowser } from "@/components/CommanderBrowser";
 import { CardSelectionStudio } from "@/components/CardSelectionStudio";
 import { DecklistLink } from "@/components/DecklistLink";
 import { RevealDetails } from "@/components/RevealDetails";
+import { DeckDeadline } from "@/components/DeckDeadline";
 import { RulesSummary } from "@/components/RulesSummary";
 import { SecretCardChoices } from "@/components/SecretCardChoices";
 import { SecretScratchpad } from "@/components/SecretScratchpad";
 import { SignupSummary } from "@/components/SignupSummary";
 import { getOrCreateSecretCards, getSelectionWorkspace } from "@/lib/card-selections";
+import { siteNow } from "@/lib/clock";
 import { readDeckBuild } from "@/lib/deck-builds";
+import { pickId, pickName } from "@/lib/pairing";
 import { findById, findByToken, type Participant } from "@/lib/participants";
 import { pickPrompt } from "@/lib/prompts";
 import { readEvent } from "@/lib/store";
@@ -101,6 +104,13 @@ export default async function RevealPage({
       throw new Error("Card selections became incomplete while opening the secret page.");
     }
 
+    // Resolved from the shortlist rather than stored twice: a card traded away
+    // after the choice was made is no longer theirs to be building.
+    const built = secretCards.cards.find(
+      (card) => pickId(card) === deckBuild.builtPickId
+    );
+    const builtName = built ? pickName(built) : null;
+
     return (
       <main className="mx-auto max-w-4xl space-y-9 p-6 sm:p-8">
         <h1 className="text-3xl font-semibold">Hi {giver.name}</h1>
@@ -113,6 +123,7 @@ export default async function RevealPage({
         <section className="space-y-6 rounded-2xl border border-sky-200/20 bg-sky-950/20 p-5 sm:p-6">
           <RevealDetails recipient={recipient} />
           <SecretCardChoices
+            builtPickId={deckBuild.builtPickId}
             cards={secretCards.cards}
             cashInUsed={secretCards.cashInUsed}
             token={token}
@@ -123,7 +134,12 @@ export default async function RevealPage({
         <BrowserLink />
 
         {/* 4. */}
-        <DecklistLink savedUrl={deckBuild.decklistUrl} token={token} />
+        <DeckDeadline now={siteNow()} />
+        <DecklistLink
+          builtName={builtName}
+          savedUrl={deckBuild.decklistUrl}
+          token={token}
+        />
 
         <SecretScratchpad initialNotes={deckBuild.notes} token={token} />
         <RulesSummary />
