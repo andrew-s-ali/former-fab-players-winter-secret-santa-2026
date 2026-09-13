@@ -33,17 +33,29 @@ describe("event rules", () => {
 
   it("defines the Scryfall query for the legal commander pool", () => {
     expect(COMMANDER_POOL_QUERY).toBe(
-      "f:edh is:commander r:u game:paper -e:slz"
+      "is:commander r:u game:paper -is:unset -e:slz"
     );
   });
 
-  it("keeps the two filters that change what is legal", () => {
-    // game:paper: without it, digital-only MTGO uncommon reprints enter the
-    // pool. -e:slz: a set whose uncommon printings are not meant to affect
-    // legality here. Both are easy to drop in a reword and neither failure is
-    // visible until somebody picks a card that should not have been offered.
+  it("keeps the filters that change what is legal", () => {
+    // Each of these is easy to drop in a reword, and no failure is visible
+    // until somebody picks a card that should not have been offered.
+    //
+    // game:paper: without it the pool gains 49 Arena-only Alchemy cards, which
+    // cannot be bought — and somebody has to hand over a physical deck.
+    // -is:unset: un-set cards are not real commanders for this event, and the
+    // f:edh that used to exclude them is gone.
+    // -e:slz: a set whose uncommon printings are not meant to affect legality.
     expect(COMMANDER_POOL_QUERY).toContain("game:paper");
+    expect(COMMANDER_POOL_QUERY).toContain("-is:unset");
     expect(COMMANDER_POOL_QUERY).toContain("-e:slz");
+  });
+
+  it("does not ask Scryfall for format legality", () => {
+    // On purpose: legality lags a set's release by weeks, and the group wants
+    // to pick from a set as soon as it can be bought. What is legal here is
+    // the type line, the rarity and this file's own ban list.
+    expect(COMMANDER_POOL_QUERY).not.toContain("f:edh");
   });
 
   it("links to a Scryfall search carrying the pool query", () => {
