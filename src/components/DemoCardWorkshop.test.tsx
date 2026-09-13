@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DemoCardWorkshop } from "./DemoCardWorkshop";
@@ -161,6 +161,21 @@ describe("DemoCardWorkshop", () => {
     expect(
       screen.getByText(/that pool comes up short and nobody/i)
     ).toBeInTheDocument();
+  });
+
+  it("points at the Can pair filter, which is the only way to find pairs", async () => {
+    mountWorkshop();
+
+    // The partner offer only appears after committing to a card that happens
+    // to take one, so without this the whole feature is discoverable by
+    // accident or not at all.
+    const step = (await screen.findByText(/Suggesting a pair\?/i)).closest("li")!;
+
+    // Names the control by the label it really carries: rename the button and
+    // this fails, rather than leaving the instructions pointing at nothing.
+    expect(within(step).getByText("Can pair")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Can pair" })).toBeInTheDocument();
+    expect(within(step).getByText(/fills one slot, not two/i)).toBeInTheDocument();
   });
 
   it("links the full Scryfall search into a new tab", async () => {
