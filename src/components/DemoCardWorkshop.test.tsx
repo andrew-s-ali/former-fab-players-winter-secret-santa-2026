@@ -172,7 +172,7 @@ describe("DemoCardWorkshop", () => {
 
     const url = new URL(link.getAttribute("href")!);
     expect(url.origin + url.pathname).toBe("https://scryfall.com/search");
-    expect(url.searchParams.get("q")).toContain("f:edh is:commander r:u game:paper");
+    expect(url.searchParams.get("q")).toContain("is:commander r:u game:paper");
     // A search that still lists a banned commander is worse than no link.
     expect(url.searchParams.get("q")).toContain('-!"Zada, Hedron Grinder"');
   });

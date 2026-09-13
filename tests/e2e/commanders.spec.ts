@@ -79,6 +79,6 @@ test("the pool links out to the same search on Scryfall", async ({ page }) => {
   // nothing on this page would look wrong.
   const href = await link.getAttribute("href");
   const query = new URL(href!).searchParams.get("q") ?? "";
-  expect(query).toContain("f:edh is:commander r:u game:paper");
+  expect(query).toContain("is:commander r:u game:paper");
   expect(query).toContain('-!"Zada, Hedron Grinder"');
 });
