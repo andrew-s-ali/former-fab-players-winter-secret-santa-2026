@@ -5,6 +5,14 @@ import * as store from "@/lib/store";
 import * as navigation from "next/navigation";
 import { testSelfCards } from "@/test-support/cards";
 
+// The page reads the finished shortlists to show under the ring; that is a
+// database call, and this suite is about what the page renders.
+vi.mock("@/lib/card-selections", () => ({
+  readRevealedShortlists: vi.fn(async () => []),
+}));
+
+const { readRevealedShortlists } = await import("@/lib/card-selections");
+
 vi.mock("@/lib/store", () => ({
   readEvent: vi.fn(),
 }));
@@ -123,5 +131,25 @@ describe("RevealDayPage", () => {
     expect(
       screen.getByRole("link", { name: /← back to the rules/i })
     ).toHaveAttribute("href", "/");
+  });
+});
+
+describe("when the shortlists cannot be read", () => {
+  it("still renders the ring", async () => {
+    // The ring lives in the event store and the cards in Postgres. A database
+    // outage on the day must cost the cards, not the pairings.
+    vi.mocked(store.readEvent).mockResolvedValue({
+      participants: [
+        { id: "1", name: "Ada", recipientId: "2" },
+        { id: "2", name: "Bob", recipientId: "1" },
+      ],
+      revealedAt: "2026-12-12T00:00:00.000Z",
+    } as never);
+    vi.mocked(readRevealedShortlists).mockRejectedValueOnce(new Error("no database"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    render(await RevealDayPage());
+
+    expect(screen.getByRole("heading", { name: /who had who/i })).toBeInTheDocument();
   });
 });

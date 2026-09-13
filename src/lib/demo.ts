@@ -39,3 +39,26 @@ export function readDemoWorkspace(participantId: string): {
     }
   );
 }
+
+/**
+ * A deterministic stand-in for `Math.random`.
+ *
+ * Shared by both demo routes that draw a shortlist — the private link and the
+ * reveal page — so the cards under the ring are the same cards that link
+ * shows. Two copies of the seeding would drift apart silently.
+ *
+ * The real shortlist is drawn once and stored, so it never changes for a given
+ * person. The demo has nowhere to store one, so the draw is seeded from the
+ * token instead — otherwise reloading a demo link would reshuffle the three
+ * cards and imply they are not fixed.
+ */
+export function stableRandom(seed: string): () => number {
+  let state = 0;
+  for (const character of seed) {
+    state = (state * 31 + character.charCodeAt(0)) >>> 0;
+  }
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 2 ** 32;
+  };
+}

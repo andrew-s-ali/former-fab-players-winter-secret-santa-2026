@@ -179,3 +179,19 @@ describe("DecklistLink", () => {
     expect(box()).toHaveValue("");
   });
 });
+
+describe("echoing the commander being built", () => {
+  it("names it, so the shortlist and this box read as one job", () => {
+    render(
+      <DecklistLink builtName="Danitha Capashen, Paragon" savedUrl={null} token="tok" />
+    );
+
+    expect(screen.getByText(/Danitha Capashen, Paragon/)).toBeInTheDocument();
+  });
+
+  it("says nothing while the builder has not decided", () => {
+    render(<DecklistLink savedUrl={null} token="tok" />);
+
+    expect(screen.queryByText(/You are building/i)).not.toBeInTheDocument();
+  });
+});

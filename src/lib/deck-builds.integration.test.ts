@@ -20,7 +20,7 @@ afterAll(async () => {
 
 describe("deck builds, against a real database", () => {
   it("reads as empty for a builder who has saved nothing", async () => {
-    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "" });
+    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "", builtPickId: null });
   });
 
   it("saves and reads back a decklist link", async () => {
@@ -42,7 +42,7 @@ describe("deck builds, against a real database", () => {
   it("refuses a link that is not http(s), leaving nothing behind", async () => {
     await expect(saveDecklistUrl("g1", "javascript:alert(1)")).rejects.toThrow(/https/);
 
-    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "" });
+    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "", builtPickId: null });
   });
 
   it("replaces the link on a second save", async () => {
@@ -61,6 +61,7 @@ describe("deck builds, against a real database", () => {
     expect(await readDeckBuild("g1")).toEqual({
       decklistUrl: "https://moxfield.com/decks/abc",
       notes: "elves, maybe tokens",
+      builtPickId: null,
     });
   });
 
@@ -70,7 +71,7 @@ describe("deck builds, against a real database", () => {
 
     await clearDecklistUrl("g1");
 
-    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "keep me" });
+    expect(await readDeckBuild("g1")).toEqual({ decklistUrl: null, notes: "keep me", builtPickId: null });
   });
 
   it("stores notes for a builder who has no link at all", async () => {
@@ -79,6 +80,7 @@ describe("deck builds, against a real database", () => {
     expect(await readDeckBuild("g1")).toEqual({
       decklistUrl: null,
       notes: "just thinking out loud",
+      builtPickId: null,
     });
   });
 

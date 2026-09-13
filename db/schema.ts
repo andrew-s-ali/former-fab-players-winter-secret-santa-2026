@@ -84,6 +84,20 @@ export const deckBuilds = pgTable("deck_builds", {
    * server" promise.
    */
   notes: text("notes"),
+  /**
+   * Which of the shortlist they are actually building, as a `pickId`.
+   *
+   * Nothing recorded this, and nothing could recover it afterwards: the
+   * shortlist is stored but the choice made from it only ever existed in the
+   * builder's head. Reveal day wants to show the three somebody chose between
+   * *and* the one they chose, so it has to be asked for while they are
+   * building — once the decks are done the answer is gone.
+   *
+   * An id rather than the card itself, because the card is already in
+   * `secret_card_sets.cards`; storing it twice invites the two to disagree.
+   * Null until they say, and still null if they never do.
+   */
+  builtPickId: text("built_pick_id"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -14,9 +14,12 @@ const {
   getOrCreateSecretCards,
   getSelectionWorkspace,
   readAllSelections,
+  readRevealedShortlists,
   removeSelection,
   saveSelection,
 } = await import("./card-selections");
+const { saveBuiltPick, saveDecklistUrl } = await import("./deck-builds");
+const { pickId } = await import("./pairing");
 
 /** Four people in a ring, each with two distinct sign-up choices. */
 const people: Participant[] = ["a", "b", "c", "d"].map((id, index, all) => ({
@@ -287,5 +290,78 @@ describe("card selections, against a real database", () => {
     await getOrCreateSecretCards(by("a"), by("b"), people);
 
     await expect(cashInSecretCard(by("a"), 3)).rejects.toThrow(/one of the three/);
+  });
+});
+
+describe("what reveal day reads back", () => {
+  it("returns the three each builder could see, not the hidden fourth", async () => {
+    await completeTheWorkshop();
+    const shortlist = await getOrCreateSecretCards(by("a"), by("b"), people);
+
+    const [revealed] = (await readRevealedShortlists(people)).filter(
+      (entry) => entry.giverId === "a"
+    );
+
+    expect(revealed.cards.map(pickId)).toEqual(shortlist!.cards.map(pickId));
+    expect(revealed.cards).toHaveLength(3);
+  });
+
+  it("follows a trade, so it shows what the builder ended up with", async () => {
+    await completeTheWorkshop();
+    await getOrCreateSecretCards(by("a"), by("b"), people);
+    await cashInSecretCard(by("a"), 1);
+    const after = await getOrCreateSecretCards(by("a"), by("b"), people);
+
+    const [revealed] = (await readRevealedShortlists(people)).filter(
+      (entry) => entry.giverId === "a"
+    );
+
+    expect(revealed.cards.map(pickId)).toEqual(after!.cards.map(pickId));
+  });
+
+  it("carries the built card and the decklist when a builder has said", async () => {
+    await completeTheWorkshop();
+    const shortlist = await getOrCreateSecretCards(by("a"), by("b"), people);
+    const built = pickId(shortlist!.cards[2]);
+    await saveBuiltPick("a", built);
+    await saveDecklistUrl("a", "https://moxfield.com/decks/abc");
+
+    const [revealed] = (await readRevealedShortlists(people)).filter(
+      (entry) => entry.giverId === "a"
+    );
+
+    expect(revealed.builtPickId).toBe(built);
+    expect(revealed.decklistUrl).toBe("https://moxfield.com/decks/abc");
+  });
+
+  it("drops a built card that a later trade took off the shortlist", async () => {
+    // Saying "I am building this" and then trading that very card away leaves
+    // a choice pointing at a card the builder can no longer see. Reveal day
+    // should show no deck rather than point at one that was traded off.
+    await completeTheWorkshop();
+    const before = await getOrCreateSecretCards(by("a"), by("b"), people);
+    await saveBuiltPick("a", pickId(before!.cards[1]));
+    await cashInSecretCard(by("a"), 1);
+
+    const [revealed] = (await readRevealedShortlists(people)).filter(
+      (entry) => entry.giverId === "a"
+    );
+
+    expect(revealed.builtPickId).toBeNull();
+  });
+
+  it("says nothing about a builder who never opened their link", async () => {
+    await completeTheWorkshop();
+    await getOrCreateSecretCards(by("a"), by("b"), people);
+
+    const revealed = await readRevealedShortlists(people);
+
+    // Only the one set that exists. A missing builder is absent rather than an
+    // error, because reveal day must render whatever it finds.
+    expect(revealed.map((entry) => entry.giverId)).toEqual(["a"]);
+  });
+
+  it("reads nothing for an event with nobody in it", async () => {
+    expect(await readRevealedShortlists([])).toEqual([]);
   });
 });

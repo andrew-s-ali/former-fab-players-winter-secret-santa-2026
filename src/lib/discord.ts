@@ -77,7 +77,20 @@ export async function postToDiscord(
   {
     username = eventTitle(),
     alertChannel = false,
-  }: { username?: string; alertChannel?: boolean } = {}
+    mentionRoles = false,
+  }: {
+    username?: string;
+    alertChannel?: boolean;
+    /**
+     * Let `<@&id>` in the text actually ping the role.
+     *
+     * Opt-in per message like `alertChannel`, and for a milder version of the
+     * same reason: a role ping reaches only the people who hold the role, but
+     * it still reaches all of them at once, so it belongs to messages that are
+     * genuinely for everybody rather than to routine chatter.
+     */
+    mentionRoles?: boolean;
+  } = {}
 ): Promise<void> {
   const response = await fetch(webhookUrl, {
     method: "POST",
@@ -91,7 +104,11 @@ export async function postToDiscord(
       // message, because it notifies people who never asked to hear from this
       // bot and is the one thing that turns a useful channel into a muted one.
       allowed_mentions: {
-        parse: alertChannel ? ["users", "everyone"] : ["users"],
+        parse: [
+          "users",
+          ...(mentionRoles ? ["roles"] : []),
+          ...(alertChannel ? ["everyone"] : []),
+        ],
       },
     }),
   });
@@ -248,6 +265,33 @@ export function willPing(stored: string | null): boolean {
  */
 export function escapeMarkdown(text: string): string {
   return text.replace(/([*_~`|\\>])/g, "\\$1");
+}
+
+/**
+ * The Discord role every player of this exchange carries.
+ *
+ * One ping that reaches the players and nobody else — better than `@here`,
+ * which wakes the whole channel including people who are not in the exchange,
+ * and better than listing seven `<@id>` mentions, which is noise in a line
+ * that is about a date rather than about individuals.
+ *
+ * A role id is not a secret: it identifies a role inside a server somebody
+ * must already be in, and holding it grants nothing. That is why it sits here
+ * rather than in the environment beside the webhook URL, which *is* a
+ * credential.
+ */
+export const PLAYERS_ROLE_ID = "1547834110784045076";
+
+/**
+ * A role ping.
+ *
+ * `<@&id>` for a role, against `<@id>` for a person — and Discord silently
+ * renders the wrong one as plain text rather than complaining, so the two must
+ * not be confused. `allowed_mentions` has to name `roles` as well, or this
+ * renders as a mention that notifies nobody: see `postToDiscord`.
+ */
+export function roleMention(roleId: string = PLAYERS_ROLE_ID): string {
+  return `<@&${roleId}>`;
 }
 
 /**

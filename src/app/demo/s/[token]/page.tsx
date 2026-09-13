@@ -4,35 +4,22 @@ import { DemoBadge } from "@/components/DemoBadge";
 import { RevealDetails } from "@/components/RevealDetails";
 import { RulesSummary } from "@/components/RulesSummary";
 import { SignupSummary } from "@/components/SignupSummary";
+import { DeckDeadline } from "@/components/DeckDeadline";
 import { DemoCardTrade } from "@/components/DemoCardTrade";
 import { DemoCardWorkshop } from "@/components/DemoCardWorkshop";
 import { pickSecretCards } from "@/lib/card-pool";
-import { readDemoEvent, readDemoSelections, readDemoWorkspace } from "@/lib/demo";
+import {
+  readDemoEvent,
+  readDemoSelections,
+  readDemoWorkspace,
+  stableRandom,
+} from "@/lib/demo";
 import { findById, findByToken } from "@/lib/participants";
 
 export const metadata = {
   title: "Demo reveal page",
   robots: { index: false, follow: false },
 };
-
-/**
- * A deterministic stand-in for `Math.random`.
- *
- * The real shortlist is drawn once and stored, so it never changes for a given
- * person. The demo has nowhere to store one, so the draw is seeded from the
- * token instead — otherwise reloading a demo link would reshuffle the three
- * cards and imply they are not fixed.
- */
-function stableRandom(seed: string): () => number {
-  let state = 0;
-  for (const character of seed) {
-    state = (state * 31 + character.charCodeAt(0)) >>> 0;
-  }
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 2 ** 32;
-  };
-}
 
 export default async function DemoTokenPage({
   params,
@@ -168,6 +155,10 @@ export default async function DemoTokenPage({
       <Link className="underline" href="/commanders">
         Browse every legal commander →
       </Link>
+
+      {/* The real page says this here too; a demo that omits it teaches a
+          page that does not exist. */}
+      <DeckDeadline />
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Your decklist</h2>

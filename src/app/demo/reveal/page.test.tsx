@@ -5,8 +5,13 @@ import DemoRevealPage, { metadata } from "./page";
 import * as demoLib from "@/lib/demo";
 import { testSelfCards } from "@/test-support/cards";
 
-vi.mock("@/lib/demo", () => ({
+vi.mock("@/lib/demo", async (importOriginal) => ({
+  // `stableRandom` is real: it is pure, and the seeded draw is what makes the
+  // cards under the ring match the ones the demo's private links show.
+  ...(await importOriginal<typeof import("@/lib/demo")>()),
   readDemoEvent: vi.fn(),
+  readDemoSelections: vi.fn(() => []),
+  readDemoWorkspace: vi.fn(() => ({ decklistUrl: null, notes: "" })),
 }));
 
 describe("DemoRevealPage", () => {

@@ -2,12 +2,14 @@ import { readFile } from "node:fs/promises";
 import { getContext } from "@netlify/functions";
 import type { NudgeState } from "./nudge";
 import type { ReminderState } from "./signup-reminder";
+import type { ExchangeReminderState } from "./exchange-reminder";
 import type { EventData, Participant } from "./participants";
 
 const STORE_NAME = "secret-santa";
 const BLOB_KEY = "event.json";
 const NUDGE_KEY = "nudge.json";
 const REMINDER_KEY = "signup-reminder.json";
+const EXCHANGE_REMINDER_KEY = "exchange-reminder.json";
 
 const EMPTY: EventData = { participants: [], revealedAt: null };
 
@@ -338,6 +340,24 @@ export async function writeReminderState(state: ReminderState): Promise<void> {
   await writeSibling(REMINDER_KEY, state);
 }
 
+/**
+ * Which exchange-date reminders have already gone out.
+ *
+ * Its own key rather than sharing the sign-up reminder's: the two schedules
+ * run months apart and neither should be able to consume the other's
+ * milestones, which is exactly what one shared list of keys would allow after
+ * a careless edit.
+ */
+export async function readExchangeReminderState(): Promise<ExchangeReminderState | null> {
+  return readSibling<ExchangeReminderState>(EXCHANGE_REMINDER_KEY);
+}
+
+export async function writeExchangeReminderState(
+  state: ExchangeReminderState
+): Promise<void> {
+  await writeSibling(EXCHANGE_REMINDER_KEY, state);
+}
+
 async function readSibling<T>(key: string): Promise<T | null> {
   const mode = resolveMode();
 
@@ -396,6 +416,7 @@ export async function deleteEventData(): Promise<string[]> {
     key === BLOB_KEY ||
     key === NUDGE_KEY ||
     key === REMINDER_KEY ||
+    key === EXCHANGE_REMINDER_KEY ||
     /^event\.backup-.*\.json$/.test(key);
 
   if (mode.kind !== "local") {
