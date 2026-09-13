@@ -189,9 +189,21 @@ export function CardSelectionStudio({
           <li>
             Find them a commander &mdash; search by name, filter by colour, or
             press <strong>Roll again</strong> for a fresh handful &mdash; then
-            open the card and press <strong>Save for &hellip;</strong>. If it
-            can take a partner you are offered one; saving it on its own is
-            always fine.
+            open the card and press <strong>Save for &hellip;</strong>.
+          </li>
+          {/*
+            Its own step, because the partner offer only appears *after* you
+            have committed to a card that happens to take one. Somebody could
+            pick for the whole group and never learn pairs were an option — and
+            one of us did.
+          */}
+          <li>
+            <strong>Suggesting a pair?</strong> Press{" "}
+            <strong>Can pair</strong>, next to the colour buttons, to show only
+            commanders that take a partner or a Background. Save one and you are
+            offered its legal partners with their card art; hover a card to read
+            it. Saving a commander on its own is always fine, and a pair fills
+            one slot, not two.
           </li>
           <li>
             Change any of them as often as you like until the last person
