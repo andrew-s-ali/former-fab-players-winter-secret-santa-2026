@@ -81,7 +81,7 @@ export type ExchangeMessageInput = {
 };
 
 /** What everybody needs to have in hand on the day, in one line. */
-function theAsk(): string {
+export function theAsk(): string {
   return (
     `**What you need:** a finished **100-card Commander deck**, built around ` +
     `one of the three commanders on your private link, inside the **$${BUDGET_USD}** ` +

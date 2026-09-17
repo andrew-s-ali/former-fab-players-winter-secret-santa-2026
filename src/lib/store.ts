@@ -3,6 +3,7 @@ import { getContext } from "@netlify/functions";
 import type { NudgeState } from "./nudge";
 import type { ReminderState } from "./signup-reminder";
 import type { ExchangeReminderState } from "./exchange-reminder";
+import type { UnlockState } from "./unlock";
 import type { EventData, Participant } from "./participants";
 
 const STORE_NAME = "secret-santa";
@@ -10,6 +11,7 @@ const BLOB_KEY = "event.json";
 const NUDGE_KEY = "nudge.json";
 const REMINDER_KEY = "signup-reminder.json";
 const EXCHANGE_REMINDER_KEY = "exchange-reminder.json";
+const UNLOCK_KEY = "unlock-announced.json";
 
 const EMPTY: EventData = { participants: [], revealedAt: null };
 
@@ -358,6 +360,20 @@ export async function writeExchangeReminderState(
   await writeSibling(EXCHANGE_REMINDER_KEY, state);
 }
 
+/**
+ * Whether the group has been told the assignments are open.
+ *
+ * Said once per event: both the last pick and the nightly nudge try to say it,
+ * and this is what keeps the second one quiet.
+ */
+export async function readUnlockState(): Promise<UnlockState | null> {
+  return readSibling<UnlockState>(UNLOCK_KEY);
+}
+
+export async function writeUnlockState(state: UnlockState): Promise<void> {
+  await writeSibling(UNLOCK_KEY, state);
+}
+
 async function readSibling<T>(key: string): Promise<T | null> {
   const mode = resolveMode();
 
@@ -417,6 +433,7 @@ export async function deleteEventData(): Promise<string[]> {
     key === NUDGE_KEY ||
     key === REMINDER_KEY ||
     key === EXCHANGE_REMINDER_KEY ||
+    key === UNLOCK_KEY ||
     /^event\.backup-.*\.json$/.test(key);
 
   if (mode.kind !== "local") {
