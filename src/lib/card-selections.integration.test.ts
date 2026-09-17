@@ -75,6 +75,37 @@ describe("card selections, against a real database", () => {
     expect(workspace.peerCards).toEqual({ b: null, c: null, d: null });
   });
 
+  // The save that fills the last slot is the one that announces the unlock,
+  // so exactly one save may say so — not the ones before, and not a repeat.
+  it("reports completion on the last pick only", async () => {
+    const reports: boolean[] = [];
+    for (const selector of people) {
+      for (const recipient of people) {
+        if (selector.id === recipient.id) continue;
+        const { completed } = await saveSelection({
+          selector,
+          recipient,
+          participants: people,
+          card: card(`${selector.id}-for-${recipient.id}`),
+        });
+        reports.push(completed);
+      }
+    }
+
+    expect(reports.filter(Boolean)).toHaveLength(1);
+    expect(reports.at(-1)).toBe(true);
+  });
+
+  it("does not report completion for a re-save of an existing pick", async () => {
+    const { completed } = await saveSelection({
+      selector: by("a"),
+      recipient: by("b"),
+      participants: people,
+      card: card("for-b"),
+    });
+    expect(completed).toBe(false);
+  });
+
   it("saves a pick and reads it back for that recipient only", async () => {
     await saveSelection({
       selector: by("a"),

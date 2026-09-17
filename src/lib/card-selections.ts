@@ -101,7 +101,7 @@ export async function saveSelection({
   recipient: Participant;
   participants: Participant[];
   card: CommanderPick;
-}): Promise<void> {
+}): Promise<{ completed: boolean }> {
   if (selector.id === recipient.id) {
     throw new Error(
       "Your own two cards were chosen at sign-up and cannot be changed here."
@@ -109,7 +109,7 @@ export async function saveSelection({
   }
 
   const db = getDb();
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     await tx.execute(
       sql`select pg_advisory_xact_lock(hashtext('secret-santa-card-selections'))`
     );
@@ -137,7 +137,7 @@ export async function saveSelection({
       (row) => row.selectorId === selector.id && row.recipientId === recipient.id
     );
     if (current && pickId(current.card) === pickId(card)) {
-      return;
+      return { completed: false };
     }
 
     await tx
@@ -152,6 +152,14 @@ export async function saveSelection({
         target: [cardSelections.selectorId, cardSelections.recipientId],
         set: { card, updatedAt: new Date() },
       });
+
+    // Whether this save was the last pick. Worked out here, inside the lock,
+    // so exactly one save can ever report it.
+    const after = [
+      ...rows.filter((row) => row !== current),
+      { selectorId: selector.id, recipientId: recipient.id, card },
+    ];
+    return { completed: selectionsAreReady(after, participants) };
   });
 }
 

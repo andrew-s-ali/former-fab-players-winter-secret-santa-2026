@@ -1,5 +1,6 @@
 import type { Config } from "@netlify/functions";
 import { runNudge } from "#lib/nudge-run";
+import { runUnlockAnnouncement } from "#lib/unlock-run";
 
 /**
  * Posts a nudge to Discord when somebody still owes card picks.
@@ -29,6 +30,13 @@ const nudge = async () => {
       `waiting on ${result.status.outstanding.length}. ` +
       `${result.posted ? "Posted." : "Did not post."} ${result.reason}`
   );
+
+  // The fallback for the assignments-open announcement, which normally goes
+  // out from the save of the last pick. A no-op once it has been said.
+  if (result.status.complete) {
+    const unlock = await runUnlockAnnouncement();
+    console.log(`Unlock announcement: ${unlock.reason}`);
+  }
 };
 
 export default nudge;

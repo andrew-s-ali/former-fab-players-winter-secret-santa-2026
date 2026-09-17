@@ -24,6 +24,7 @@
     "nudge": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/nudge.ts",
     "remind": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/remind.ts",
     "remind-exchange": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/remind-exchange.ts",
+    "unlock": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/unlock.ts",
     "restore": "node --env-file-if-exists=.env.operator --experimental-strip-types scripts/restore.ts",
     "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts"
   },

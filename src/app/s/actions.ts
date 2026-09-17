@@ -42,6 +42,26 @@ async function run(
   }
 }
 
+/**
+ * Tells the channel the links are open, on the save that opened them.
+ *
+ * Never allowed to fail the save: the pick is already committed, and the
+ * nightly nudge retries the announcement if this attempt did not land.
+ */
+async function announceUnlock(): Promise<void> {
+  try {
+    const { runUnlockAnnouncement } = await import("#lib/unlock-run");
+    const result = await runUnlockAnnouncement();
+    console.log(`Unlock announcement: ${result.reason}`);
+  } catch (error) {
+    console.error(
+      "Could not announce that the links are open " +
+        `(${error instanceof Error ? error.message : String(error)}); ` +
+        "the nightly nudge will retry."
+    );
+  }
+}
+
 async function requireParticipant(token: string) {
   const event = await readEvent();
   const participant = findByToken(event, token);
@@ -101,12 +121,15 @@ export async function saveCardAction(
       );
     }
 
-    await saveSelection({
+    const { completed } = await saveSelection({
       selector: participant,
       recipient,
       participants: event.participants,
       card: pick,
     });
+    if (completed) {
+      await announceUnlock();
+    }
     return `${pickName(pick)} was saved for ${recipient.name}.`;
   });
 }
